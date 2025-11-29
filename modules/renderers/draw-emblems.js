@@ -1,6 +1,9 @@
 "use strict";
 
-function drawEmblems() {
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {TIME} from "../../src/core/state.js";
+
+export function drawEmblems() {
   TIME && console.time("drawEmblems");
   const {states, provinces, burgs} = pack;
 
@@ -117,7 +120,7 @@ const getDataAndType = id => {
   throw new Error(`Unknown emblem type: ${id}`);
 };
 
-async function renderGroupCOAs(g) {
+export async function renderGroupCOAs(g) {
   const [data, type] = getDataAndType(g.id);
 
   for (let use of g.children) {
@@ -126,4 +129,9 @@ async function renderGroupCOAs(g) {
     COArenderer.trigger(id, data[i].coa);
     use.setAttribute("href", "#" + id);
   }
+}
+
+if (typeof window !== "undefined") {
+  window.drawEmblems = drawEmblems;
+  window.renderGroupCOAs = renderGroupCOAs;
 }

@@ -1,15 +1,22 @@
 "use strict";
 
-window.Features = (function () {
-  const DEEPER_LAND = 3;
-  const LANDLOCKED = 2;
-  const LAND_COAST = 1;
-  const UNMARKED = 0;
-  const WATER_COAST = -1;
-  const DEEP_WATER = -2;
+import {rn} from "../utils/numberUtils.js";
+import {unique, createTypedArray} from "../utils/arrayUtils.js";
+import {clipPoly} from "../utils/commonUtils.js";
+import {connectVertices} from "../utils/pathUtils.js";
+import {dist2} from "../utils/functionUtils.js";
+import {isLand, isWater} from "../utils/graphUtils.js";
+import {TIME, INT8_MAX} from "../src/core/state.js";
 
-  // calculate distance to coast for every cell
-  function markup({distanceField, neighbors, start, increment, limit = INT8_MAX}) {
+const DEEPER_LAND = 3;
+const LANDLOCKED = 2;
+const LAND_COAST = 1;
+const UNMARKED = 0;
+const WATER_COAST = -1;
+const DEEP_WATER = -2;
+
+// calculate distance to coast for every cell
+function markup({distanceField, neighbors, start, increment, limit = INT8_MAX}) {
     for (let distance = start, marked = Infinity; marked > 0 && distance !== limit; distance += increment) {
       marked = 0;
       const prevDistance = distance - increment;
@@ -23,10 +30,10 @@ window.Features = (function () {
         }
       }
     }
-  }
+}
 
-  // mark Grid features (ocean, lakes, islands) and calculate distance field
-  function markupGrid() {
+// mark Grid features (ocean, lakes, islands) and calculate distance field
+function markupGrid() {
     TIME && console.time("markupGrid");
     Math.random = aleaPRNG(seed); // get the same result on heightmap edit in Erase mode
 
@@ -75,10 +82,10 @@ window.Features = (function () {
     grid.features = features;
 
     TIME && console.timeEnd("markupGrid");
-  }
+}
 
-  // mark Pack features (ocean, lakes, islands), calculate distance field and add properties
-  function markupPack() {
+// mark Pack features (ocean, lakes, islands), calculate distance field and add properties
+function markupPack() {
     TIME && console.time("markupPack");
 
     const {cells, vertices} = pack;
@@ -210,10 +217,10 @@ window.Features = (function () {
         }
       }
     }
-  }
+}
 
-  // add properties to pack features
-  function specify() {
+// add properties to pack features
+function specify() {
     const gridCellsNumber = grid.cells.i.length;
     const OCEAN_MIN_SIZE = gridCellsNumber / 25;
     const SEA_MIN_SIZE = gridCellsNumber / 1000;
@@ -265,7 +272,11 @@ window.Features = (function () {
 
       return "freshwater";
     }
-  }
+}
 
-  return {markupGrid, markupPack, specify};
-})();
+export const Features = {markupGrid, markupPack, specify};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Features = Features;
+}

@@ -1,7 +1,11 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {ERROR, WARN} from "../../src/core/state.js";
+
 // functions to save the project to a file
-async function saveMap(method) {
+export async function saveMap(method) {
   if (customization) return tip("Map cannot be saved in EDIT mode, please complete the edit and retry", false, "error");
   closeDialogs("#alert");
 
@@ -37,7 +41,7 @@ async function saveMap(method) {
   }
 }
 
-function prepareMapData() {
+export function prepareMapData() {
   const date = new Date();
   const dateString = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
   const license = "File can be loaded in azgaar.github.io/Fantasy-Map-Generator";
@@ -161,14 +165,14 @@ function prepareMapData() {
 }
 
 // save map file to indexedDB
-async function saveToStorage(mapData, showTip = false) {
+export async function saveToStorage(mapData, showTip = false) {
   const blob = new Blob([mapData], {type: "text/plain"});
   await ldb.set("lastMap", blob);
   showTip && tip("Map is saved to the browser storage", false, "success");
 }
 
 // download map file
-function saveToMachine(mapData, filename) {
+export function saveToMachine(mapData, filename) {
   const blob = new Blob([mapData], {type: "text/plain"});
   const URL = window.URL.createObjectURL(blob);
 
@@ -181,12 +185,12 @@ function saveToMachine(mapData, filename) {
   window.URL.revokeObjectURL(URL);
 }
 
-async function saveToDropbox(mapData, filename) {
+export async function saveToDropbox(mapData, filename) {
   await Cloud.providers.dropbox.save(filename, mapData);
   tip("Map is saved to your Dropbox", true, "success", 8000);
 }
 
-async function initiateAutosave() {
+export async function initiateAutosave() {
   const MINUTE = 60000; // munite in milliseconds
   let lastSavedAt = Date.now();
 
@@ -214,7 +218,7 @@ async function initiateAutosave() {
 }
 
 // TODO: unused code
-async function compressData(uncompressedData) {
+export async function compressData(uncompressedData) {
   const compressedStream = new Blob([uncompressedData]).stream().pipeThrough(new CompressionStream("gzip"));
 
   let compressedData = [];
@@ -247,7 +251,7 @@ const saveReminder = function () {
 };
 saveReminder();
 
-function toggleSaveReminder() {
+export function toggleSaveReminder() {
   if (saveReminder.status) {
     tip("Save reminder is turned off. Press CTRL+Q again to re-initiate", true, "warn", 2000);
     clearInterval(saveReminder.reminder);
@@ -258,4 +262,15 @@ function toggleSaveReminder() {
     localStorage.removeItem("noReminder");
     saveReminder();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.saveMap = saveMap;
+  window.prepareMapData = prepareMapData;
+  window.saveToStorage = saveToStorage;
+  window.saveToMachine = saveToMachine;
+  window.saveToDropbox = saveToDropbox;
+  window.initiateAutosave = initiateAutosave;
+  window.compressData = compressData;
+  window.toggleSaveReminder = toggleSaveReminder;
 }

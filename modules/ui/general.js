@@ -1,6 +1,13 @@
 "use strict";
 // Module to store generic UI functions
 
+import {rn} from "../../utils/numberUtils.js";
+import {si, convertTemperature} from "../../utils/unitUtils.js";
+import {getComposedPath} from "../../utils/nodeUtils.js";
+import {findCell, findGridCell} from "../../utils/graphUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {link, debounce} from "../../utils/commonUtils.js";
+
 window.addEventListener("resize", function (e) {
   if (stored("mapWidth") && stored("mapHeight")) return;
   mapWidthInput.value = window.innerWidth;
@@ -575,4 +582,73 @@ function showInfo() {
     },
     position: {my: "center", at: "center", of: "svg"}
   });
+}
+
+// ES Module exports
+export {
+  tip,
+  showMainTip,
+  clearMainTip,
+  showDataTip,
+  showElementLockTip,
+  onMouseMove,
+  showNotes,
+  showMapTooltip,
+  highlightEditorLine,
+  updateCellInfo,
+  getGeozone,
+  toDMS,
+  getElevation,
+  getDepth,
+  getFriendlyHeight,
+  getHeight,
+  getPrecipitation,
+  getFriendlyPrecipitation,
+  getRiverInfo,
+  getCellPopulation,
+  getFriendlyPopulation,
+  getPopulationTip,
+  highlightEmblemElement,
+  lock,
+  unlock,
+  locked,
+  stored,
+  store,
+  speak,
+  applyOption,
+  showInfo
+};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.tip = tip;
+  window.showMainTip = showMainTip;
+  window.clearMainTip = clearMainTip;
+  window.showDataTip = showDataTip;
+  window.showElementLockTip = showElementLockTip;
+  window.onMouseMove = onMouseMove;
+  window.showNotes = showNotes;
+  window.showMapTooltip = showMapTooltip;
+  window.highlightEditorLine = highlightEditorLine;
+  window.updateCellInfo = updateCellInfo;
+  window.getGeozone = getGeozone;
+  window.toDMS = toDMS;
+  window.getElevation = getElevation;
+  window.getDepth = getDepth;
+  window.getFriendlyHeight = getFriendlyHeight;
+  window.getHeight = getHeight;
+  window.getPrecipitation = getPrecipitation;
+  window.getFriendlyPrecipitation = getFriendlyPrecipitation;
+  window.getRiverInfo = getRiverInfo;
+  window.getCellPopulation = getCellPopulation;
+  window.getFriendlyPopulation = getFriendlyPopulation;
+  window.getPopulationTip = getPopulationTip;
+  window.highlightEmblemElement = highlightEmblemElement;
+  window.lock = lock;
+  window.unlock = unlock;
+  window.stored = stored;
+  window.store = store;
+  window.speak = speak;
+  window.applyOption = applyOption;
+  window.showInfo = showInfo;
 }

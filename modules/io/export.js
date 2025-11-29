@@ -1,7 +1,11 @@
 "use strict";
-// Functions to export map to image or data files
 
-async function exportToSvg() {
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {TIME, ERROR} from "../../src/core/state.js";
+
+// Functions to export map to image or data files
+export async function exportToSvg() {
   TIME && console.time("exportToSvg");
   const url = await getMapURL("svg", {fullMap: true});
   const link = document.createElement("a");
@@ -14,7 +18,7 @@ async function exportToSvg() {
   TIME && console.timeEnd("exportToSvg");
 }
 
-async function exportToPng() {
+export async function exportToPng() {
   TIME && console.time("exportToPng");
   const url = await getMapURL("png");
 
@@ -45,7 +49,7 @@ async function exportToPng() {
   TIME && console.timeEnd("exportToPng");
 }
 
-async function exportToJpeg() {
+export async function exportToJpeg() {
   TIME && console.time("exportToJpeg");
   const url = await getMapURL("png");
 
@@ -70,7 +74,7 @@ async function exportToJpeg() {
   TIME && console.timeEnd("exportToJpeg");
 }
 
-async function exportToPngTiles() {
+export async function exportToPngTiles() {
   const status = byId("tileStatus");
   status.innerHTML = "Preparing files...";
 
@@ -168,7 +172,7 @@ async function exportToPngTiles() {
 }
 
 // parse map svg to object url
-async function getMapURL(type, options) {
+export async function getMapURL(type, options) {
   const {
     debug = false,
     noLabels = false,
@@ -413,7 +417,7 @@ async function getMapURL(type, options) {
 }
 
 // remove hidden g elements and g elements without children to make downloaded svg smaller in size
-function removeUnusedElements(clone) {
+export function removeUnusedElements(clone) {
   if (!terrain.selectAll("use").size()) clone.select("#defs-relief")?.remove();
 
   for (let empty = 1; empty; ) {
@@ -428,7 +432,7 @@ function removeUnusedElements(clone) {
   }
 }
 
-function updateMeshCells(clone) {
+export function updateMeshCells(clone) {
   const data = renderOcean.checked ? grid.cells.i : grid.cells.i.filter(i => grid.cells.h[i] >= 20);
   const scheme = getColorScheme(terrs.select("#landHeights").attr("scheme"));
   clone.select("#heights").attr("filter", "url(#blur1)");
@@ -443,7 +447,7 @@ function updateMeshCells(clone) {
 }
 
 // for each g element get inline style
-function inlineStyle(clone) {
+export function inlineStyle(clone) {
   const emptyG = clone.append("g").node();
   const defaultStyles = window.getComputedStyle(emptyG);
 
@@ -476,7 +480,7 @@ function inlineStyle(clone) {
   emptyG.remove();
 }
 
-function saveGeoJsonCells() {
+export function saveGeoJsonCells() {
   const {cells, vertices} = pack;
   const json = {type: "FeatureCollection", features: []};
 
@@ -516,7 +520,7 @@ function saveGeoJsonCells() {
   downloadFile(JSON.stringify(json), fileName, "application/json");
 }
 
-function saveGeoJsonRoutes() {
+export function saveGeoJsonRoutes() {
   const features = pack.routes.map(({i, points, group, name = null}) => {
     const coordinates = points.map(([x, y]) => getCoordinates(x, y, 4));
     return {
@@ -531,7 +535,7 @@ function saveGeoJsonRoutes() {
   downloadFile(JSON.stringify(json), fileName, "application/json");
 }
 
-function saveGeoJsonRivers() {
+export function saveGeoJsonRivers() {
   const features = pack.rivers.map(
     ({i, cells, points, source, mouth, parent, basin, widthFactor, sourceWidth, discharge, name, type}) => {
       if (!cells || cells.length < 2) return;
@@ -550,7 +554,7 @@ function saveGeoJsonRivers() {
   downloadFile(JSON.stringify(json), fileName, "application/json");
 }
 
-function saveGeoJsonMarkers() {
+export function saveGeoJsonMarkers() {
   const features = pack.markers.map(marker => {
     const {i, type, icon, x, y, size, fill, stroke} = marker;
     const coordinates = getCoordinates(x, y, 4);
@@ -563,4 +567,16 @@ function saveGeoJsonMarkers() {
 
   const fileName = getFileName("Markers") + ".geojson";
   downloadFile(JSON.stringify(json), fileName, "application/json");
+}
+
+if (typeof window !== "undefined") {
+  window.exportToSvg = exportToSvg;
+  window.exportToPng = exportToPng;
+  window.exportToJpeg = exportToJpeg;
+  window.exportToPngTiles = exportToPngTiles;
+  window.getMapURL = getMapURL;
+  window.saveGeoJsonCells = saveGeoJsonCells;
+  window.saveGeoJsonRoutes = saveGeoJsonRoutes;
+  window.saveGeoJsonRivers = saveGeoJsonRivers;
+  window.saveGeoJsonMarkers = saveGeoJsonMarkers;
 }

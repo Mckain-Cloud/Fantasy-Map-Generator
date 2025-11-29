@@ -1,7 +1,9 @@
 "use strict";
 
-window.COA = (function () {
-  const tinctures = {
+import {P, rw} from "../utils/probabilityUtils.js";
+import {ERROR} from "../src/core/state.js";
+
+const tinctures = {
     field: {metals: 3, colours: 4, stains: +P(0.03), patterns: 1},
     division: {metals: 5, colours: 8, stains: +P(0.03), patterns: 1},
     charge: {metals: 2, colours: 3, stains: +P(0.05), patterns: 0},
@@ -2207,5 +2209,8 @@ window.COA = (function () {
   const toString = coa => JSON.stringify(coa).replaceAll("#", "%23");
   const copy = coa => JSON.parse(JSON.stringify(coa));
 
-  return {generate, toString, copy, getShield, shields};
-})();
+export const COA = {generate, toString, copy, getShield, shields};
+
+if (typeof window !== "undefined") {
+  window.COA = COA;
+}

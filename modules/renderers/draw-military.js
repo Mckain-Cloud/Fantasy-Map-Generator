@@ -1,6 +1,9 @@
 "use strict";
 
-function drawMilitary() {
+import {rn} from "../../utils/numberUtils.js";
+import {TIME} from "../../src/core/state.js";
+
+export function drawMilitary() {
   TIME && console.time("drawMilitary");
 
   armies.selectAll("g").remove();
@@ -9,7 +12,7 @@ function drawMilitary() {
   TIME && console.timeEnd("drawMilitary");
 }
 
-const drawRegiments = function (regiments, s) {
+export const drawRegiments = function (regiments, s) {
   const size = +armies.attr("box-size");
   const w = d => (d.n ? size * 4 : size * 6);
   const h = size * 2;
@@ -66,7 +69,7 @@ const drawRegiments = function (regiments, s) {
     .attr("href", d => (d.icon.startsWith("http") || d.icon.startsWith("data:image") ? d.icon : ""));
 };
 
-const drawRegiment = function (reg, stateId) {
+export const drawRegiment = function (reg, stateId) {
   const size = +armies.attr("box-size");
   const w = reg.n ? size * 4 : size * 6;
   const h = size * 2;
@@ -120,7 +123,7 @@ const drawRegiment = function (reg, stateId) {
 };
 
 // move one regiment to another
-const moveRegiment = function (reg, x, y) {
+export const moveRegiment = function (reg, x, y) {
   const el = armies.select("g#army" + reg.state).select("g#regiment" + reg.state + "-" + reg.i);
   if (!el.size()) return;
 
@@ -153,3 +156,10 @@ const moveRegiment = function (reg, x, y) {
     .attr("height", "6")
     .attr("width", "6");
 };
+
+if (typeof window !== "undefined") {
+  window.drawMilitary = drawMilitary;
+  window.drawRegiments = drawRegiments;
+  window.drawRegiment = drawRegiment;
+  window.moveRegiment = moveRegiment;
+}

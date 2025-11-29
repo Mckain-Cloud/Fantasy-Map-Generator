@@ -1,5 +1,7 @@
 "use strict";
 
+import {byId} from "../../utils/shorthands.js";
+
 // module to control the Tools options (click to edit, to re-geenerate, tp add)
 
 toolsContent.addEventListener("click", function (event) {
@@ -966,4 +968,20 @@ function viewCellDetails() {
 async function overviewCharts() {
   const Overview = await import("../dynamic/overview/charts-overview.js?v=1.99.00");
   Overview.open();
+}
+
+// ES Module exports
+export {
+  processFeatureRegeneration,
+  viewCellDetails,
+  overviewCharts,
+  openEmblemEditor
+};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.processFeatureRegeneration = processFeatureRegeneration;
+  window.viewCellDetails = viewCellDetails;
+  window.overviewCharts = overviewCharts;
+  window.openEmblemEditor = openEmblemEditor;
 }

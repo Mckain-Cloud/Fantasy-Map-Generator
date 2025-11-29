@@ -1,4 +1,7 @@
 "use strict";
+
+import {byId} from "../../utils/shorthands.js";
+
 function editDiplomacy() {
   if (customization) return;
   if (pack.states.filter(s => s.i && !s.removed).length < 2)
@@ -489,4 +492,8 @@ function editDiplomacy() {
     else toggleStates();
     debug.selectAll(".highlight").remove();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editDiplomacy = editDiplomacy;
 }

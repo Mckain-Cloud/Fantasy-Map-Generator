@@ -1,8 +1,15 @@
 "use strict";
 
-window.BurgsAndStates = (() => {
-  const generate = () => {
-    const {cells, cultures} = pack;
+import {rn, minmax} from "../utils/numberUtils.js";
+import {each, gauss, P, ra, rand, rw} from "../utils/probabilityUtils.js";
+import {getColors, getRandomColor, getMixedColor} from "../utils/colorUtils.js";
+import {getAdjective, trimVowels} from "../utils/languageUtils.js";
+import {byId} from "../utils/shorthands.js";
+import {getPolesOfInaccessibility} from "../utils/pathUtils.js";
+import {TIME, WARN, ERROR} from "../src/core/state.js";
+
+const generate = () => {
+  const {cells, cultures} = pack;
     const n = cells.i.length;
 
     cells.burg = new Uint16Array(n); // cell burg
@@ -865,22 +872,25 @@ window.BurgsAndStates = (() => {
     return adjName ? `${getAdjective(state.name)} ${state.formName}` : `${state.formName} of ${state.name}`;
   };
 
-  return {
-    generate,
-    expandStates,
-    normalizeStates,
-    getPoles,
-    assignColors,
-    specifyBurgs,
-    defineBurgFeatures,
-    getType,
-    collectStatistics,
-    generateCampaign,
-    generateCampaigns,
-    generateDiplomacy,
-    defineStateForms,
-    getFullName,
-    updateCultures,
-    getCloseToEdgePoint
-  };
-})();
+export const BurgsAndStates = {
+  generate,
+  expandStates,
+  normalizeStates,
+  getPoles,
+  assignColors,
+  specifyBurgs,
+  defineBurgFeatures,
+  getType,
+  collectStatistics,
+  generateCampaign,
+  generateCampaigns,
+  generateDiplomacy,
+  defineStateForms,
+  getFullName,
+  updateCultures,
+  getCloseToEdgePoint
+};
+
+if (typeof window !== "undefined") {
+  window.BurgsAndStates = BurgsAndStates;
+}

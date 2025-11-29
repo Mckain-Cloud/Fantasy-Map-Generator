@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editBiomes() {
   if (customization) return;
   closeDialogs("#biomesEditor, .stable");
@@ -474,4 +479,8 @@ function editBiomes() {
   function closeBiomesEditor() {
     exitBiomesCustomizationMode("close");
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editBiomes = editBiomes;
 }

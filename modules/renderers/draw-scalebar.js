@@ -1,6 +1,8 @@
 "use strict";
 
-function drawScaleBar(scaleBar, scaleLevel) {
+import {rn} from "../../utils/numberUtils.js";
+
+export function drawScaleBar(scaleBar, scaleLevel) {
   if (!scaleBar.size() || scaleBar.style("display") === "none") return;
 
   const unit = distanceUnitInput.value;
@@ -77,7 +79,7 @@ function drawScaleBar(scaleBar, scaleLevel) {
   }
 }
 
-function getLength(scaleLevel) {
+export function getLength(scaleLevel) {
   const init = 100;
 
   const size = +scaleBar.attr("data-bar-size");
@@ -90,7 +92,7 @@ function getLength(scaleLevel) {
   return length;
 }
 
-function fitScaleBar(scaleBar, fullWidth, fullHeight) {
+export function fitScaleBar(scaleBar, fullWidth, fullHeight) {
   if (!scaleBar.select("rect").size() || scaleBar.style("display") === "none") return;
 
   const posX = +scaleBar.attr("data-x") || 99;
@@ -100,4 +102,9 @@ function fitScaleBar(scaleBar, fullWidth, fullHeight) {
   const x = rn((fullWidth * posX) / 100 - bbox.width + 10);
   const y = rn((fullHeight * posY) / 100 - bbox.height + 20);
   scaleBar.attr("transform", `translate(${x},${y})`);
+}
+
+if (typeof window !== "undefined") {
+  window.drawScaleBar = drawScaleBar;
+  window.fitScaleBar = fitScaleBar;
 }

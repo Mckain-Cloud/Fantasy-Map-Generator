@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editBurg(id) {
   if (customization) return;
   closeDialogs(".stable");
@@ -574,4 +579,8 @@ function getTemperatureLikeness(temperature) {
   if (temperature < -5) return "Yakutsk (Russia)";
   if (temperature > 30) return "Mecca (Saudi Arabia)";
   return meanTempCityMap[temperature] || null;
+}
+
+if (typeof window !== "undefined") {
+  window.editBurg = editBurg;
 }

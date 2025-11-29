@@ -1,6 +1,14 @@
 // UI module to control the options (preferences)
 "use strict";
 
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {gauss, P, rand, rw} from "../../utils/probabilityUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {last} from "../../utils/arrayUtils.js";
+import {heightmapTemplates} from "../../config/heightmap-templates.js";
+import {precreatedHeightmaps} from "../../config/precreated-heightmaps.js";
+import {stored, clearMainTip, locked, lock, unlock} from "./general.js";
+
 $("#optionsContainer").draggable({handle: ".drag-trigger", snap: "svg", snapMode: "both"});
 $("#exitCustomization").draggable({handle: "div"});
 $("#mapLayers").disableSelection();
@@ -1133,4 +1141,126 @@ function toggle3dOptions() {
   function changeResolution() {
     ThreeD.setResolution(this.value);
   }
+}
+
+// ES Module exports
+export {
+  showOptions,
+  hideOptions,
+  toggleOptions,
+  showSupporters,
+  storeValueIfRequired,
+  updateOutputToFollowInput,
+  mapSizeInputChange,
+  restoreDefaultCanvasSize,
+  applyGraphSize,
+  fitMapToScreen,
+  toggleTranslateExtent,
+  testSpeaker,
+  generateMapWithSeed,
+  showSeedHistoryDialog,
+  restoreSeed,
+  copyMapURL,
+  changeCellsDensity,
+  getCellsDensityColor,
+  changeCultureSet,
+  changeEmblemShape,
+  changeStatesNumber,
+  changeUiSize,
+  getUImaxSize,
+  changeTooltipSize,
+  restoreDefaultThemeColor,
+  changeThemeHue,
+  changeDialogsTheme,
+  loadGoogleTranslate,
+  initGoogleTranslate,
+  resetLanguage,
+  changeZoomExtent,
+  restoreDefaultZoomExtent,
+  applyStoredOptions,
+  randomizeOptions,
+  randomizeHeightmapTemplate,
+  randomizeCultureSet,
+  setRendering,
+  generateEra,
+  regenerateEra,
+  changeYear,
+  changeEra,
+  openTemplateSelectionDialog,
+  regeneratePrompt,
+  showSavePane,
+  copyLinkToClickboard,
+  showExportPane,
+  exportToJson,
+  showLoadPane,
+  connectToDropbox,
+  loadURL,
+  openExportToPngTiles,
+  updateTilesOptions,
+  changeViewMode,
+  enterStandardView,
+  enter3dView,
+  resize3d,
+  toggle3dOptions
+};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.showOptions = showOptions;
+  window.hideOptions = hideOptions;
+  window.toggleOptions = toggleOptions;
+  window.showSupporters = showSupporters;
+  window.storeValueIfRequired = storeValueIfRequired;
+  window.updateOutputToFollowInput = updateOutputToFollowInput;
+  window.mapSizeInputChange = mapSizeInputChange;
+  window.restoreDefaultCanvasSize = restoreDefaultCanvasSize;
+  window.applyGraphSize = applyGraphSize;
+  window.fitMapToScreen = fitMapToScreen;
+  window.toggleTranslateExtent = toggleTranslateExtent;
+  window.testSpeaker = testSpeaker;
+  window.generateMapWithSeed = generateMapWithSeed;
+  window.showSeedHistoryDialog = showSeedHistoryDialog;
+  window.restoreSeed = restoreSeed;
+  window.copyMapURL = copyMapURL;
+  window.changeCellsDensity = changeCellsDensity;
+  window.getCellsDensityColor = getCellsDensityColor;
+  window.changeCultureSet = changeCultureSet;
+  window.changeEmblemShape = changeEmblemShape;
+  window.changeStatesNumber = changeStatesNumber;
+  window.changeUiSize = changeUiSize;
+  window.getUImaxSize = getUImaxSize;
+  window.changeTooltipSize = changeTooltipSize;
+  window.restoreDefaultThemeColor = restoreDefaultThemeColor;
+  window.changeThemeHue = changeThemeHue;
+  window.changeDialogsTheme = changeDialogsTheme;
+  window.loadGoogleTranslate = loadGoogleTranslate;
+  window.initGoogleTranslate = initGoogleTranslate;
+  window.resetLanguage = resetLanguage;
+  window.changeZoomExtent = changeZoomExtent;
+  window.restoreDefaultZoomExtent = restoreDefaultZoomExtent;
+  window.applyStoredOptions = applyStoredOptions;
+  window.randomizeOptions = randomizeOptions;
+  window.randomizeHeightmapTemplate = randomizeHeightmapTemplate;
+  window.randomizeCultureSet = randomizeCultureSet;
+  window.setRendering = setRendering;
+  window.generateEra = generateEra;
+  window.regenerateEra = regenerateEra;
+  window.changeYear = changeYear;
+  window.changeEra = changeEra;
+  window.openTemplateSelectionDialog = openTemplateSelectionDialog;
+  window.regeneratePrompt = regeneratePrompt;
+  window.showSavePane = showSavePane;
+  window.copyLinkToClickboard = copyLinkToClickboard;
+  window.showExportPane = showExportPane;
+  window.exportToJson = exportToJson;
+  window.showLoadPane = showLoadPane;
+  window.connectToDropbox = connectToDropbox;
+  window.loadURL = loadURL;
+  window.openExportToPngTiles = openExportToPngTiles;
+  window.updateTilesOptions = updateTilesOptions;
+  window.changeViewMode = changeViewMode;
+  window.enterStandardView = enterStandardView;
+  window.enter3dView = enter3dView;
+  window.resize3d = resize3d;
+  window.toggle3dOptions = toggle3dOptions;
 }

@@ -1,4 +1,8 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editLabel() {
   if (customization) return;
   closeDialogs();
@@ -410,4 +414,8 @@ function editLabel() {
     debug.select("#controlPoints").remove();
     unselect();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editLabel = editLabel;
 }

@@ -1,7 +1,10 @@
 "use strict";
 
-window.Names = (function () {
-  let chains = [];
+import {ra} from "../utils/probabilityUtils.js";
+import {ERROR, WARN} from "../src/core/state.js";
+import {locked, unlock, tip} from "./ui/general.js";
+
+let chains = [];
 
   // calculate Markov chain for a namesbase
   const calculateChain = function (string) {
@@ -313,16 +316,19 @@ window.Names = (function () {
     ];
   };
 
-  return {
-    getBase,
-    getCulture,
-    getCultureShort,
-    getBaseShort,
-    getState,
-    updateChain,
-    clearChains,
-    getNameBases,
-    getMapName,
-    calculateChain
-  };
-})();
+export const Names = {
+  getBase,
+  getCulture,
+  getCultureShort,
+  getBaseShort,
+  getState,
+  updateChain,
+  clearChains,
+  getNameBases,
+  getMapName,
+  calculateChain
+};
+
+if (typeof window !== "undefined") {
+  window.Names = Names;
+}

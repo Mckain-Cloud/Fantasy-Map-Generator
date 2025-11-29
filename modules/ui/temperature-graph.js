@@ -1,5 +1,9 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {round} from "../../utils/stringUtils.js";
+import {convertTemperature} from "../../utils/unitUtils.js";
+
 function showBurgTemperatureGraph(id) {
   const b = pack.burgs[id];
   const lat = mapCoordinates.latN - (b.y / graphHeight) * mapCoordinates.latT;
@@ -213,4 +217,8 @@ function showBurgTemperatureGraph(id) {
       tip(`Average ${type} temperature in ${month}: ${temp}`);
     }
   }
+}
+
+if (typeof window !== "undefined") {
+  window.showBurgTemperatureGraph = showBurgTemperatureGraph;
 }

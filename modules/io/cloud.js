@@ -14,11 +14,10 @@ async getLink(filePath): get shareable link for file
 restore(): restore access tokens from storage if possible
 */
 
-window.Cloud = (function () {
-  // helpers to use in providers for token handling
-  const lSKey = x => `auth-${x}`;
-  const setToken = (prov, key) => localStorage.setItem(lSKey(prov), key);
-  const getToken = prov => localStorage.getItem(lSKey(prov));
+// helpers to use in providers for token handling
+const lSKey = x => `auth-${x}`;
+const setToken = (prov, key) => localStorage.setItem(lSKey(prov), key);
+const getToken = prov => localStorage.getItem(lSKey(prov));
 
   /**********************************************************/
   /* Dropbox provider                                       */
@@ -136,6 +135,10 @@ window.Cloud = (function () {
     }
   };
 
-  const providers = {dropbox: DBP};
-  return {providers};
-})();
+const providers = {dropbox: DBP};
+
+export const Cloud = {providers};
+
+if (typeof window !== "undefined") {
+  window.Cloud = Cloud;
+}

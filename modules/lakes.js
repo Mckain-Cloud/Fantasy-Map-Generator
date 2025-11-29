@@ -1,10 +1,12 @@
 "use strict";
 
-window.Lakes = (function () {
-  const LAKE_ELEVATION_DELTA = 0.1;
+import {rn} from "../utils/numberUtils.js";
+import {byId} from "../utils/shorthands.js";
 
-  // check if lake can be potentially open (not in deep depression)
-  const detectCloseLakes = h => {
+const LAKE_ELEVATION_DELTA = 0.1;
+
+// check if lake can be potentially open (not in deep depression)
+const detectCloseLakes = h => {
     const {cells} = pack;
     const ELEVATION_LIMIT = +byId("lakeElevationLimitOutput").value;
 
@@ -43,9 +45,9 @@ window.Lakes = (function () {
 
       feature.closed = isDeep;
     });
-  };
+};
 
-  const defineClimateData = function (heights) {
+const defineClimateData = function (heights) {
     const {cells, features} = pack;
     const lakeOutCells = new Uint16Array(cells.i.length);
 
@@ -80,9 +82,9 @@ window.Lakes = (function () {
     function getLowestShoreCell(lake) {
       return lake.shoreline.sort((a, b) => heights[a] - heights[b])[0];
     }
-  };
+};
 
-  const cleanupLakeData = function () {
+const cleanupLakeData = function () {
     for (const feature of pack.features) {
       if (feature.type !== "lake") continue;
       delete feature.river;
@@ -98,19 +100,23 @@ window.Lakes = (function () {
       const outlet = feature.outlet && pack.rivers.find(river => river.i === feature.outlet);
       if (!outlet) delete feature.outlet;
     }
-  };
+};
 
-  const getHeight = function (feature) {
+const getHeight = function (feature) {
     const heights = pack.cells.h;
     const minShoreHeight = d3.min(feature.shoreline.map(cellId => heights[cellId])) || 20;
     return rn(minShoreHeight - LAKE_ELEVATION_DELTA, 2);
-  };
+};
 
-  const getName = function (feature) {
+const getName = function (feature) {
     const landCell = pack.cells.c[feature.firstCell].find(c => pack.cells.h[c] >= 20);
     const culture = pack.cells.culture[landCell];
     return Names.getCulture(culture);
-  };
+};
 
-  return {defineClimateData, cleanupLakeData, detectCloseLakes, getHeight, getName};
-})();
+export const Lakes = {defineClimateData, cleanupLakeData, detectCloseLakes, getHeight, getName};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Lakes = Lakes;
+}

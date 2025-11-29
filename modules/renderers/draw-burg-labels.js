@@ -1,6 +1,8 @@
 "use strict";
 
-function drawBurgLabels() {
+import {TIME} from "../../src/core/state.js";
+
+export function drawBurgLabels() {
   TIME && console.time("drawBurgLabels");
 
   burgLabels.selectAll("text").remove(); // cleanup
@@ -38,4 +40,8 @@ function drawBurgLabels() {
     .text(d => d.name);
 
   TIME && console.timeEnd("drawBurgLabels");
+}
+
+if (typeof window !== "undefined") {
+  window.drawBurgLabels = drawBurgLabels;
 }

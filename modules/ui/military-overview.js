@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function overviewMilitary() {
   if (customization) return;
   closeDialogs("#militaryOverview, .stable");
@@ -498,4 +503,8 @@ function overviewMilitary() {
     const name = getFileName("Military") + ".csv";
     downloadFile(data, name);
   }
+}
+
+if (typeof window !== "undefined") {
+  window.overviewMilitary = overviewMilitary;
 }

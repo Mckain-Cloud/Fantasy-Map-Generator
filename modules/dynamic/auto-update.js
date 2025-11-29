@@ -1,5 +1,9 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {P, rw} from "../../utils/probabilityUtils.js";
+import {parseTransform} from "../../utils/stringUtils.js";
+
 // update old map file to the current version
 export function resolveVersionConflicts(mapVersion) {
   const isOlderThan = tagVersion => compareVersions(mapVersion, tagVersion).isOlder;

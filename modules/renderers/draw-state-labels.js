@@ -1,7 +1,12 @@
 "use strict";
 
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {round} from "../../utils/stringUtils.js";
+import {findCell} from "../../utils/graphUtils.js";
+import {TIME} from "../../src/core/state.js";
+
 // list - an optional array of stateIds to regenerate
-function drawStateLabels(list) {
+export function drawStateLabels(list) {
   TIME && console.time("drawStateLabels");
 
   // temporary make the labels visible
@@ -309,4 +314,8 @@ function drawStateLabels(list) {
   }
 
   TIME && console.timeEnd("drawStateLabels");
+}
+
+if (typeof window !== "undefined") {
+  window.drawStateLabels = drawStateLabels;
 }

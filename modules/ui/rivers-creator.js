@@ -1,4 +1,8 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function createRiver() {
   if (customization) return;
   closeDialogs();
@@ -141,4 +145,8 @@ function createRiver() {
     document.getElementById("toggleCells").dataset.forced = 0;
     if (forced && layerIsOn("toggleCells")) toggleCells();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.createRiver = createRiver;
 }

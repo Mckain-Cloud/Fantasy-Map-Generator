@@ -1,4 +1,10 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {unique} from "../../utils/arrayUtils.js";
+
 function editLake() {
   if (customization) return;
   closeDialogs(".stable");
@@ -255,4 +261,8 @@ function editLake() {
     debug.select("#vertices").remove();
     unselect();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editLake = editLake;
 }

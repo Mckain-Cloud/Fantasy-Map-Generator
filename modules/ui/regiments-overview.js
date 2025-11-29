@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {last} from "../../utils/arrayUtils.js";
+
 function overviewRegiments(state) {
   if (customization) return;
   closeDialogs(".stable");
@@ -225,4 +230,8 @@ function overviewRegiments(state) {
     const name = getFileName("Regiments") + ".csv";
     downloadFile(data, name);
   }
+}
+
+if (typeof window !== "undefined") {
+  window.overviewRegiments = overviewRegiments;
 }

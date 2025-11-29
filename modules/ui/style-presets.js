@@ -1,6 +1,8 @@
 // UI module to control the style presets
 "use strict";
 
+import {minmax} from "../../utils/numberUtils.js";
+
 const systemPresets = [
   "default",
   "ancient",
@@ -464,4 +466,20 @@ function updateMapFilter() {
 function setPresetRemoveButtonVisibiliy() {
   const isDefault = systemPresets.includes(stylePreset.value);
   removeStyleButton.style.display = isDefault ? "none" : "inline-block";
+}
+
+export {
+  applyStyleOnLoad,
+  requestStylePresetChange,
+  addStylePreset,
+  requestRemoveStylePreset,
+  updateMapFilter
+};
+
+if (typeof window !== "undefined") {
+  window.applyStyleOnLoad = applyStyleOnLoad;
+  window.requestStylePresetChange = requestStylePresetChange;
+  window.addStylePreset = addStylePreset;
+  window.requestRemoveStylePreset = requestRemoveStylePreset;
+  window.updateMapFilter = updateMapFilter;
 }

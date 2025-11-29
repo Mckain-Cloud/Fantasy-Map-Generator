@@ -2,12 +2,12 @@
 // FMG utils related to nodes
 
 // remove parent element (usually if child is clicked)
-function removeParent() {
+export function removeParent() {
   this.parentNode.parentNode.removeChild(this.parentNode);
 }
 
 // polyfill for composedPath
-function getComposedPath(node) {
+export function getComposedPath(node) {
   let parent;
   if (node.parentNode) parent = node.parentNode;
   else if (node.host) parent = node.host;
@@ -17,14 +17,22 @@ function getComposedPath(node) {
 }
 
 // get next unused id
-function getNextId(core, i = 1) {
+export function getNextId(core, i = 1) {
   while (document.getElementById(core + i)) i++;
   return core + i;
 }
 
-function getAbsolutePath(href) {
+export function getAbsolutePath(href) {
   if (!href) return "";
   const link = document.createElement("a");
   link.href = href;
   return link.href;
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.removeParent = removeParent;
+  window.getComposedPath = getComposedPath;
+  window.getNextId = getNextId;
+  window.getAbsolutePath = getAbsolutePath;
 }

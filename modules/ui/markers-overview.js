@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function overviewMarkers() {
   if (customization) return;
   closeDialogs("#markersOverview, .stable");
@@ -238,4 +243,8 @@ function overviewMarkers() {
     restoreDefaultEvents();
     clearMainTip();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.overviewMarkers = overviewMarkers;
 }

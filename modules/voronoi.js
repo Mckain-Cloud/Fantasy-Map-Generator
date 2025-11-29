@@ -1,4 +1,6 @@
-class Voronoi {
+"use strict";
+
+export class Voronoi {
   /**
    * Creates a Voronoi diagram from the given Delaunator, a list of points, and the number of points. The Voronoi diagram is constructed using (I think) the {@link https://en.wikipedia.org/wiki/Bowyer%E2%80%93Watson_algorithm |Bowyer-Watson Algorithm}
    * The {@link https://github.com/mapbox/delaunator/ |Delaunator} library uses {@link https://en.wikipedia.org/wiki/Doubly_connected_edge_list |half-edges} to represent the relationship between points and triangles.
@@ -132,4 +134,9 @@ class Voronoi {
       Math.floor(1 / D * (ad * (cx - bx) + bd * (ax - cx) + cd * (bx - ax)))
     ];
   }
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Voronoi = Voronoi;
 }

@@ -1,3 +1,10 @@
+"use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {round} from "../../utils/stringUtils.js";
+import {findCell} from "../../utils/graphUtils.js";
+import {TIME} from "../../src/core/state.js";
+
 class Rulers {
   constructor() {
     this.data = [];
@@ -558,4 +565,24 @@ function createDefaultRuler() {
   rulers.create(Ruler, [leftmostVertex, rightmostVertex]);
 
   TIME && console.timeEnd("createDefaultRuler");
+}
+
+// ES Module exports
+export {
+  Rulers,
+  Ruler,
+  Opisometer,
+  RouteOpisometer,
+  Planimeter,
+  createDefaultRuler
+};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Rulers = Rulers;
+  window.Ruler = Ruler;
+  window.Opisometer = Opisometer;
+  window.RouteOpisometer = RouteOpisometer;
+  window.Planimeter = Planimeter;
+  window.createDefaultRuler = createDefaultRuler;
 }

@@ -1,3 +1,14 @@
+"use strict";
+
+import {rn} from "../utils/numberUtils.js";
+import {ra, rw} from "../utils/probabilityUtils.js";
+import {getAdjective} from "../utils/languageUtils.js";
+import {dist2} from "../utils/functionUtils.js";
+import {findPath} from "../utils/pathUtils.js";
+import {findCell} from "../utils/graphUtils.js";
+import {round} from "../utils/stringUtils.js";
+import {TIME} from "../src/core/state.js";
+
 const ROUTES_SHARP_ANGLE = 135;
 const ROUTES_VERY_SHARP_ANGLE = 115;
 
@@ -9,8 +20,6 @@ const ROUTE_TYPE_MODIFIERS = {
   "-4": 6, // ocean
   default: 8 // far ocean
 };
-
-window.Routes = (function () {
   function generate(lockedRoutes = []) {
     const {capitalsByFeature, burgsByFeature, portsByFeature} = sortBurgsByFeature(pack.burgs);
 
@@ -636,7 +645,7 @@ window.Routes = (function () {
     viewbox.select("#route" + route.i).remove();
   }
 
-  return {
+export const Routes = {
     generate,
     buildLinks,
     connect,
@@ -650,5 +659,9 @@ window.Routes = (function () {
     getLength,
     getNextId,
     remove
-  };
-})();
+};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Routes = Routes;
+}

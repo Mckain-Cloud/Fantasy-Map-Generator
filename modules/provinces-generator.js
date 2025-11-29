@@ -1,8 +1,13 @@
 "use strict";
 
-window.Provinces = (function () {
-  const forms = {
-    Monarchy: {County: 22, Earldom: 6, Shire: 2, Landgrave: 2, Margrave: 2, Barony: 2, Captaincy: 1, Seneschalty: 1},
+import {gauss, P, rw} from "../utils/probabilityUtils.js";
+import {getMixedColor} from "../utils/colorUtils.js";
+import {getPolesOfInaccessibility} from "../utils/pathUtils.js";
+import {byId} from "../utils/shorthands.js";
+import {TIME} from "../src/core/state.js";
+
+const forms = {
+  Monarchy: {County: 22, Earldom: 6, Shire: 2, Landgrave: 2, Margrave: 2, Barony: 2, Captaincy: 1, Seneschalty: 1},
     Republic: {Province: 6, Department: 2, Governorate: 2, District: 1, Canton: 1, Prefecture: 1},
     Theocracy: {Parish: 3, Deanery: 1},
     Union: {Province: 1, State: 1, Canton: 1, Republic: 1, County: 1, Council: 1},
@@ -253,5 +258,8 @@ window.Provinces = (function () {
     });
   };
 
-  return {generate, getPoles};
-})();
+export const Provinces = {generate, getPoles};
+
+if (typeof window !== "undefined") {
+  window.Provinces = Provinces;
+}

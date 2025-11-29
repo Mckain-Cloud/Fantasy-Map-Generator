@@ -1,6 +1,9 @@
 // UI module to control the style
 "use strict";
 
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 // add available filters to lists
 {
   const filters = Array.from(byId("filters").querySelectorAll("filter"));
@@ -1184,4 +1187,13 @@ function applyMapFilter(event) {
   mapFilters.querySelectorAll(".pressed").forEach(button => button.classList.remove("pressed"));
   button.classList.add("pressed");
   svg.attr("data-filter", button.id).attr("filter", "url(#filter-" + button.id + ")");
+}
+
+if (typeof window !== "undefined") {
+  window.editStyle = editStyle;
+  window.heightmapColorSchemes = heightmapColorSchemes;
+  window.getColorScheme = getColorScheme;
+  window.selectStyleElement = selectStyleElement;
+  window.updateElements = updateElements;
+  window.applyMapFilter = applyMapFilter;
 }

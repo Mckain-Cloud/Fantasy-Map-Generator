@@ -1,10 +1,18 @@
 "use strict";
 
-window.Markers = (function () {
-  let config = getDefaultConfig();
-  let occupied = [];
+import {rn, minmax} from "../utils/numberUtils.js";
+import {gauss, P, ra, rand, rw} from "../utils/probabilityUtils.js";
+import {getAdjective} from "../utils/languageUtils.js";
+import {capitalize} from "../utils/stringUtils.js";
+import {last} from "../utils/arrayUtils.js";
+import {findCell} from "../utils/graphUtils.js";
+import {byId} from "../utils/shorthands.js";
+import {TIME} from "../src/core/state.js";
 
-  function getDefaultConfig() {
+let config = getDefaultConfig();
+let occupied = [];
+
+function getDefaultConfig() {
     const culturesSet = document.getElementById("culturesSet").value;
     const isFantasy = culturesSet.includes("Fantasy");
 
@@ -1283,5 +1291,8 @@ window.Markers = (function () {
     notes.push({id, name, legend});
   }
 
-  return {add, generate, regenerate, getConfig, setConfig, deleteMarker};
-})();
+export const Markers = {add, generate, regenerate, getConfig, setConfig, deleteMarker};
+
+if (typeof window !== "undefined") {
+  window.Markers = Markers;
+}

@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {lerp} from "../../utils/numberUtils.js";
+import {ra} from "../../utils/probabilityUtils.js";
+
 function editIce() {
   if (customization) return;
   closeDialogs(".stable");
@@ -113,4 +118,8 @@ function editIce() {
     iceNew.classList.remove("pressed");
     unselect();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editIce = editIce;
 }

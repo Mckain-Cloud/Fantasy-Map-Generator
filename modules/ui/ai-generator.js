@@ -1,5 +1,7 @@
 "use strict";
 
+import {byId} from "../../utils/shorthands.js";
+
 const PROVIDERS = {
   openai: {
     keyLink: "https://platform.openai.com/account/api-keys",
@@ -225,4 +227,8 @@ function generateWithAi(defaultPrompt, onApply) {
       byId("aiGeneratorResult").disabled = false;
     }
   }
+}
+
+if (typeof window !== "undefined") {
+  window.generateWithAi = generateWithAi;
 }

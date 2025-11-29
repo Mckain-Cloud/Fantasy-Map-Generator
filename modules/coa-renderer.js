@@ -1,7 +1,8 @@
 "use strict";
 
-window.COArenderer = (function () {
-  const colors = {
+import {rn} from "../utils/numberUtils.js";
+
+const colors = {
     argent: "#fafafa",
     or: "#ffe066",
     gules: "#d7374a",
@@ -2040,5 +2041,8 @@ window.COArenderer = (function () {
     if (layerIsOn("toggleEmblems")) trigger(id, coa);
   };
 
-  return {trigger, add, shieldPaths};
-})();
+export const COArenderer = {trigger, add, shieldPaths};
+
+if (typeof window !== "undefined") {
+  window.COArenderer = COArenderer;
+}

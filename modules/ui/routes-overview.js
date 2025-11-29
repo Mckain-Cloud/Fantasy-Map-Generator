@@ -1,5 +1,9 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function overviewRoutes() {
   if (customization) return;
   closeDialogs("#routesOverview, .stable");
@@ -178,4 +182,8 @@ function overviewRoutes() {
       }
     });
   }
+}
+
+if (typeof window !== "undefined") {
+  window.overviewRoutes = overviewRoutes;
 }

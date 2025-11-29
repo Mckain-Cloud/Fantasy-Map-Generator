@@ -1,5 +1,8 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 async function openTransformTool() {
   const width = Math.min(400, window.innerWidth * 0.5);
   const previewScale = width / graphWidth;
@@ -201,4 +204,8 @@ async function openTransformTool() {
 
     return [project, inverse];
   }
+}
+
+if (typeof window !== "undefined") {
+  window.openTransformTool = openTransformTool;
 }

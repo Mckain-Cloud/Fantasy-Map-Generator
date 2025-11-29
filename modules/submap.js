@@ -1,8 +1,11 @@
 "use strict";
 
-window.Submap = (function () {
-  const isWater = (pack, id) => pack.cells.h[id] < 20;
-  const inMap = (x, y) => x > 0 && x < graphWidth && y > 0 && y < graphHeight;
+import {rn} from "../utils/numberUtils.js";
+import {findCell} from "../utils/graphUtils.js";
+import {INFO, WARN} from "../src/core/state.js";
+
+const isWaterCell = (pack, id) => pack.cells.h[id] < 20;
+const inMap = (x, y) => x > 0 && x < graphWidth && y > 0 && y < graphHeight;
 
   /*
     generate new map based on an existing one (resampling parentMap)
@@ -165,7 +168,7 @@ window.Submap = (function () {
         let d = Infinity;
         oldChildren.forEach(oid => {
           // this should be always true, unless some algo modded the height!
-          if (isWater(parentMap.pack, oid) !== isWater(pack, id)) {
+          if (isWaterCell(parentMap.pack, oid) !== isWaterCell(pack, id)) {
             console.warn(`cell sank because of addLakesInDepressions: ${oid}`);
           }
           const [oldpx, oldpy] = oldCells.p[oid];
@@ -181,7 +184,7 @@ window.Submap = (function () {
         }
       }
 
-      if (isWater(pack, id) !== isWater(parentMap.pack, oldid)) {
+      if (isWaterCell(pack, id) !== isWater(parentMap.pack, oldid)) {
         WARN && console.warn("Type discrepancy detected:", id, oldid, `${pack.cells.t[id]} != ${oldCells.t[oldid]}`);
       }
 
@@ -402,6 +405,8 @@ window.Submap = (function () {
     return [x, y];
   }
 
-  // export
-  return {resample, findNearest};
-})();
+export const Submap = {resample, findNearest};
+
+if (typeof window !== "undefined") {
+  window.Submap = Submap;
+}

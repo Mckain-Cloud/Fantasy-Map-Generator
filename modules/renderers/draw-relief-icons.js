@@ -1,6 +1,10 @@
 "use strict";
 
-function drawReliefIcons() {
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {rand} from "../../utils/probabilityUtils.js";
+import {TIME} from "../../src/core/state.js";
+
+export function drawReliefIcons() {
   TIME && console.time("drawRelief");
   terrain.selectAll("*").remove();
 
@@ -121,4 +125,8 @@ function drawReliefIcons() {
     if (set === "gray") return "#relief-" + type + "-" + getVariant(type) + "-bw";
     return "#relief-" + getOldIcon(type) + "-1"; // simple
   }
+}
+
+if (typeof window !== "undefined") {
+  window.drawReliefIcons = drawReliefIcons;
 }

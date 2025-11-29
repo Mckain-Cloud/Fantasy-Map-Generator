@@ -1,9 +1,14 @@
 "use strict";
 
-window.OceanLayers = (function () {
-  let cells, vertices, pointsN, used;
+import {rn} from "../utils/numberUtils.js";
+import {P} from "../utils/probabilityUtils.js";
+import {clipPoly} from "../utils/commonUtils.js";
+import {round} from "../utils/stringUtils.js";
+import {TIME, ERROR} from "../src/core/state.js";
 
-  const OceanLayers = function OceanLayers() {
+let cells, vertices, pointsN, used;
+
+export function OceanLayers() {
     const outline = oceanLayers.attr("layers");
     if (outline === "none") return;
     TIME && console.time("drawOceanLayers");
@@ -23,7 +28,7 @@ window.OceanLayers = (function () {
       const start = findStart(i, t);
       if (!start) continue;
       used[i] = 1;
-      const chain = connectVertices(start, t); // vertices chain to form a path
+      const chain = connectOceanVertices(start, t); // vertices chain to form a path
       if (chain.length < 4) continue;
       const relax = 1 + t * -2; // select only n-th point
       const relaxed = chain.filter((v, i) => !(i % relax) || vertices.c[v].some(c => c >= pointsN));
@@ -48,9 +53,9 @@ window.OceanLayers = (function () {
     }
 
     TIME && console.timeEnd("drawOceanLayers");
-  };
+}
 
-  function randomizeOutline() {
+function randomizeOutline() {
     const limits = [];
     let odd = 0.2;
     for (let l = -9; l < 0; l++) {
@@ -62,10 +67,10 @@ window.OceanLayers = (function () {
       }
     }
     return limits;
-  }
+}
 
-  // connect vertices to chain
-  function connectVertices(start, t) {
+// connect vertices to chain
+function connectOceanVertices(start, t) {
     const chain = []; // vertices chain to form a path
     for (let i = 0, current = start; i === 0 || (current !== start && i < 10000); i++) {
       const prev = chain[chain.length - 1]; // previous vertex in chain
@@ -86,7 +91,9 @@ window.OceanLayers = (function () {
     }
     chain.push(chain[0]); // push first vertex as the last one
     return chain;
-  }
+}
 
-  return OceanLayers;
-})();
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.OceanLayers = OceanLayers;
+}

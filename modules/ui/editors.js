@@ -1,6 +1,14 @@
 // module stub to store common functions for ui editors
 "use strict";
 
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {parseTransform} from "../../utils/stringUtils.js";
+import {findCell} from "../../utils/graphUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {each} from "../../utils/probabilityUtils.js";
+import {ERROR, TIME} from "../../src/core/state.js";
+
 modules.editors = true;
 
 // restore default viewbox events
@@ -1307,4 +1315,98 @@ async function editReligions() {
   if (customization) return;
   const Editor = await import("../dynamic/editors/religions-editor.js?v=1.104.0");
   Editor.open();
+}
+
+// ES Module exports
+export {
+  restoreDefaultEvents,
+  clicked,
+  unselect,
+  closeDialogs,
+  moveCircle,
+  removeCircle,
+  fitContent,
+  applySortingByHeader,
+  sortLines,
+  applySorting,
+  addBurg,
+  moveBurgToGroup,
+  moveAllBurgsToGroup,
+  addBurgsGroup,
+  removeBurg,
+  toggleCapital,
+  togglePort,
+  getBurgLink,
+  createMfcgLink,
+  createVillageGeneratorLink,
+  drawLegend,
+  fitLegendBox,
+  redrawLegend,
+  dragLegendBox,
+  clearLegend,
+  createPicker,
+  openPicker,
+  fog,
+  unfog,
+  getFileName,
+  downloadFile,
+  uploadFile,
+  getBBox,
+  highlightElement,
+  selectIcon,
+  getAreaUnit,
+  getArea,
+  confirmationDialog,
+  listen,
+  refreshAllEditors,
+  editStates,
+  editCultures,
+  editReligions
+};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.restoreDefaultEvents = restoreDefaultEvents;
+  window.clicked = clicked;
+  window.unselect = unselect;
+  window.closeDialogs = closeDialogs;
+  window.moveCircle = moveCircle;
+  window.removeCircle = removeCircle;
+  window.fitContent = fitContent;
+  window.applySortingByHeader = applySortingByHeader;
+  window.sortLines = sortLines;
+  window.applySorting = applySorting;
+  window.addBurg = addBurg;
+  window.moveBurgToGroup = moveBurgToGroup;
+  window.moveAllBurgsToGroup = moveAllBurgsToGroup;
+  window.addBurgsGroup = addBurgsGroup;
+  window.removeBurg = removeBurg;
+  window.toggleCapital = toggleCapital;
+  window.togglePort = togglePort;
+  window.getBurgLink = getBurgLink;
+  window.createMfcgLink = createMfcgLink;
+  window.createVillageGeneratorLink = createVillageGeneratorLink;
+  window.drawLegend = drawLegend;
+  window.fitLegendBox = fitLegendBox;
+  window.redrawLegend = redrawLegend;
+  window.dragLegendBox = dragLegendBox;
+  window.clearLegend = clearLegend;
+  window.createPicker = createPicker;
+  window.openPicker = openPicker;
+  window.fog = fog;
+  window.unfog = unfog;
+  window.getFileName = getFileName;
+  window.downloadFile = downloadFile;
+  window.uploadFile = uploadFile;
+  window.getBBox = getBBox;
+  window.highlightElement = highlightElement;
+  window.selectIcon = selectIcon;
+  window.getAreaUnit = getAreaUnit;
+  window.getArea = getArea;
+  window.confirmationDialog = confirmationDialog;
+  window.listen = listen;
+  window.refreshAllEditors = refreshAllEditors;
+  window.editStates = editStates;
+  window.editCultures = editCultures;
+  window.editReligions = editReligions;
 }

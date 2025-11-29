@@ -1,7 +1,12 @@
 "use strict";
 
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {last} from "../../utils/arrayUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {ERROR, WARN} from "../../src/core/state.js";
+
 // Functions to load and parse .map/.gz files
-async function quickLoad() {
+export async function quickLoad() {
   const blob = await ldb.get("lastMap");
   if (blob) loadMapPrompt(blob);
   else {
@@ -10,7 +15,7 @@ async function quickLoad() {
   }
 }
 
-async function loadFromDropbox() {
+export async function loadFromDropbox() {
   const mapPath = byId("loadFromDropboxSelect")?.value;
 
   console.info("Loading map from Dropbox:", mapPath);
@@ -18,7 +23,7 @@ async function loadFromDropbox() {
   uploadMap(blob);
 }
 
-async function createSharableDropboxLink() {
+export async function createSharableDropboxLink() {
   const mapFile = document.querySelector("#loadFromDropbox select").value;
   const sharableLink = byId("sharableLink");
   const sharableLinkContainer = byId("sharableLinkContainer");
@@ -37,7 +42,7 @@ async function createSharableDropboxLink() {
   }
 }
 
-function loadMapPrompt(blob) {
+export function loadMapPrompt(blob) {
   const workingTime = (Date.now() - last(mapHistory).created) / 60000; // minutes
   if (workingTime < 5) {
     loadLastSavedMap();
@@ -71,7 +76,7 @@ function loadMapPrompt(blob) {
   }
 }
 
-function loadMapFromURL(maplink, random) {
+export function loadMapFromURL(maplink, random) {
   const URL = decodeURIComponent(maplink);
 
   fetch(URL, {method: "GET", mode: "cors"})
@@ -86,7 +91,7 @@ function loadMapFromURL(maplink, random) {
     });
 }
 
-function showUploadErrorMessage(error, URL, random) {
+export function showUploadErrorMessage(error, URL, random) {
   ERROR && console.error(error);
   alertMessage.innerHTML = /* html */ `Cannot load map from the ${link(URL, "link provided")}. ${
     random ? `A new random map is generated. ` : ""
@@ -104,7 +109,7 @@ function showUploadErrorMessage(error, URL, random) {
   });
 }
 
-function uploadMap(file, callback) {
+export function uploadMap(file, callback) {
   uploadMap.timeStart = performance.now();
 
   const fileReader = new FileReader();
@@ -134,7 +139,7 @@ function uploadMap(file, callback) {
   fileReader.readAsArrayBuffer(file);
 }
 
-async function uncompress(compressedData) {
+export async function uncompress(compressedData) {
   try {
     const uncompressedStream = new Blob([compressedData]).stream().pipeThrough(new DecompressionStream("gzip"));
 
@@ -150,7 +155,7 @@ async function uncompress(compressedData) {
   }
 }
 
-async function parseLoadedResult(result) {
+export async function parseLoadedResult(result) {
   try {
     const resultAsString = new TextDecoder().decode(result);
 
@@ -180,7 +185,7 @@ async function parseLoadedResult(result) {
   }
 }
 
-function showUploadMessage(type, mapData, mapVersion) {
+export function showUploadMessage(type, mapData, mapVersion) {
   let message, title;
 
   if (type === "invalid") {
@@ -214,7 +219,7 @@ function showUploadMessage(type, mapData, mapVersion) {
   });
 }
 
-async function parseLoadedData(data, mapVersion) {
+export async function parseLoadedData(data, mapVersion) {
   try {
     // exit customization
     if (window.closeDialogs) closeDialogs();
@@ -768,4 +773,18 @@ async function parseLoadedData(data, mapVersion) {
       position: {my: "center", at: "center", of: "svg"}
     });
   }
+}
+
+if (typeof window !== "undefined") {
+  window.quickLoad = quickLoad;
+  window.loadFromDropbox = loadFromDropbox;
+  window.createSharableDropboxLink = createSharableDropboxLink;
+  window.loadMapPrompt = loadMapPrompt;
+  window.loadMapFromURL = loadMapFromURL;
+  window.showUploadErrorMessage = showUploadErrorMessage;
+  window.uploadMap = uploadMap;
+  window.uncompress = uncompress;
+  window.parseLoadedResult = parseLoadedResult;
+  window.showUploadMessage = showUploadMessage;
+  window.parseLoadedData = parseLoadedData;
 }

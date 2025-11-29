@@ -1,5 +1,8 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editCoastline() {
   if (customization) return;
   closeDialogs(".stable");
@@ -212,4 +215,8 @@ function editCoastline() {
     debug.select("#vertices").remove();
     unselect();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editCoastline = editCoastline;
 }

@@ -1,4 +1,7 @@
 "use strict";
+
+import {byId} from "../../utils/shorthands.js";
+
 function editNamesbase() {
   if (customization) return;
   closeDialogs("#namesbaseEditor, .stable");
@@ -256,4 +259,8 @@ function editNamesbase() {
     createBasesList();
     updateInputs();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editNamesbase = editNamesbase;
 }

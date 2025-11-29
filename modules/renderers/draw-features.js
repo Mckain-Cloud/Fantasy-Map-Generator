@@ -1,6 +1,9 @@
 "use strict";
 
-function drawFeatures() {
+import {round} from "../../utils/stringUtils.js";
+import {TIME, ERROR} from "../../src/core/state.js";
+
+export function drawFeatures() {
   TIME && console.time("drawFeatures");
 
   const html = {
@@ -49,7 +52,7 @@ function drawFeatures() {
   TIME && console.timeEnd("drawFeatures");
 }
 
-function getFeaturePath(feature) {
+export function getFeaturePath(feature) {
   const points = feature.vertices.map(vertex => pack.vertices.p[vertex]);
   if (points.some(point => point === undefined)) {
     ERROR && console.error("Undefined point in getFeaturePath");
@@ -63,4 +66,9 @@ function getFeaturePath(feature) {
   const path = round(lineGen(clippedPoints)) + "Z";
 
   return path;
+}
+
+if (typeof window !== "undefined") {
+  window.drawFeatures = drawFeatures;
+  window.getFeaturePath = getFeaturePath;
 }

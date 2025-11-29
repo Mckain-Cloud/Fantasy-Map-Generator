@@ -1,8 +1,12 @@
 "use strict";
 // FMG utils related to graph
 
+import {rn} from "./numberUtils.js";
+import {createTypedArray} from "./arrayUtils.js";
+import {TIME} from "../src/core/state.js";
+
 // check if new grid graph should be generated or we can use the existing one
-function shouldRegenerateGrid(grid, expectedSeed) {
+export function shouldRegenerateGrid(grid, expectedSeed) {
   if (expectedSeed && expectedSeed !== grid.seed) return true;
 
   const cellsDesired = +byId("pointsInput").dataset.cells;
@@ -15,7 +19,7 @@ function shouldRegenerateGrid(grid, expectedSeed) {
   return grid.spacing !== newSpacing || grid.cellsX !== newCellsX || grid.cellsY !== newCellsY;
 }
 
-function generateGrid() {
+export function generateGrid() {
   Math.random = aleaPRNG(seed); // reset PRNG
   const {spacing, cellsDesired, boundary, points, cellsX, cellsY} = placePoints();
   const {cells, vertices} = calculateVoronoi(points, boundary);
@@ -23,7 +27,7 @@ function generateGrid() {
 }
 
 // place random points to calculate Voronoi diagram
-function placePoints() {
+export function placePoints() {
   TIME && console.time("placePoints");
   const cellsDesired = +byId("pointsInput").dataset.cells;
   const spacing = rn(Math.sqrt((graphWidth * graphHeight) / cellsDesired), 2); // spacing between points before jirrering
@@ -38,7 +42,7 @@ function placePoints() {
 }
 
 // calculate Delaunay and then Voronoi diagram
-function calculateVoronoi(points, boundary) {
+export function calculateVoronoi(points, boundary) {
   TIME && console.time("calculateDelaunay");
   const allPoints = points.concat(boundary);
   const delaunay = Delaunator.from(allPoints);
@@ -56,7 +60,7 @@ function calculateVoronoi(points, boundary) {
 }
 
 // add points along map edge to pseudo-clip voronoi cells
-function getBoundaryPoints(width, height, spacing) {
+export function getBoundaryPoints(width, height, spacing) {
   const offset = rn(-1 * spacing);
   const bSpacing = spacing * 2;
   const w = width - offset * 2;
@@ -79,7 +83,7 @@ function getBoundaryPoints(width, height, spacing) {
 }
 
 // get points on a regular square grid and jitter them a bit
-function getJitteredGrid(width, height, spacing) {
+export function getJitteredGrid(width, height, spacing) {
   const radius = spacing / 2; // square radius
   const jittering = radius * 0.9; // max deviation
   const doubleJittering = jittering * 2;
@@ -97,7 +101,7 @@ function getJitteredGrid(width, height, spacing) {
 }
 
 // return cell index on a regular square grid
-function findGridCell(x, y, grid) {
+export function findGridCell(x, y, grid) {
   return (
     Math.floor(Math.min(y / grid.spacing, grid.cellsY - 1)) * grid.cellsX +
     Math.floor(Math.min(x / grid.spacing, grid.cellsX - 1))
@@ -105,7 +109,7 @@ function findGridCell(x, y, grid) {
 }
 
 // return array of cell indexes in radius on a regular square grid
-function findGridAll(x, y, radius) {
+export function findGridAll(x, y, radius) {
   const c = grid.cells.c;
   let r = Math.floor(radius / grid.spacing);
   let found = [findGridCell(x, y, grid)];
@@ -131,35 +135,35 @@ function findGridAll(x, y, radius) {
 }
 
 // return closest pack points quadtree datum
-function find(x, y, radius = Infinity) {
+export function find(x, y, radius = Infinity) {
   return pack.cells.q.find(x, y, radius);
 }
 
 // return closest cell index
-function findCell(x, y, radius = Infinity) {
+export function findCell(x, y, radius = Infinity) {
   if (!pack.cells?.q) return;
   const found = pack.cells.q.find(x, y, radius);
   return found ? found[2] : undefined;
 }
 
 // return array of cell indexes in radius
-function findAll(x, y, radius) {
+export function findAll(x, y, radius) {
   const found = pack.cells.q.findAll(x, y, radius);
   return found.map(r => r[2]);
 }
 
 // get polygon points for packed cells knowing cell id
-function getPackPolygon(i) {
+export function getPackPolygon(i) {
   return pack.cells.v[i].map(v => pack.vertices.p[v]);
 }
 
 // get polygon points for initial cells knowing cell id
-function getGridPolygon(i) {
+export function getGridPolygon(i) {
   return grid.cells.v[i].map(v => grid.vertices.p[v]);
 }
 
 // mbostock's poissonDiscSampler
-function* poissonDiscSampler(x0, y0, x1, y1, r, k = 3) {
+export function* poissonDiscSampler(x0, y0, x1, y1, r, k = 3) {
   if (!(x1 >= x0) || !(y1 >= y0) || !(r > 0)) throw new Error();
 
   const width = x1 - x0;
@@ -221,12 +225,12 @@ function* poissonDiscSampler(x0, y0, x1, y1, r, k = 3) {
 }
 
 // filter land cells
-function isLand(i) {
+export function isLand(i) {
   return pack.cells.h[i] >= 20;
 }
 
 // filter water cells
-function isWater(i) {
+export function isWater(i) {
   return pack.cells.h[i] < 20;
 }
 
@@ -249,7 +253,7 @@ void (function addFindAll() {
     while ((t.q = t.quads.pop())) {
       i++;
 
-      // Stop searching if this quadrant can’t contain a closer node.
+      // Stop searching if this quadrant can't contain a closer node.
       if (
         !(t.node = t.q.node) ||
         (t.x1 = t.q.x0) > t.x3 ||
@@ -280,7 +284,7 @@ void (function addFindAll() {
         }
       }
 
-      // Visit this point. (Visiting coincident points isn’t necessary!)
+      // Visit this point. (Visiting coincident points isn't necessary!)
       else {
         var dx = x - +this._x.call(null, t.node.data),
           dy = y - +this._y.call(null, t.node.data),
@@ -311,7 +315,7 @@ void (function addFindAll() {
 })();
 
 // draw raster heightmap preview (not used in main generation)
-function drawHeights({heights, width, height, scheme, renderOcean}) {
+export function drawHeights({heights, width, height, scheme, renderOcean}) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -333,4 +337,25 @@ function drawHeights({heights, width, height, scheme, renderOcean}) {
 
   ctx.putImageData(imageData, 0, 0);
   return canvas.toDataURL("image/png");
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.shouldRegenerateGrid = shouldRegenerateGrid;
+  window.generateGrid = generateGrid;
+  window.placePoints = placePoints;
+  window.calculateVoronoi = calculateVoronoi;
+  window.getBoundaryPoints = getBoundaryPoints;
+  window.getJitteredGrid = getJitteredGrid;
+  window.findGridCell = findGridCell;
+  window.findGridAll = findGridAll;
+  window.find = find;
+  window.findCell = findCell;
+  window.findAll = findAll;
+  window.getPackPolygon = getPackPolygon;
+  window.getGridPolygon = getGridPolygon;
+  window.poissonDiscSampler = poissonDiscSampler;
+  window.isLand = isLand;
+  window.isWater = isWater;
+  window.drawHeights = drawHeights;
 }

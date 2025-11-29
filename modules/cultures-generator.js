@@ -1,9 +1,15 @@
 "use strict";
 
-window.Cultures = (function () {
-  let cells;
+import {rn, minmax} from "../utils/numberUtils.js";
+import {rand, P, biased} from "../utils/probabilityUtils.js";
+import {getColors, getRandomColor} from "../utils/colorUtils.js";
+import {abbreviate} from "../utils/languageUtils.js";
+import {byId} from "../utils/shorthands.js";
+import {TIME, WARN, ERROR} from "../src/core/state.js";
 
-  const generate = function () {
+let cells;
+
+const generate = function () {
     TIME && console.time("generateCultures");
     cells = pack.cells;
 
@@ -614,5 +620,9 @@ window.Cultures = (function () {
     return rw(COA.shields[type]);
   };
 
-  return {generate, add, expand, getDefault, getRandomShield};
-})();
+export const Cultures = {generate, add, expand, getDefault, getRandomShield};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Cultures = Cultures;
+}

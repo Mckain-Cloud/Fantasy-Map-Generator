@@ -1,9 +1,11 @@
 "use strict";
 
-window.Biomes = (function () {
-  const MIN_LAND_HEIGHT = 20;
+import {rn} from "../utils/numberUtils.js";
+import {TIME} from "../src/core/state.js";
 
-  const getDefault = () => {
+const MIN_LAND_HEIGHT = 20;
+
+const getDefault = () => {
     const name = [
       "Marine",
       "Hot desert",
@@ -74,10 +76,10 @@ window.Biomes = (function () {
     }
 
     return {i: d3.range(0, name.length), name, color, biomesMartix, habitability, iconsDensity, icons, cost};
-  };
+};
 
-  // assign biome id for each cell
-  function define() {
+// assign biome id for each cell
+function define() {
     TIME && console.time("defineBiomes");
 
     const {fl: flux, r: riverIds, h: heights, c: neighbors, g: gridReference} = pack.cells;
@@ -103,9 +105,9 @@ window.Biomes = (function () {
     }
 
     TIME && console.timeEnd("defineBiomes");
-  }
+}
 
-  function getId(moisture, temperature, height, hasRiver) {
+function getId(moisture, temperature, height, hasRiver) {
     if (height < 20) return 0; // all water cells: marine biome
     if (temperature < -5) return 11; // too cold: permafrost biome
     if (temperature >= 25 && !hasRiver && moisture < 8) return 1; // too hot and dry: hot desert biome
@@ -115,14 +117,18 @@ window.Biomes = (function () {
     const moistureBand = Math.min((moisture / 5) | 0, 4); // [0-4]
     const temperatureBand = Math.min(Math.max(20 - temperature, 0), 25); // [0-25]
     return biomesData.biomesMartix[moistureBand][temperatureBand];
-  }
+}
 
-  function isWetland(moisture, temperature, height) {
+function isWetland(moisture, temperature, height) {
     if (temperature <= -2) return false; // too cold
     if (moisture > 40 && height < 25) return true; // near coast
     if (moisture > 24 && height > 24 && height < 60) return true; // off coast
     return false;
-  }
+}
 
-  return {getDefault, define, getId};
-})();
+export const Biomes = {getDefault, define, getId};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Biomes = Biomes;
+}

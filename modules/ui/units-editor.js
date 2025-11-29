@@ -1,4 +1,8 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editUnits() {
   closeDialogs("#unitsEditor, .stable");
   $("#unitsEditor").dialog();
@@ -270,4 +274,10 @@ function editUnits() {
       }
     });
   }
+}
+
+export {editUnits};
+
+if (typeof window !== "undefined") {
+  window.editUnits = editUnits;
 }

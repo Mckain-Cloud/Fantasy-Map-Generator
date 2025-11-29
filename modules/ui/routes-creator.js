@@ -1,5 +1,8 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function createRoute(defaultGroup) {
   if (customization) return;
   closeDialogs();
@@ -137,4 +140,8 @@ function createRoute(defaultGroup) {
     byId("toggleCells").dataset.forced = 0;
     if (forced && layerIsOn("toggleCells")) toggleCells();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.createRoute = createRoute;
 }

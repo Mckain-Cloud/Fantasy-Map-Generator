@@ -1,6 +1,9 @@
 "use strict";
 
-function drawMarkers() {
+import {rn} from "../../utils/numberUtils.js";
+import {TIME} from "../../src/core/state.js";
+
+export function drawMarkers() {
   TIME && console.time("drawMarkers");
 
   const rescale = +markers.attr("rescale");
@@ -35,7 +38,7 @@ const getPin = (shape = "bubble", fill = "#fff", stroke = "#000") => {
   return shapeFunction(fill, stroke);
 };
 
-function drawMarker(marker, rescale = 1) {
+export function drawMarker(marker, rescale = 1) {
   const {i, icon, x, y, dx = 50, dy = 50, px = 12, size = 30, pin, fill, stroke} = marker;
   const id = `marker${i}`;
   const zoomSize = rescale ? Math.max(rn(size / 5 + 24 / scale, 2), 1) : size;
@@ -50,4 +53,9 @@ function drawMarker(marker, rescale = 1) {
       <text x="${dx}%" y="${dy}%" font-size="${px}px" >${isExternal ? "" : icon}</text>
       <image x="${dx / 2}%" y="${dy / 2}%" width="${px}px" height="${px}px" href="${isExternal ? icon : ""}" />
     </svg>`;
+}
+
+if (typeof window !== "undefined") {
+  window.drawMarkers = drawMarkers;
+  window.drawMarker = drawMarker;
 }

@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function overviewBurgs(settings = {stateId: null, cultureId: null}) {
   if (customization) return;
   closeDialogs("#burgsOverview, .stable");
@@ -620,4 +625,8 @@ function overviewBurgs(settings = {stateId: null, cultureId: null}) {
     const allLocked = pack.burgs.every(({lock, i, removed}) => lock || !i || removed);
     byId("burgsLockAll").className = allLocked ? "icon-lock-open" : "icon-lock";
   }
+}
+
+if (typeof window !== "undefined") {
+  window.overviewBurgs = overviewBurgs;
 }

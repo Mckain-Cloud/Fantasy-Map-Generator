@@ -1,6 +1,8 @@
 "use strict";
 
-const fonts = [
+import {ERROR} from "../src/core/state.js";
+
+export const fonts = [
   {family: "Arial"},
   {family: "Brush Script MT"},
   {family: "Century Gothic"},
@@ -253,7 +255,7 @@ const fonts = [
 
 declareDefaultFonts(); // execute once on load
 
-function declareFont(font) {
+export function declareFont(font) {
   const {family, src, ...rest} = font;
   addFontOption(family);
 
@@ -262,11 +264,11 @@ function declareFont(font) {
   document.fonts.add(fontFace);
 }
 
-function declareDefaultFonts() {
+export function declareDefaultFonts() {
   fonts.forEach(font => declareFont(font));
 }
 
-function getUsedFonts(svg) {
+export function getUsedFonts(svg) {
   const usedFontFamilies = new Set();
 
   const labelGroups = svg.querySelectorAll("#labels g");
@@ -286,7 +288,7 @@ function getUsedFonts(svg) {
   return usedFonts;
 }
 
-function addFontOption(family) {
+export function addFontOption(family) {
   const options = document.getElementById("styleSelectFont");
   const option = document.createElement("option");
   option.value = family;
@@ -295,7 +297,7 @@ function addFontOption(family) {
   options.add(option);
 }
 
-async function fetchGoogleFont(family) {
+export async function fetchGoogleFont(family) {
   const url = `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}`;
   try {
     const resp = await fetch(url);
@@ -321,7 +323,7 @@ async function fetchGoogleFont(family) {
   }
 }
 
-function readBlobAsDataURL(blob) {
+export function readBlobAsDataURL(blob) {
   return new Promise(function (resolve, reject) {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result);
@@ -330,7 +332,7 @@ function readBlobAsDataURL(blob) {
   });
 }
 
-async function loadFontsAsDataURI(fonts) {
+export async function loadFontsAsDataURI(fonts) {
   const promises = fonts.map(async font => {
     const url = font.src.match(/url\(['"]?(.+?)['"]?\)/)[1];
     const resp = await fetch(url);
@@ -343,7 +345,7 @@ async function loadFontsAsDataURI(fonts) {
   return await Promise.all(promises);
 }
 
-async function addGoogleFont(family) {
+export async function addGoogleFont(family) {
   const fontRanges = await fetchGoogleFont(family);
   if (!fontRanges) return tip("Cannot fetch Google font for this value", true, "error", 4000);
   tip(`Google font ${family} is loading...`, true, "warn", 4000);
@@ -369,7 +371,7 @@ async function addGoogleFont(family) {
     });
 }
 
-function addLocalFont(family) {
+export function addLocalFont(family) {
   fonts.push({family});
 
   const fontFace = new FontFace(family, `local(${family})`, {display: "block"});
@@ -380,7 +382,7 @@ function addLocalFont(family) {
   changeFont();
 }
 
-function addWebFont(family, url) {
+export function addWebFont(family, url) {
   const src = `url('${url}')`;
   fonts.push({family, src});
 
@@ -390,4 +392,19 @@ function addWebFont(family, url) {
   addFontOption(family);
   document.getElementById("styleSelectFont").value = family;
   changeFont();
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.fonts = fonts;
+  window.declareFont = declareFont;
+  window.declareDefaultFonts = declareDefaultFonts;
+  window.getUsedFonts = getUsedFonts;
+  window.addFontOption = addFontOption;
+  window.fetchGoogleFont = fetchGoogleFont;
+  window.readBlobAsDataURL = readBlobAsDataURL;
+  window.loadFontsAsDataURI = loadFontsAsDataURI;
+  window.addGoogleFont = addGoogleFont;
+  window.addLocalFont = addLocalFont;
+  window.addWebFont = addWebFont;
 }

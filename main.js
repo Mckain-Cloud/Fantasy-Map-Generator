@@ -2,6 +2,52 @@
 // Azgaar (azgaar.fmg@yandex.com). Minsk, 2017-2023. MIT License
 // https://github.com/Azgaar/Fantasy-Map-Generator
 
+// ES Module imports
+import {byId} from "./utils/shorthands.js";
+import {rn, minmax, normalize} from "./utils/numberUtils.js";
+import {gauss, rand, P} from "./utils/probabilityUtils.js";
+import {debounce} from "./utils/commonUtils.js";
+import {getPackPolygon} from "./utils/graphUtils.js";
+import {createTypedArray} from "./utils/arrayUtils.js";
+import {parseError} from "./utils/commonUtils.js";
+import {applyStoredOptions} from "./modules/ui/options.js";
+import {locked} from "./modules/ui/general.js";
+import {calculateVoronoi, generateGrid, shouldRegenerateGrid} from "./utils/graphUtils.js";
+import {applyGraphSize} from "./modules/ui/options.js";
+import {HeightmapGenerator} from "./modules/heightmap-generator.js";
+import {Features} from "./modules/features.js";
+import {OceanLayers} from "./modules/ocean-layers.js";
+import {Rivers} from "./modules/river-generator.js";
+import {Biomes} from "./modules/biomes.js";
+import {Cultures} from "./modules/cultures-generator.js";
+import {BurgsAndStates} from "./modules/burgs-and-states.js";
+import {Routes} from "./modules/routes-generator.js";
+import {Religions} from "./modules/religions-generator.js";
+import {Provinces} from "./modules/provinces-generator.js";
+import {Military} from "./modules/military-generator.js";
+import {Markers} from "./modules/markers-generator.js";
+import {Zones} from "./modules/zones-generator.js";
+import {Names} from "./modules/names-generator.js";
+import {heightmapTemplates} from "./config/heightmap-templates.js";
+import {layerIsOn, drawLayers} from "./modules/ui/layers.js";
+import {drawScaleBar, fitScaleBar} from "./modules/renderers/draw-scalebar.js";
+import {drawCoordinates} from "./modules/ui/layers.js";
+import {applyStyleOnLoad} from "./modules/ui/style-presets.js";
+import {applyLayersPreset} from "./modules/ui/layers.js";
+import {tip, showDataTip, clearMainTip} from "./modules/ui/general.js";
+import {fitMapToScreen} from "./modules/ui/options.js";
+import {restoreDefaultEvents, closeDialogs, clearLegend} from "./modules/ui/editors.js";
+import {createDefaultRuler, Rulers} from "./modules/ui/measurers.js";
+import {ThreeD} from "./modules/ui/3d.js";
+import {editWorld} from "./modules/ui/world-configurator.js";
+import {uploadMap, loadMapFromURL, showUploadErrorMessage} from "./modules/io/load.js";
+import {ldb} from "./libs/indexedDB.js";
+import {editUnits} from "./modules/ui/units-editor.js";
+import {unfog} from "./modules/ui/editors.js";
+import {aleaPRNG, generateSeed} from "./libs/alea.min.js";
+import {randomizeOptions} from "./modules/ui/options.js";
+import {renderGroupCOAs} from "./modules/renderers/draw-emblems.js";
+
 // set debug options
 const PRODUCTION = location.hostname && location.hostname !== "localhost" && location.hostname !== "127.0.0.1";
 const DEBUG = JSON.safeParse(localStorage.getItem("debug")) || {};
@@ -141,6 +187,59 @@ fogging
   .attr("fill", "#e8f0f6")
   .attr("filter", "url(#splotch)");
 
+// Expose SVG layers on window immediately after creation (before any functions use them)
+if (typeof window !== "undefined") {
+  window.svg = svg;
+  window.defs = defs;
+  window.viewbox = viewbox;
+  window.scaleBar = scaleBar;
+  window.legend = legend;
+  window.ocean = ocean;
+  window.oceanLayers = oceanLayers;
+  window.oceanPattern = oceanPattern;
+  window.lakes = lakes;
+  window.landmass = landmass;
+  window.texture = texture;
+  window.terrs = terrs;
+  window.biomes = biomes;
+  window.cells = cells;
+  window.gridOverlay = gridOverlay;
+  window.coordinates = coordinates;
+  window.compass = compass;
+  window.rivers = rivers;
+  window.terrain = terrain;
+  window.relig = relig;
+  window.cults = cults;
+  window.regions = regions;
+  window.statesBody = statesBody;
+  window.statesHalo = statesHalo;
+  window.provs = provs;
+  window.zones = zones;
+  window.borders = borders;
+  window.stateBorders = stateBorders;
+  window.provinceBorders = provinceBorders;
+  window.routes = routes;
+  window.roads = roads;
+  window.trails = trails;
+  window.searoutes = searoutes;
+  window.temperature = temperature;
+  window.coastline = coastline;
+  window.ice = ice;
+  window.prec = prec;
+  window.population = population;
+  window.emblems = emblems;
+  window.labels = labels;
+  window.icons = icons;
+  window.burgIcons = burgIcons;
+  window.anchors = anchors;
+  window.armies = armies;
+  window.markers = markers;
+  window.fogging = fogging;
+  window.ruler = ruler;
+  window.debug = debug;
+  window.burgLabels = burgLabels;
+}
+
 // assign events separately as not a viewbox child
 scaleBar.on("mousemove", () => tip("Click to open Units Editor")).on("click", () => editUnits());
 legend
@@ -230,25 +329,26 @@ oceanLayers
   .attr("height", graphHeight);
 
 document.addEventListener("DOMContentLoaded", async () => {
-  if (!location.hostname) {
-    const wiki = "https://github.com/Azgaar/Fantasy-Map-Generator/wiki/Run-FMG-locally";
-    alertMessage.innerHTML = /* html */ `Fantasy Map Generator cannot run serverless. Follow the <a href="${wiki}" target="_blank">instructions</a> on how you can easily run a local web-server`;
+  // Serverless check disabled for testing
+  // if (!location.hostname) {
+  //   const wiki = "https://github.com/Azgaar/Fantasy-Map-Generator/wiki/Run-FMG-locally";
+  //   alertMessage.innerHTML = /* html */ `Fantasy Map Generator cannot run serverless. Follow the <a href="${wiki}" target="_blank">instructions</a> on how you can easily run a local web-server`;
 
-    $("#alert").dialog({
-      resizable: false,
-      title: "Loading error",
-      width: "28em",
-      position: {my: "center center-4em", at: "center", of: "svg"},
-      buttons: {
-        OK: function () {
-          $(this).dialog("close");
-        }
-      }
-    });
-  } else {
+  //   $("#alert").dialog({
+  //     resizable: false,
+  //     title: "Loading error",
+  //     width: "28em",
+  //     position: {my: "center center-4em", at: "center", of: "svg"},
+  //     buttons: {
+  //       OK: function () {
+  //         $(this).dialog("close");
+  //       }
+  //     }
+  //   });
+  // } else {
     hideLoading();
     await checkLoadParameters();
-  }
+  // }
   restoreDefaultEvents(); // apply default viewbox events
   initiateAutosave();
 });
@@ -1265,4 +1365,201 @@ function undraw() {
   byId("coas").innerHTML = ""; // remove auto-generated emblems
   notes = [];
   unfog();
+}
+
+// ES Module exports
+export {
+  // Constants
+  PRODUCTION,
+  DEBUG,
+  INFO,
+  TIME,
+  WARN,
+  ERROR,
+  MOBILE,
+  INT8_MAX,
+  UINT8_MAX,
+  UINT16_MAX,
+  UINT32_MAX,
+  // SVG layers
+  svg,
+  defs,
+  viewbox,
+  scaleBar,
+  legend,
+  ocean,
+  oceanLayers,
+  oceanPattern,
+  lakes,
+  landmass,
+  texture,
+  terrs,
+  biomes,
+  cells,
+  gridOverlay,
+  coordinates,
+  compass,
+  rivers,
+  terrain,
+  relig,
+  cults,
+  regions,
+  statesBody,
+  statesHalo,
+  provs,
+  zones,
+  borders,
+  stateBorders,
+  provinceBorders,
+  routes,
+  roads,
+  trails,
+  searoutes,
+  temperature,
+  coastline,
+  ice,
+  prec,
+  population,
+  emblems,
+  labels,
+  icons,
+  burgIcons,
+  anchors,
+  armies,
+  markers,
+  fogging,
+  ruler,
+  debug,
+  burgLabels,
+  // Data variables
+  grid,
+  pack,
+  seed,
+  mapId,
+  mapHistory,
+  elSelected,
+  modules,
+  notes,
+  rulers,
+  customization,
+  biomesData,
+  nameBases,
+  color,
+  lineGen,
+  // Zoom variables
+  scale,
+  viewX,
+  viewY,
+  zoom,
+  // Options
+  options,
+  mapCoordinates,
+  populationRate,
+  distanceScale,
+  urbanization,
+  urbanDensity,
+  graphWidth,
+  graphHeight,
+  svgWidth,
+  svgHeight,
+  // Functions
+  generate,
+  setSeed,
+  regenerateMap,
+  undraw,
+  zoomTo,
+  resetZoom,
+  invokeActiveZooming,
+  handleZoom,
+  hideLoading,
+  showLoading,
+  calculateMapCoordinates,
+  calculateTemperatures,
+  generatePrecipitation,
+  reGraph,
+  isWetLand,
+  rankCells,
+  showStatistics,
+  defineMapSize,
+  openNearSeaLakes,
+  addLakesInDeepDepressions,
+  focusOn,
+  checkLoadParameters,
+  generateMapOnLoad,
+  toggleAssistant,
+  findBurgForMFCG
+};
+
+// Backward compatibility - expose to window for non-module scripts
+if (typeof window !== "undefined") {
+  // Constants
+  window.PRODUCTION = PRODUCTION;
+  window.DEBUG = DEBUG;
+  window.INFO = INFO;
+  window.TIME = TIME;
+  window.WARN = WARN;
+  window.ERROR = ERROR;
+  window.MOBILE = MOBILE;
+  window.INT8_MAX = INT8_MAX;
+  window.UINT8_MAX = UINT8_MAX;
+  window.UINT16_MAX = UINT16_MAX;
+  window.UINT32_MAX = UINT32_MAX;
+  // SVG layers are exposed earlier in the file (after creation)
+  // Data variables (as getters/setters for mutable state)
+  Object.defineProperty(window, "grid", {get: () => grid, set: v => { grid = v; }, configurable: true});
+  Object.defineProperty(window, "pack", {get: () => pack, set: v => { pack = v; }, configurable: true});
+  Object.defineProperty(window, "seed", {get: () => seed, set: v => { seed = v; }, configurable: true});
+  Object.defineProperty(window, "mapId", {get: () => mapId, set: v => { mapId = v; }, configurable: true});
+  Object.defineProperty(window, "mapHistory", {get: () => mapHistory, set: v => { mapHistory = v; }, configurable: true});
+  Object.defineProperty(window, "elSelected", {get: () => elSelected, set: v => { elSelected = v; }, configurable: true});
+  Object.defineProperty(window, "modules", {get: () => modules, set: v => { modules = v; }, configurable: true});
+  Object.defineProperty(window, "notes", {get: () => notes, set: v => { notes = v; }, configurable: true});
+  Object.defineProperty(window, "rulers", {get: () => rulers, set: v => { rulers = v; }, configurable: true});
+  Object.defineProperty(window, "customization", {get: () => customization, set: v => { customization = v; }, configurable: true});
+  Object.defineProperty(window, "biomesData", {get: () => biomesData, set: v => { biomesData = v; }, configurable: true});
+  Object.defineProperty(window, "nameBases", {get: () => nameBases, set: v => { nameBases = v; }, configurable: true});
+  Object.defineProperty(window, "color", {get: () => color, set: v => { color = v; }, configurable: true});
+  window.lineGen = lineGen;
+  // Zoom variables
+  Object.defineProperty(window, "scale", {get: () => scale, set: v => { scale = v; }, configurable: true});
+  Object.defineProperty(window, "viewX", {get: () => viewX, set: v => { viewX = v; }, configurable: true});
+  Object.defineProperty(window, "viewY", {get: () => viewY, set: v => { viewY = v; }, configurable: true});
+  window.zoom = zoom;
+  // Options
+  Object.defineProperty(window, "options", {get: () => options, set: v => { options = v; }, configurable: true});
+  Object.defineProperty(window, "mapCoordinates", {get: () => mapCoordinates, set: v => { mapCoordinates = v; }, configurable: true});
+  Object.defineProperty(window, "populationRate", {get: () => populationRate, set: v => { populationRate = v; }, configurable: true});
+  Object.defineProperty(window, "distanceScale", {get: () => distanceScale, set: v => { distanceScale = v; }, configurable: true});
+  Object.defineProperty(window, "urbanization", {get: () => urbanization, set: v => { urbanization = v; }, configurable: true});
+  Object.defineProperty(window, "urbanDensity", {get: () => urbanDensity, set: v => { urbanDensity = v; }, configurable: true});
+  Object.defineProperty(window, "graphWidth", {get: () => graphWidth, set: v => { graphWidth = v; }, configurable: true});
+  Object.defineProperty(window, "graphHeight", {get: () => graphHeight, set: v => { graphHeight = v; }, configurable: true});
+  Object.defineProperty(window, "svgWidth", {get: () => svgWidth, set: v => { svgWidth = v; }, configurable: true});
+  Object.defineProperty(window, "svgHeight", {get: () => svgHeight, set: v => { svgHeight = v; }, configurable: true});
+  // Functions
+  window.generate = generate;
+  window.setSeed = setSeed;
+  window.regenerateMap = regenerateMap;
+  window.undraw = undraw;
+  window.zoomTo = zoomTo;
+  window.resetZoom = resetZoom;
+  window.invokeActiveZooming = invokeActiveZooming;
+  window.handleZoom = handleZoom;
+  window.hideLoading = hideLoading;
+  window.showLoading = showLoading;
+  window.calculateMapCoordinates = calculateMapCoordinates;
+  window.calculateTemperatures = calculateTemperatures;
+  window.generatePrecipitation = generatePrecipitation;
+  window.reGraph = reGraph;
+  window.isWetLand = isWetLand;
+  window.rankCells = rankCells;
+  window.showStatistics = showStatistics;
+  window.defineMapSize = defineMapSize;
+  window.openNearSeaLakes = openNearSeaLakes;
+  window.addLakesInDeepDepressions = addLakesInDeepDepressions;
+  window.focusOn = focusOn;
+  window.checkLoadParameters = checkLoadParameters;
+  window.generateMapOnLoad = generateMapOnLoad;
+  window.toggleAssistant = toggleAssistant;
+  window.findBurgForMFCG = findBurgForMFCG;
 }

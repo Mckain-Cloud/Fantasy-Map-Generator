@@ -1,5 +1,7 @@
 "use strict";
 
+import {byId} from "../../utils/shorthands.js";
+
 function editNotes(id, name) {
   // elements
   const notesLegend = byId("notesLegend");
@@ -205,4 +207,8 @@ function editNotes(id, name) {
   function removeEditor() {
     if (window.tinymce) tinymce.remove();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editNotes = editNotes;
 }

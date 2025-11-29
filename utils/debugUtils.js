@@ -1,7 +1,12 @@
 "use strict";
 // FMG utils used for debugging
 
-function drawCellsValue(data) {
+import {normalize} from "./numberUtils.js";
+import {C_12} from "./colorUtils.js";
+import {getGridPolygon} from "./graphUtils.js";
+import {round} from "./stringUtils.js";
+
+export function drawCellsValue(data) {
   debug.selectAll("text").remove();
   debug
     .selectAll("text")
@@ -13,7 +18,7 @@ function drawCellsValue(data) {
     .text(d => d);
 }
 
-function drawPolygons(data) {
+export function drawPolygons(data) {
   const max = d3.max(data);
   const min = d3.min(data);
   const scheme = getColorScheme(terrs.select("#landHeights").attr("scheme"));
@@ -31,7 +36,7 @@ function drawPolygons(data) {
     .attr("stroke", d => scheme(d));
 }
 
-function drawRouteConnections() {
+export function drawRouteConnections() {
   debug.select("#connections").remove();
   const routes = debug.append("g").attr("id", "connections").attr("stroke-width", 0.8);
 
@@ -57,11 +62,11 @@ function drawRouteConnections() {
   }
 }
 
-function drawPoint([x, y], {color = "red", radius = 0.5}) {
+export function drawPoint([x, y], {color = "red", radius = 0.5}) {
   debug.append("circle").attr("cx", x).attr("cy", y).attr("r", radius).attr("fill", color);
 }
 
-function drawPath(points, {color = "red", width = 0.5}) {
+export function drawPath(points, {color = "red", width = 0.5}) {
   const lineGen = d3.line().curve(d3.curveBundle);
   debug
     .append("path")
@@ -69,4 +74,13 @@ function drawPath(points, {color = "red", width = 0.5}) {
     .attr("stroke", color)
     .attr("stroke-width", width)
     .attr("fill", "none");
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.drawCellsValue = drawCellsValue;
+  window.drawPolygons = drawPolygons;
+  window.drawRouteConnections = drawRouteConnections;
+  window.drawPoint = drawPoint;
+  window.drawPath = drawPath;
 }

@@ -1,8 +1,11 @@
 "use strict";
 // FMG utils related to randomness
 
+import {rn, minmax} from "./numberUtils.js";
+import {ERROR} from "../src/core/state.js";
+
 // random number in a range
-function rand(min, max) {
+export function rand(min, max) {
   if (min === undefined && max === undefined) return Math.random();
   if (max === undefined) {
     max = min;
@@ -12,13 +15,13 @@ function rand(min, max) {
 }
 
 // probability shorthand
-function P(probability) {
+export function P(probability) {
   if (probability >= 1) return true;
   if (probability <= 0) return false;
   return Math.random() < probability;
 }
 
-function each(n) {
+export function each(n) {
   return i => i % n === 0;
 }
 
@@ -30,22 +33,22 @@ function each(n) {
  * @param {number} round - round value to n decimals
  * @return {number} random number
  */
-function gauss(expected = 100, deviation = 30, min = 0, max = 300, round = 0) {
+export function gauss(expected = 100, deviation = 30, min = 0, max = 300, round = 0) {
   return rn(minmax(d3.randomNormal(expected, deviation)(), min, max), round);
 }
 
 // probability shorthand for floats
-function Pint(float) {
+export function Pint(float) {
   return ~~float + +P(float % 1);
 }
 
 // return random value from the array
-function ra(array) {
+export function ra(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
 // return random value from weighted array {"key1":weight1, "key2":weight2}
-function rw(object) {
+export function rw(object) {
   const array = [];
   for (const key in object) {
     for (let i = 0; i < object[key]; i++) {
@@ -56,12 +59,12 @@ function rw(object) {
 }
 
 // return a random integer from min to max biased towards one end based on exponent distribution (the bigger ex the higher bias towards min)
-function biased(min, max, ex) {
+export function biased(min, max, ex) {
   return Math.round(min + (max - min) * Math.pow(Math.random(), ex));
 }
 
 // get number from string in format "1-3" or "2" or "0.5"
-function getNumberInRange(r) {
+export function getNumberInRange(r) {
   if (typeof r !== "string") {
     ERROR && console.error("Range value should be a string", r);
     return 0;
@@ -82,6 +85,20 @@ function getNumberInRange(r) {
   return count;
 }
 
-function generateSeed() {
+export function generateSeed() {
   return String(Math.floor(Math.random() * 1e9));
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.rand = rand;
+  window.P = P;
+  window.each = each;
+  window.gauss = gauss;
+  window.Pint = Pint;
+  window.ra = ra;
+  window.rw = rw;
+  window.biased = biased;
+  window.getNumberInRange = getNumberInRange;
+  window.generateSeed = generateSeed;
 }

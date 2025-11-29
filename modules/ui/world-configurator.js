@@ -1,3 +1,8 @@
+"use strict";
+
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editWorld() {
   if (customization) return;
 
@@ -195,4 +200,10 @@ function editWorld() {
     lock("latitude");
     if (byId("wcAutoChange").checked) updateWorld();
   }
+}
+
+export {editWorld};
+
+if (typeof window !== "undefined") {
+  window.editWorld = editWorld;
 }

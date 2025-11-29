@@ -1,20 +1,23 @@
 "use strict";
 
+import {last} from "./arrayUtils.js";
+import {P} from "./probabilityUtils.js";
+
 // chars that serve as vowels
-const VOWELS = `aeiouyɑ'əøɛœæɶɒɨɪɔɐʊɤɯаоиеёэыуюяàèìòùỳẁȁȅȉȍȕáéíóúýẃőűâêîôûŷŵäëïöüÿẅãẽĩõũỹąęįǫųāēīōūȳăĕĭŏŭǎěǐǒǔȧėȯẏẇạẹịọụỵẉḛḭṵṳ`;
-function vowel(c) {
+export const VOWELS = `aeiouyɑ'əøɛœæɶɒɨɪɔɐʊɤɯаоиеёэыуюяàèìòùỳẁȁȅȉȍȕáéíóúýẃőűâêîôûŷŵäëïöüÿẅãẽĩõũỹąęįǫųāēīōūȳăĕĭŏŭǎěǐǒǔȧėȯẏẇạẹịọụỵẉḛḭṵṳ`;
+export function vowel(c) {
   return VOWELS.includes(c);
 }
 
 // remove vowels from the end of the string
-function trimVowels(string, minLength = 3) {
+export function trimVowels(string, minLength = 3) {
   while (string.length > minLength && vowel(last(string))) {
     string = string.slice(0, -1);
   }
   return string;
 }
 
-const adjectivizationRules = [
+export const adjectivizationRules = [
   {name: "guo", probability: 1, condition: new RegExp(" Guo$"), action: noun => noun.slice(0, -4)},
   {
     name: "orszag",
@@ -141,7 +144,7 @@ const adjectivizationRules = [
 ];
 
 // get adjective form from noun
-function getAdjective(noun) {
+export function getAdjective(noun) {
   for (const rule of adjectivizationRules) {
     if (P(rule.probability) && rule.condition.test(noun)) {
       return rule.action(noun);
@@ -151,10 +154,10 @@ function getAdjective(noun) {
 }
 
 // get ordinal from integer: 1 => 1st
-const nth = n => n + (["st", "nd", "rd"][((((n + 90) % 100) - 10) % 10) - 1] || "th");
+export const nth = n => n + (["st", "nd", "rd"][((((n + 90) % 100) - 10) % 10) - 1] || "th");
 
 // get two-letters code (abbreviation) from string
-function abbreviate(name, restricted = []) {
+export function abbreviate(name, restricted = []) {
   const parsed = name.replace("Old ", "O ").replace(/[()]/g, ""); // remove Old prefix and parentheses
   const words = parsed.split(" ");
   const letters = words.join("");
@@ -167,8 +170,20 @@ function abbreviate(name, restricted = []) {
 }
 
 // conjunct array: [A,B,C] => "A, B and C"
-function list(array) {
+export function list(array) {
   if (!Intl.ListFormat) return array.join(", ");
   const conjunction = new Intl.ListFormat(window.lang || "en", {style: "long", type: "conjunction"});
   return conjunction.format(array);
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.VOWELS = VOWELS;
+  window.vowel = vowel;
+  window.trimVowels = trimVowels;
+  window.adjectivizationRules = adjectivizationRules;
+  window.getAdjective = getAdjective;
+  window.nth = nth;
+  window.abbreviate = abbreviate;
+  window.list = list;
 }

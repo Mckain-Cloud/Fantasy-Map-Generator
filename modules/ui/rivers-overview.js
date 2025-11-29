@@ -1,5 +1,9 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function overviewRivers() {
   if (customization) return;
   closeDialogs("#riversOverview, .stable");
@@ -201,4 +205,8 @@ function overviewRivers() {
     rivers.selectAll("*").remove();
     riversOverviewAddLines();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.overviewRivers = overviewRivers;
 }

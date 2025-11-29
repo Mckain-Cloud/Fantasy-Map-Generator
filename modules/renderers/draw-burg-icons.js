@@ -1,6 +1,9 @@
 "use strict";
 
-function drawBurgIcons() {
+import {rn} from "../../utils/numberUtils.js";
+import {TIME} from "../../src/core/state.js";
+
+export function drawBurgIcons() {
   TIME && console.time("drawBurgIcons");
 
   icons.selectAll("circle, use").remove(); // cleanup
@@ -66,4 +69,8 @@ function drawBurgIcons() {
     .attr("height", townsAnchorsSize);
 
   TIME && console.timeEnd("drawBurgIcons");
+}
+
+if (typeof window !== "undefined") {
+  window.drawBurgIcons = drawBurgIcons;
 }

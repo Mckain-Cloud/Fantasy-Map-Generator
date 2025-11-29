@@ -1,4 +1,8 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editMarker(markerI) {
   if (customization) return;
   closeDialogs(".stable");
@@ -260,4 +264,8 @@ function editMarker(markerI) {
     restoreDefaultEvents();
     clearMainTip();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editMarker = editMarker;
 }

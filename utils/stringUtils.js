@@ -1,20 +1,22 @@
 "use strict";
 // FMG utils related to strings
 
+import {rn} from "./numberUtils.js";
+
 // round numbers in string to d decimals
-function round(s, d = 1) {
+export function round(s, d = 1) {
   return s.replace(/[\d\.-][\d\.e-]*/g, function (n) {
     return rn(n, d);
   });
 }
 
 // return string with 1st char capitalized
-function capitalize(string) {
+export function capitalize(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 // split string into 2 almost equal parts not breaking words
-function splitInTwo(str) {
+export function splitInTwo(str) {
   const half = str.length / 2;
   const ar = str.split(" ");
   if (ar.length < 2) return ar; // only one word
@@ -37,7 +39,7 @@ function splitInTwo(str) {
 }
 
 // transform string to array [translateX,translateY,rotateDeg,rotateX,rotateY,scale]
-function parseTransform(string) {
+export function parseTransform(string) {
   if (!string) return [0, 0, 0, 0, 0, 1];
 
   const a = string
@@ -48,19 +50,30 @@ function parseTransform(string) {
 }
 
 // check if string is a valid for JSON parse
-JSON.isValid = str => {
+export function jsonIsValid(str) {
   try {
     JSON.parse(str);
   } catch (e) {
     return false;
   }
   return true;
-};
+}
 
-JSON.safeParse = str => {
+export function jsonSafeParse(str) {
   try {
     return JSON.parse(str);
   } catch (e) {
     return null;
   }
-};
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.round = round;
+  window.capitalize = capitalize;
+  window.splitInTwo = splitInTwo;
+  window.parseTransform = parseTransform;
+  // Keep JSON extensions for compatibility
+  JSON.isValid = jsonIsValid;
+  JSON.safeParse = jsonSafeParse;
+}

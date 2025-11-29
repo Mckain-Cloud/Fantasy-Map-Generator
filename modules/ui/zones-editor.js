@@ -1,5 +1,10 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {getRandomColor} from "../../utils/colorUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editZones() {
   closeDialogs("#zonesEditor, .stable");
   if (!layerIsOn("toggleZones")) toggleZones();
@@ -492,4 +497,8 @@ function editZones() {
       }
     });
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editZones = editZones;
 }

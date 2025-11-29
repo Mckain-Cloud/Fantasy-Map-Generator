@@ -1,7 +1,10 @@
 "use strict";
 
-window.Zones = (function () {
-  const config = {
+import {gauss, P, ra, rand, rw} from "../utils/probabilityUtils.js";
+import {getAdjective} from "../utils/languageUtils.js";
+import {TIME} from "../src/core/state.js";
+
+const config = {
     invasion: {quantity: 2, generate: addInvasion}, // invasion of enemy lands
     rebels: {quantity: 1.5, generate: addRebels}, // rebels along a state border
     proselytism: {quantity: 1.6, generate: addProselytism}, // proselitism of organized religion
@@ -450,5 +453,8 @@ window.Zones = (function () {
     pack.zones.push({i: pack.zones.length, name, type: "Tsunami", cells: cellsArray, color: "url(#hatch13)"});
   }
 
-  return {generate};
-})();
+export const Zones = {generate};
+
+if (typeof window !== "undefined") {
+  window.Zones = Zones;
+}

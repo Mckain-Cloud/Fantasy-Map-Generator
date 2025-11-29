@@ -1,4 +1,29 @@
 "use strict";
+// Polyfills for older browser compatibility
+// This module is primarily side-effects that augment built-in prototypes
+
+// JSON.safeParse - safe JSON parsing that returns null on error
+if (JSON.safeParse === undefined) {
+  JSON.safeParse = function(text) {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      return null;
+    }
+  };
+}
+
+// JSON.isValid - check if string is valid JSON
+if (JSON.isValid === undefined) {
+  JSON.isValid = function(text) {
+    try {
+      JSON.parse(text);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+}
 
 // replaceAll
 if (String.prototype.replaceAll === undefined) {
@@ -39,3 +64,6 @@ if (ReadableStream.prototype[Symbol.asyncIterator] === undefined) {
     }
   };
 }
+
+// Note: This file must be loaded as a regular script (not type="module")
+// to ensure polyfills are available before other scripts run

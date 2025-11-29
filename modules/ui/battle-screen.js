@@ -1,4 +1,10 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {minmax} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {P, Pint} from "../../utils/probabilityUtils.js";
+
 class Battle {
   constructor(attacker, defender) {
     if (customization) return;
@@ -919,4 +925,8 @@ class Battle {
     });
     delete Battle.prototype.context;
   }
+}
+
+if (typeof window !== "undefined") {
+  window.Battle = Battle;
 }

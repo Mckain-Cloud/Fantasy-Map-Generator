@@ -1,6 +1,9 @@
 "use strict";
 
-function drawHeightmap() {
+import {round} from "../../utils/stringUtils.js";
+import {TIME, ERROR} from "../../src/core/state.js";
+
+export function drawHeightmap() {
   TIME && console.time("drawHeightmap");
 
   const ocean = terrs.select("#oceanHeights");
@@ -141,4 +144,8 @@ function drawHeightmap() {
   }
 
   TIME && console.timeEnd("drawHeightmap");
+}
+
+if (typeof window !== "undefined") {
+  window.drawHeightmap = drawHeightmap;
 }

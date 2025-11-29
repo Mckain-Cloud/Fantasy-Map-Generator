@@ -1,5 +1,7 @@
 "use strict";
 
+import {byId} from "../../utils/shorthands.js";
+
 function editRouteGroups() {
   if (customization) return;
   if (!layerIsOn("toggleRoutes")) toggleRoutes();
@@ -81,4 +83,8 @@ function editRouteGroups() {
       }
     });
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editRouteGroups = editRouteGroups;
 }

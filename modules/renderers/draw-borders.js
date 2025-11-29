@@ -1,6 +1,8 @@
 "use strict";
 
-function drawBorders() {
+import {TIME} from "../../src/core/state.js";
+
+export function drawBorders() {
   TIME && console.time("drawBorders");
   const {cells, vertices} = pack;
 
@@ -117,4 +119,8 @@ function drawBorders() {
   }
 
   TIME && console.timeEnd("drawBorders");
+}
+
+if (typeof window !== "undefined") {
+  window.drawBorders = drawBorders;
 }

@@ -1,8 +1,14 @@
 "use strict";
 
-window.Military = (function () {
-  const generate = function () {
-    TIME && console.time("generateMilitary");
+import {rn, minmax} from "../utils/numberUtils.js";
+import {gauss, P, ra, rand} from "../utils/probabilityUtils.js";
+import {si} from "../utils/unitUtils.js";
+import {nth} from "../utils/languageUtils.js";
+import {byId} from "../utils/shorthands.js";
+import {TIME} from "../src/core/state.js";
+
+const generate = function () {
+  TIME && console.time("generateMilitary");
     const {cells, states} = pack;
     const {p} = cells;
     const valid = states.filter(s => s.i && !s.removed); // valid states
@@ -383,12 +389,15 @@ window.Military = (function () {
     notes.push({id: `regiment${s.i}-${r.i}`, name: r.name, legend});
   };
 
-  return {
-    generate,
-    getDefaultOptions,
-    getName,
-    generateNote,
-    getTotal,
-    getEmblem
-  };
-})();
+export const Military = {
+  generate,
+  getDefaultOptions,
+  getName,
+  generateNote,
+  getTotal,
+  getEmblem
+};
+
+if (typeof window !== "undefined") {
+  window.Military = Military;
+}

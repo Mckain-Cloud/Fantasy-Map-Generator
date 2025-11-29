@@ -1,8 +1,14 @@
 "use strict";
 // FMG helper functions
 
+import {rn} from "./numberUtils.js";
+import {last} from "./arrayUtils.js";
+import {rand} from "./probabilityUtils.js";
+import {dist2} from "./functionUtils.js";
+import {ERROR} from "../src/core/state.js";
+
 // clip polygon by graph bbox
-function clipPoly(points, secure = 0) {
+export function clipPoly(points, secure = 0) {
   if (points.length < 2) return points;
   if (points.some(point => point === undefined)) {
     ERROR && console.error("Undefined point in clipPoly", points);
@@ -13,7 +19,7 @@ function clipPoly(points, secure = 0) {
 }
 
 // get segment of any point on polyline
-function getSegmentId(points, point, step = 10) {
+export function getSegmentId(points, point, step = 10) {
   if (points.length === 2) return 1;
 
   let minSegment = 1;
@@ -42,7 +48,7 @@ function getSegmentId(points, point, step = 10) {
   return minSegment;
 }
 
-function debounce(func, ms) {
+export function debounce(func, ms) {
   let isCooldown = false;
 
   return function () {
@@ -53,7 +59,7 @@ function debounce(func, ms) {
   };
 }
 
-function throttle(func, ms) {
+export function throttle(func, ms) {
   let isThrottled = false;
   let savedArgs;
   let savedThis;
@@ -81,7 +87,7 @@ function throttle(func, ms) {
 }
 
 // parse error to get the readable string in Chrome and Firefox
-function parseError(error) {
+export function parseError(error) {
   const isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
   const errorString = isFirefox ? error.toString() + " " + error.stack : error.stack;
   const regex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi;
@@ -90,7 +96,7 @@ function parseError(error) {
   return errorParsed;
 }
 
-function getBase64(url, callback) {
+export function getBase64(url, callback) {
   const xhr = new XMLHttpRequest();
   xhr.onload = function () {
     const reader = new FileReader();
@@ -105,26 +111,26 @@ function getBase64(url, callback) {
 }
 
 // open URL in a new tab or window
-function openURL(url) {
+export function openURL(url) {
   window.open(url, "_blank");
 }
 
 // open project wiki-page
-function wiki(page) {
+export function wiki(page) {
   window.open("https://github.com/Azgaar/Fantasy-Map-Generator/wiki/" + page, "_blank");
 }
 
 // wrap URL into html a element
-function link(URL, description) {
+export function link(URL, description) {
   return `<a href="${URL}" rel="noopener" target="_blank">${description}</a>`;
 }
 
-function isCtrlClick(event) {
+export function isCtrlClick(event) {
   // meta key is cmd key on MacOs
   return event.ctrlKey || event.metaKey;
 }
 
-function generateDate(from = 100, to = 1000) {
+export function generateDate(from = 100, to = 1000) {
   return new Date(rand(from, to), rand(12), rand(31)).toLocaleDateString("en", {
     year: "numeric",
     month: "long",
@@ -132,15 +138,15 @@ function generateDate(from = 100, to = 1000) {
   });
 }
 
-function getLongitude(x, decimals = 2) {
+export function getLongitude(x, decimals = 2) {
   return rn(mapCoordinates.lonW + (x / graphWidth) * mapCoordinates.lonT, decimals);
 }
 
-function getLatitude(y, decimals = 2) {
+export function getLatitude(y, decimals = 2) {
   return rn(mapCoordinates.latN - (y / graphHeight) * mapCoordinates.latT, decimals);
 }
 
-function getCoordinates(x, y, decimals = 2) {
+export function getCoordinates(x, y, decimals = 2) {
   return [getLongitude(x, decimals), getLatitude(y, decimals)];
 }
 
@@ -188,3 +194,21 @@ void (function () {
     prompt.style.display = "none";
   });
 })();
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.clipPoly = clipPoly;
+  window.getSegmentId = getSegmentId;
+  window.debounce = debounce;
+  window.throttle = throttle;
+  window.parseError = parseError;
+  window.getBase64 = getBase64;
+  window.openURL = openURL;
+  window.wiki = wiki;
+  window.link = link;
+  window.isCtrlClick = isCtrlClick;
+  window.generateDate = generateDate;
+  window.getLongitude = getLongitude;
+  window.getLatitude = getLatitude;
+  window.getCoordinates = getCoordinates;
+}

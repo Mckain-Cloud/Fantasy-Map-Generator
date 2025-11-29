@@ -1,5 +1,8 @@
 "use strict";
 // Hotkeys, see github.com/Azgaar/Fantasy-Map-Generator/wiki/Hotkeys
+
+import {byId} from "../../utils/shorthands.js";
+import {quickLoad} from "../io/load.js";
 document.addEventListener("keydown", handleKeydown);
 document.addEventListener("keyup", handleKeyup);
 
@@ -166,4 +169,13 @@ function removeElementOnKey() {
 function closeAllDialogs() {
   closeDialogs();
   hideOptions();
+}
+
+if (typeof window !== "undefined") {
+  window.handleKeydown = handleKeydown;
+  window.handleKeyup = handleKeyup;
+  window.allowHotkeys = allowHotkeys;
+  window.quickLoad = quickLoad;
+  window.removeElementOnKey = removeElementOnKey;
+  window.closeAllDialogs = closeAllDialogs;
 }

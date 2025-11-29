@@ -1,4 +1,7 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+
 function editReliefIcon() {
   if (customization) return;
   closeDialogs(".stable");
@@ -285,4 +288,8 @@ function editReliefIcon() {
     unselect();
     clearMainTip();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editReliefIcon = editReliefIcon;
 }

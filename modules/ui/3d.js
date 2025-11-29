@@ -1,6 +1,10 @@
 "use strict";
 
-window.ThreeD = (function () {
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {TIME} from "../../src/core/state.js";
+
+const ThreeD = (function () {
   const options = {
     scale: 50,
     lightness: 0.6,
@@ -726,3 +730,9 @@ window.ThreeD = (function () {
     saveOBJ
   };
 })();
+
+export {ThreeD};
+
+if (typeof window !== "undefined") {
+  window.ThreeD = ThreeD;
+}

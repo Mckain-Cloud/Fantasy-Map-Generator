@@ -1,5 +1,9 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {minmax} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function openSubmapTool() {
   resetInputs();
 
@@ -94,4 +98,8 @@ function openSubmapTool() {
       group.dataset.size = Math.max(rn((size + size / scale) / 2, 2), 1) * scale;
     }
   }
+}
+
+if (typeof window !== "undefined") {
+  window.openSubmapTool = openSubmapTool;
 }

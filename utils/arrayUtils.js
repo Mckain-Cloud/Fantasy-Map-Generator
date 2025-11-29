@@ -1,15 +1,17 @@
 "use strict";
 
-function last(array) {
+import {UINT8_MAX, UINT16_MAX, UINT32_MAX} from "../src/core/state.js";
+
+export function last(array) {
   return array[array.length - 1];
 }
 
-function unique(array) {
+export function unique(array) {
   return [...new Set(array)];
 }
 
 // deep copy for Arrays (and other objects)
-function deepCopy(obj) {
+export function deepCopy(obj) {
   const id = x => x;
   const dcTArray = a => a.map(id);
   const dcObject = x => Object.fromEntries(Object.entries(x).map(([k, d]) => [k, dcAny(d)]));
@@ -41,7 +43,7 @@ function deepCopy(obj) {
   return dcAny(obj);
 }
 
-function getTypedArray(maxValue) {
+export function getTypedArray(maxValue) {
   console.assert(
     Number.isInteger(maxValue) && maxValue >= 0 && maxValue <= UINT32_MAX,
     `Array maxValue must be an integer between 0 and ${UINT32_MAX}, got ${maxValue}`
@@ -53,8 +55,17 @@ function getTypedArray(maxValue) {
   return Uint32Array;
 }
 
-function createTypedArray({maxValue, length, from}) {
+export function createTypedArray({maxValue, length, from}) {
   const typedArray = getTypedArray(maxValue);
   if (!from) return new typedArray(length);
   return typedArray.from(from);
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.last = last;
+  window.unique = unique;
+  window.deepCopy = deepCopy;
+  window.getTypedArray = getTypedArray;
+  window.createTypedArray = createTypedArray;
 }

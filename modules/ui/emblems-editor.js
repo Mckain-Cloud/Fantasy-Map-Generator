@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {openEmblemEditor} from "./tools.js";
+
 function editEmblem(type, id, el) {
   if (customization) return;
   if (!id && d3.event) defineEmblemData(d3.event);
@@ -539,4 +544,9 @@ function editEmblem(type, id, el) {
   function closeEmblemEditor() {
     emblems.selectAll("use").call(d3.drag().on("drag", null)).attr("class", null);
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editEmblem = editEmblem;
+  window.openEmblemEditor = openEmblemEditor;
 }

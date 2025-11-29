@@ -1,5 +1,8 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 // data is an array of cell indexes, routeLen is the distance (in actual metres/feet), isRiver should be true for rivers, false otherwise
 function showElevationProfile(data, routeLen, isRiver) {
   byId("epScaleRange").on("change", draw);
@@ -392,4 +395,8 @@ function showElevationProfile(data, routeLen, isRiver) {
     byId("elevationGraph").innerHTML = "";
     modules.elevation = false;
   }
+}
+
+if (typeof window !== "undefined") {
+  window.showElevationProfile = showElevationProfile;
 }

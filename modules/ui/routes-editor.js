@@ -1,5 +1,8 @@
 "use strict";
 
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editRoute(id) {
   if (customization) return;
   if (elSelected && id === elSelected.attr("id")) return;
@@ -413,4 +416,8 @@ function editRoute(id) {
     byId("toggleCells").dataset.forced = 0;
     if (forced && layerIsOn("toggleCells")) toggleCells();
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editRoute = editRoute;
 }

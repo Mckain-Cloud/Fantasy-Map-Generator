@@ -1,12 +1,17 @@
 "use strict";
 
-window.HeightmapGenerator = (function () {
-  let grid = null;
-  let heights = null;
-  let blobPower;
-  let linePower;
+import {minmax} from "../utils/numberUtils.js";
+import {P, rand} from "../utils/probabilityUtils.js";
+import {findGridCell} from "../utils/graphUtils.js";
+import {byId} from "../utils/shorthands.js";
+import {TIME, ERROR} from "../src/core/state.js";
 
-  const setGraph = graph => {
+let grid = null;
+let heights = null;
+let blobPower;
+let linePower;
+
+const setGraph = graph => {
     const {cellsDesired, cells, points} = graph;
     heights = cells.h ? Uint8Array.from(cells.h) : createTypedArray({maxValue: 100, length: points.length});
     blobPower = getBlobPower(cellsDesired);
@@ -524,20 +529,23 @@ window.HeightmapGenerator = (function () {
     }
   }
 
-  return {
-    setGraph,
-    getHeights,
-    generate,
-    fromTemplate,
-    fromPrecreated,
-    addHill,
-    addRange,
-    addTrough,
-    addStrait,
-    addPit,
-    smooth,
-    modify,
-    mask,
-    invert
-  };
-})();
+export const HeightmapGenerator = {
+  setGraph,
+  getHeights,
+  generate,
+  fromTemplate,
+  fromPrecreated,
+  addHill,
+  addRange,
+  addTrough,
+  addStrait,
+  addPit,
+  smooth,
+  modify,
+  mask,
+  invert
+};
+
+if (typeof window !== "undefined") {
+  window.HeightmapGenerator = HeightmapGenerator;
+}

@@ -1,7 +1,10 @@
 "use strict";
 
+import {rn} from "./numberUtils.js";
+import {ERROR} from "../src/core/state.js";
+
 // get continuous paths (isolines) for all cells at once based on getType(cellId) comparison
-function getIsolines(graph, getType, options = {polygons: false, fill: false, halo: false, waterGap: false}) {
+export function getIsolines(graph, getType, options = {polygons: false, fill: false, halo: false, waterGap: false}) {
   const {cells, vertices} = graph;
   const isolines = {};
 
@@ -62,13 +65,13 @@ function getIsolines(graph, getType, options = {polygons: false, fill: false, ha
   }
 }
 
-function getFillPath(vertices, vertexChain) {
+export function getFillPath(vertices, vertexChain) {
   const points = vertexChain.map(vertexId => vertices.p[vertexId]);
   const firstPoint = points.shift();
   return `M${firstPoint} L${points.join(" ")} Z`;
 }
 
-function getBorderPath(vertices, vertexChain, discontinue) {
+export function getBorderPath(vertices, vertexChain, discontinue) {
   let discontinued = true;
   let lastOperation = "";
   const path = vertexChain.map(vertexId => {
@@ -89,7 +92,7 @@ function getBorderPath(vertices, vertexChain, discontinue) {
 }
 
 // get single path for an non-continuous array of cells
-function getVertexPath(cellsArray) {
+export function getVertexPath(cellsArray) {
   const {cells, vertices} = pack;
 
   const cellsObj = Object.fromEntries(cellsArray.map(cellId => [cellId, true]));
@@ -125,7 +128,7 @@ function getVertexPath(cellsArray) {
   return path;
 }
 
-function getPolesOfInaccessibility(graph, getType) {
+export function getPolesOfInaccessibility(graph, getType) {
   const isolines = getIsolines(graph, getType, {polygons: true});
 
   const poles = Object.entries(isolines).map(([id, isoline]) => {
@@ -137,7 +140,7 @@ function getPolesOfInaccessibility(graph, getType) {
   return Object.fromEntries(poles);
 }
 
-function connectVertices({vertices, startingVertex, ofSameType, addToChecked, closeRing}) {
+export function connectVertices({vertices, startingVertex, ofSameType, addToChecked, closeRing}) {
   const MAX_ITERATIONS = vertices.c.length;
   const chain = []; // vertices chain to form a path
 
@@ -184,7 +187,7 @@ function connectVertices({vertices, startingVertex, ofSameType, addToChecked, cl
  * @param {(current: number, next: number) => number} getCost - A function that returns the path cost from current cell to the next cell. Must return `Infinity` for impassable connections.
  * @returns {number[] | null} An array of cell IDs of the path from start to exit, or null if no path is found or start and exit are the same.
  */
-function findPath(start, isExit, getCost) {
+export function findPath(start, isExit, getCost) {
   if (isExit(start)) return null;
 
   const from = [];
@@ -217,7 +220,7 @@ function findPath(start, isExit, getCost) {
 }
 
 // supplementary function for findPath
-function restorePath(exit, start, from) {
+export function restorePath(exit, start, from) {
   const pathCells = [];
 
   let current = exit;
@@ -232,4 +235,16 @@ function restorePath(exit, start, from) {
   pathCells.push(current);
 
   return pathCells.reverse();
+}
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.getIsolines = getIsolines;
+  window.getFillPath = getFillPath;
+  window.getBorderPath = getBorderPath;
+  window.getVertexPath = getVertexPath;
+  window.getPolesOfInaccessibility = getPolesOfInaccessibility;
+  window.connectVertices = connectVertices;
+  window.findPath = findPath;
+  window.restorePath = restorePath;
 }

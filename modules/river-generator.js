@@ -1,7 +1,11 @@
 "use strict";
 
-window.Rivers = (function () {
-  const generate = function (allowErosion = true) {
+import {rn} from "../utils/numberUtils.js";
+import {each, rw} from "../utils/probabilityUtils.js";
+import {round} from "../utils/stringUtils.js";
+import {TIME, WARN} from "../src/core/state.js";
+
+const generate = function (allowErosion = true) {
     TIME && console.time("generateRivers");
     Math.random = aleaPRNG(seed);
     const {cells, features} = pack;
@@ -499,7 +503,7 @@ window.Rivers = (function () {
     return rivers.length ? Math.max(...rivers.map(r => r.i)) + 1 : 1;
   };
 
-  return {
+export const Rivers = {
     generate,
     alterHeights,
     resolveDepressions,
@@ -516,5 +520,9 @@ window.Rivers = (function () {
     getRiverPoints,
     remove,
     getNextId
-  };
-})();
+};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Rivers = Rivers;
+}

@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {last} from "../../utils/arrayUtils.js";
+
 function editRegiment(selector) {
   if (customization) return;
   closeDialogs(".stable");
@@ -491,4 +496,8 @@ function editRegiment(selector) {
     restoreDefaultEvents();
     elSelected = null;
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editRegiment = editRegiment;
 }

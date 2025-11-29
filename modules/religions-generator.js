@@ -1,8 +1,14 @@
 "use strict";
 
-window.Religions = (function () {
-  // name generation approach and relative chance to be selected
-  const approach = {
+import {gauss, ra, rw, each} from "../utils/probabilityUtils.js";
+import {getRandomColor, getMixedColor} from "../utils/colorUtils.js";
+import {abbreviate, trimVowels, getAdjective} from "../utils/languageUtils.js";
+import {isWater} from "../utils/graphUtils.js";
+import {byId} from "../utils/shorthands.js";
+import {TIME, WARN, ERROR} from "../src/core/state.js";
+
+// name generation approach and relative chance to be selected
+const approach = {
     Number: 1,
     Being: 3,
     Adjective: 5,
@@ -924,5 +930,9 @@ window.Religions = (function () {
     return [trimVowels(random()) + "ism", "global"]; // else
   }
 
-  return {generate, add, getDeityName, updateCultures, recalculate};
-})();
+export const Religions = {generate, add, getDeityName, updateCultures, recalculate};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.Religions = Religions;
+}

@@ -1,6 +1,10 @@
 "use strict";
 
-function drawTemperature() {
+import {round} from "../../utils/stringUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {TIME} from "../../src/core/state.js";
+
+export function drawTemperature() {
   TIME && console.time("drawTemperature");
 
   temperature.selectAll("*").remove();
@@ -101,4 +105,8 @@ function drawTemperature() {
   }
 
   TIME && console.timeEnd("drawTemperature");
+}
+
+if (typeof window !== "undefined") {
+  window.drawTemperature = drawTemperature;
 }

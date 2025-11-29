@@ -1,6 +1,15 @@
 // UI module stub to control map layers
 "use strict";
 
+import {rn, minmax, normalize, lerp} from "../../utils/numberUtils.js";
+import {round} from "../../utils/stringUtils.js";
+import {P, rand} from "../../utils/probabilityUtils.js";
+import {getPackPolygon, getGridPolygon} from "../../utils/graphUtils.js";
+import {getIsolines, getVertexPath} from "../../utils/pathUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {clipPoly} from "../../utils/commonUtils.js";
+import {TIME} from "../../src/core/state.js";
+
 let presets = {}; // global object
 restoreCustomPresets(); // run on-load
 
@@ -1038,4 +1047,132 @@ function getLayer(id) {
   if (id === "toggleBurgIcons") return $("#icons");
   if (id === "toggleMarkers") return $("#markers");
   if (id === "toggleRulers") return $("#ruler");
+}
+
+// ES Module exports
+export {
+  getDefaultPresets,
+  restoreCustomPresets,
+  applyLayersPreset,
+  setLayersPreset,
+  handleLayersPresetChange,
+  savePreset,
+  removePreset,
+  getCurrentPreset,
+  drawLayers,
+  toggleHeight,
+  toggleTemperature,
+  toggleBiomes,
+  drawBiomes,
+  togglePrecipitation,
+  drawPrecipitation,
+  togglePopulation,
+  drawPopulation,
+  toggleCells,
+  drawCells,
+  toggleIce,
+  drawIce,
+  toggleCultures,
+  drawCultures,
+  toggleReligions,
+  drawReligions,
+  toggleStates,
+  drawStates,
+  toggleBorders,
+  toggleProvinces,
+  drawProvinces,
+  toggleGrid,
+  drawGrid,
+  toggleCoordinates,
+  drawCoordinates,
+  toggleCompass,
+  toggleRelief,
+  toggleTexture,
+  drawTexture,
+  toggleRivers,
+  drawRivers,
+  toggleRoutes,
+  drawRoutes,
+  toggleMilitary,
+  toggleMarkers,
+  toggleLabels,
+  drawLabels,
+  toggleBurgIcons,
+  toggleRulers,
+  toggleScaleBar,
+  toggleZones,
+  drawZones,
+  drawZone,
+  toggleEmblems,
+  toggleVignette,
+  getGappedFillPaths,
+  layerIsOn,
+  turnButtonOff,
+  turnButtonOn,
+  moveLayer,
+  getLayer
+};
+
+// Backward compatibility - expose on window during transition
+if (typeof window !== "undefined") {
+  window.getDefaultPresets = getDefaultPresets;
+  window.restoreCustomPresets = restoreCustomPresets;
+  window.applyLayersPreset = applyLayersPreset;
+  window.setLayersPreset = setLayersPreset;
+  window.handleLayersPresetChange = handleLayersPresetChange;
+  window.savePreset = savePreset;
+  window.removePreset = removePreset;
+  window.getCurrentPreset = getCurrentPreset;
+  window.drawLayers = drawLayers;
+  window.toggleHeight = toggleHeight;
+  window.toggleTemperature = toggleTemperature;
+  window.toggleBiomes = toggleBiomes;
+  window.drawBiomes = drawBiomes;
+  window.togglePrecipitation = togglePrecipitation;
+  window.drawPrecipitation = drawPrecipitation;
+  window.togglePopulation = togglePopulation;
+  window.drawPopulation = drawPopulation;
+  window.toggleCells = toggleCells;
+  window.drawCells = drawCells;
+  window.toggleIce = toggleIce;
+  window.drawIce = drawIce;
+  window.toggleCultures = toggleCultures;
+  window.drawCultures = drawCultures;
+  window.toggleReligions = toggleReligions;
+  window.drawReligions = drawReligions;
+  window.toggleStates = toggleStates;
+  window.drawStates = drawStates;
+  window.toggleBorders = toggleBorders;
+  window.toggleProvinces = toggleProvinces;
+  window.drawProvinces = drawProvinces;
+  window.toggleGrid = toggleGrid;
+  window.drawGrid = drawGrid;
+  window.toggleCoordinates = toggleCoordinates;
+  window.drawCoordinates = drawCoordinates;
+  window.toggleCompass = toggleCompass;
+  window.toggleRelief = toggleRelief;
+  window.toggleTexture = toggleTexture;
+  window.drawTexture = drawTexture;
+  window.toggleRivers = toggleRivers;
+  window.drawRivers = drawRivers;
+  window.toggleRoutes = toggleRoutes;
+  window.drawRoutes = drawRoutes;
+  window.toggleMilitary = toggleMilitary;
+  window.toggleMarkers = toggleMarkers;
+  window.toggleLabels = toggleLabels;
+  window.drawLabels = drawLabels;
+  window.toggleBurgIcons = toggleBurgIcons;
+  window.toggleRulers = toggleRulers;
+  window.toggleScaleBar = toggleScaleBar;
+  window.toggleZones = toggleZones;
+  window.drawZones = drawZones;
+  window.drawZone = drawZone;
+  window.toggleEmblems = toggleEmblems;
+  window.toggleVignette = toggleVignette;
+  window.getGappedFillPaths = getGappedFillPaths;
+  window.layerIsOn = layerIsOn;
+  window.turnButtonOff = turnButtonOff;
+  window.turnButtonOn = turnButtonOn;
+  window.moveLayer = moveLayer;
+  window.getLayer = getLayer;
 }

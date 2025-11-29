@@ -1,5 +1,11 @@
 "use strict";
 
+import {rn, minmax} from "../../utils/numberUtils.js";
+import {rand, P, gauss} from "../../utils/probabilityUtils.js";
+import {findCell, findGridCell} from "../../utils/graphUtils.js";
+import {byId} from "../../utils/shorthands.js";
+import {TIME} from "../../src/core/state.js";
+
 function editHeightmap(options) {
   const {mode, tool} = options || {};
   restartHistory();
@@ -1524,4 +1530,8 @@ function editHeightmap(options) {
       canvas.remove();
     };
   }
+}
+
+if (typeof window !== "undefined") {
+  window.editHeightmap = editHeightmap;
 }

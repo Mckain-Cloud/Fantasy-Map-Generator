@@ -1,4 +1,9 @@
 "use strict";
+
+import {rn} from "../../utils/numberUtils.js";
+import {si} from "../../utils/unitUtils.js";
+import {byId} from "../../utils/shorthands.js";
+
 function editProvinces() {
   if (customization) return;
   closeDialogs("#provincesEditor, .stable");
@@ -1158,4 +1163,8 @@ function updateLockStatus(provinceId, classList) {
 
   classList.toggle("icon-lock-open");
   classList.toggle("icon-lock");
+}
+
+if (typeof window !== "undefined") {
+  window.editProvinces = editProvinces;
 }
