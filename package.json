@@ -1,0 +1,50 @@
+{
+  "name": "fantasy-map-generator",
+  "version": "1.108.1",
+  "description": "Azgaar's Fantasy Map Generator - Automated Test Suite",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server/index.js",
+    "test": "playwright test",
+    "test:unit": "playwright test tests/unit",
+    "test:integration": "playwright test tests/integration",
+    "test:e2e": "playwright test tests/e2e",
+    "test:performance": "playwright test tests/performance",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:coverage": "c8 playwright test",
+    "test:report": "playwright show-report",
+    "serve": "python -m http.server 8080",
+    "test:watch": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "c8": "^10.1.2",
+    "chai": "^5.1.1",
+    "http-server": "^14.1.1",
+    "vite": "^7.2.4"
+  },
+  "keywords": [
+    "fantasy",
+    "map",
+    "generator",
+    "procedural",
+    "cartography",
+    "testing"
+  ],
+  "author": "Azgaar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Azgaar/Fantasy-Map-Generator.git"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "express": "^5.1.0"
+  }
+}
