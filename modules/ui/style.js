@@ -1193,6 +1193,7 @@ if (typeof window !== "undefined") {
   window.editStyle = editStyle;
   window.heightmapColorSchemes = heightmapColorSchemes;
   window.getColorScheme = getColorScheme;
+  window.getColor = getColor;
   window.selectStyleElement = selectStyleElement;
   window.updateElements = updateElements;
   window.applyMapFilter = applyMapFilter;

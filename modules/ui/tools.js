@@ -586,8 +586,8 @@ function toggleAddLabel() {
   if (!layerIsOn("toggleLabels")) toggleLabels();
 }
 
-function addLabelOnClick() {
-  const point = d3.mouse(this);
+function addLabelOnClick(event) {
+  const point = d3.pointer(event, this);
 
   // get culture in clicked point to generate a name
   const cell = findCell(point[0], point[1]);
@@ -637,7 +637,7 @@ function addLabelOnClick() {
     .attr("id", "textPath_" + id)
     .attr("d", `M${point[0] - width},${point[1]} h${width * 2}`);
 
-  if (d3.event.shiftKey === false) unpressClickToAddButton();
+  if (event.shiftKey === false) unpressClickToAddButton();
 }
 
 function toggleAddBurg() {
@@ -664,9 +664,9 @@ function toggleAddRiver() {
   if (!layerIsOn("toggleRivers")) toggleRivers();
 }
 
-function addRiverOnClick() {
+function addRiverOnClick(event) {
   const {cells, rivers} = pack;
-  let i = findCell(...d3.mouse(this));
+  let i = findCell(...d3.pointer(event, this));
 
   if (cells.r[i]) return tip("There is already a river here", false, "error");
   if (cells.h[i] < 20) return tip("Cannot create river in water cell", false, "error");
@@ -802,7 +802,7 @@ function addRiverOnClick() {
   const riversG = viewbox.select("#rivers");
   riversG.append("path").attr("id", id).attr("d", path);
 
-  if (d3.event.shiftKey === false) {
+  if (event.shiftKey === false) {
     Lakes.cleanupLakeData();
     unpressClickToAddButton();
     byId("addNewRiver").classList.remove("pressed");
@@ -826,9 +826,9 @@ function toggleAddMarker() {
   if (!layerIsOn("toggleMarkers")) toggleMarkers();
 }
 
-function addMarkerOnClick() {
+function addMarkerOnClick(event) {
   const {markers} = pack;
-  const point = d3.mouse(this);
+  const point = d3.pointer(event, this);
   const x = rn(point[0], 2);
   const y = rn(point[1], 2);
 
@@ -853,7 +853,7 @@ function addMarkerOnClick() {
   const rescale = +markersElement.getAttribute("rescale");
   markersElement.insertAdjacentHTML("beforeend", drawMarker(marker, rescale));
 
-  if (d3.event.shiftKey === false) {
+  if (event.shiftKey === false) {
     byId("markerAdd").classList.remove("pressed");
     byId("markersAddFromOverview").classList.remove("pressed");
     unpressClickToAddButton();
@@ -975,7 +975,10 @@ export {
   processFeatureRegeneration,
   viewCellDetails,
   overviewCharts,
-  openEmblemEditor
+  openEmblemEditor,
+  toggleAddRiver,
+  toggleAddMarker,
+  configMarkersGeneration
 };
 
 // Backward compatibility - expose on window during transition
@@ -984,4 +987,7 @@ if (typeof window !== "undefined") {
   window.viewCellDetails = viewCellDetails;
   window.overviewCharts = overviewCharts;
   window.openEmblemEditor = openEmblemEditor;
+  window.toggleAddRiver = toggleAddRiver;
+  window.toggleAddMarker = toggleAddMarker;
+  window.configMarkersGeneration = configMarkersGeneration;
 }
