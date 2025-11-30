@@ -24,7 +24,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasStates).toBe(true);
 
-      await page.evaluate(() => $('#statesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('statesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('states editor has add and remove buttons', async ({ page }) => {
@@ -38,7 +41,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasControls).toBe(true);
 
-      await page.evaluate(() => $('#statesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('statesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -53,7 +59,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasContent).toBe(true);
 
-      await page.evaluate(() => $('#culturesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('culturesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('cultures editor shows culture names', async ({ page }) => {
@@ -70,7 +79,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasCultureRows).toBe(true);
 
-      await page.evaluate(() => $('#culturesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('culturesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -85,7 +97,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasContent).toBe(true);
 
-      await page.evaluate(() => $('#religionsEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('religionsEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -96,11 +111,14 @@ test.describe('Editor Workflow Tests', () => {
 
       const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('provincesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
       expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#provincesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('provincesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -115,7 +133,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasContent).toBe(true);
 
-      await page.evaluate(() => $('#biomesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('biomesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('biomes editor shows biome entries', async ({ page }) => {
@@ -130,7 +151,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasBiomeRows).toBe(true);
 
-      await page.evaluate(() => $('#biomesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('biomesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -141,11 +165,14 @@ test.describe('Editor Workflow Tests', () => {
 
       const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('notesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
       expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#notesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('notesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('notes editor has content area', async ({ page }) => {
@@ -159,7 +186,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasContentArea).toBe(true);
 
-      await page.evaluate(() => $('#notesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('notesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -170,11 +200,14 @@ test.describe('Editor Workflow Tests', () => {
 
       const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('zonesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
       expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#zonesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('zonesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -185,11 +218,14 @@ test.describe('Editor Workflow Tests', () => {
 
       const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('unitsEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
       expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#unitsEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('unitsEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('units editor has unit configuration options', async ({ page }) => {
@@ -202,7 +238,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasOptions).toBe(true);
 
-      await page.evaluate(() => $('#unitsEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('unitsEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -218,7 +257,10 @@ test.describe('Editor Workflow Tests', () => {
         });
         expect(hasContent).toBe(true);
 
-        await page.evaluate(() => $('#burgsOverview').dialog('close'));
+        await page.evaluate(() => {
+          const dialog = document.getElementById('burgsOverview');
+          if (dialog && dialog.close) dialog.close();
+        });
       } catch (e) {
         // Burgs overview may timeout on some map configurations
         console.log('Burgs overview test skipped due to timing');
@@ -238,7 +280,10 @@ test.describe('Editor Workflow Tests', () => {
         });
         expect(hasContent).toBe(true);
 
-        await page.evaluate(() => $('#burgsOverview').dialog('close'));
+        await page.evaluate(() => {
+          const dialog = document.getElementById('burgsOverview');
+          if (dialog && dialog.close) dialog.close();
+        });
       } catch (e) {
         // Burgs overview may timeout on some map configurations
         console.log('Burgs overview content test skipped due to timing');
@@ -253,11 +298,14 @@ test.describe('Editor Workflow Tests', () => {
 
       const isOpen = await page.evaluate(() => {
         const overview = document.getElementById('militaryOverview');
-        return overview && overview.offsetParent !== null;
+        return overview && overview.open === true;
       });
       expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#militaryOverview').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('militaryOverview');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -268,11 +316,14 @@ test.describe('Editor Workflow Tests', () => {
 
       const isOpen = await page.evaluate(() => {
         const overview = document.getElementById('chartsOverview');
-        return overview && overview.offsetParent !== null;
+        return overview && overview.open === true;
       });
       expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#chartsOverview').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('chartsOverview');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('charts overview has chart visualization', async ({ page }) => {
@@ -291,7 +342,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasCharts).toBe(true);
 
-      await page.evaluate(() => $('#chartsOverview').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('chartsOverview');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -302,11 +356,14 @@ test.describe('Editor Workflow Tests', () => {
 
       const isOpen = await page.evaluate(() => {
         const cellInfo = document.getElementById('cellInfo');
-        return cellInfo && cellInfo.offsetParent !== null;
+        return cellInfo && cellInfo.open === true;
       });
       expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#cellInfo').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('cellInfo');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('cell info shows data fields', async ({ page }) => {
@@ -320,7 +377,10 @@ test.describe('Editor Workflow Tests', () => {
       });
       expect(hasData).toBe(true);
 
-      await page.evaluate(() => $('#cellInfo').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('cellInfo');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -329,26 +389,35 @@ test.describe('Editor Workflow Tests', () => {
       // Open states editor
       await page.evaluate(() => editStates());
       await page.waitForSelector('#statesEditor', { state: 'visible', timeout: 5000 });
-      await page.evaluate(() => $('#statesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('statesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
 
       // Open cultures editor
       await page.evaluate(() => editCultures());
       await page.waitForSelector('#culturesEditor', { state: 'visible', timeout: 5000 });
-      await page.evaluate(() => $('#culturesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('culturesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
 
       // Open biomes editor
       await page.evaluate(() => editBiomes());
       await page.waitForSelector('#biomesEditor', { state: 'visible', timeout: 5000 });
-      await page.evaluate(() => $('#biomesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('biomesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
 
       // All should be closed now
       const allClosed = await page.evaluate(() => {
         const states = document.getElementById('statesEditor');
         const cultures = document.getElementById('culturesEditor');
         const biomes = document.getElementById('biomesEditor');
-        return (!states || states.offsetParent === null) &&
-               (!cultures || cultures.offsetParent === null) &&
-               (!biomes || biomes.offsetParent === null);
+        return (!states || states.open !== true) &&
+               (!cultures || cultures.open !== true) &&
+               (!biomes || biomes.open !== true);
       });
       expect(allClosed).toBe(true);
     });

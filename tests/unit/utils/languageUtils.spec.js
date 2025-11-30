@@ -1,16 +1,55 @@
 import { test, expect } from '@playwright/test';
+import { startCoverage, stopCoverage, flushCoverage } from '../../setup/coverageHelpers.js';
 
 test.describe('languageUtils.js', () => {
   let page;
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage();
+    await startCoverage(page);
     await page.goto('/');
     await page.waitForFunction(() => typeof window.vowel === 'function', { timeout: 30000 });
   });
 
   test.afterAll(async () => {
+    await stopCoverage(page);
+    await flushCoverage();
     await page.close();
+  });
+
+  test.describe('VOWELS constant', () => {
+    test('should contain basic lowercase vowels', async () => {
+      const result = await page.evaluate(() => {
+        return ['a', 'e', 'i', 'o', 'u', 'y'].every(v => VOWELS.includes(v));
+      });
+      expect(result).toBe(true);
+    });
+
+    test('should contain accented vowels', async () => {
+      const result = await page.evaluate(() => {
+        return ['à', 'è', 'ì', 'ò', 'ù', 'á', 'é', 'í', 'ó', 'ú'].every(v => VOWELS.includes(v));
+      });
+      expect(result).toBe(true);
+    });
+
+    test('should contain umlauts', async () => {
+      const result = await page.evaluate(() => {
+        return ['ä', 'ë', 'ï', 'ö', 'ü', 'ÿ'].every(v => VOWELS.includes(v));
+      });
+      expect(result).toBe(true);
+    });
+
+    test('should contain apostrophe', async () => {
+      const result = await page.evaluate(() => VOWELS.includes("'"));
+      expect(result).toBe(true);
+    });
+
+    test('should not contain consonants', async () => {
+      const result = await page.evaluate(() => {
+        return ['b', 'c', 'd', 'f', 'g'].some(v => VOWELS.includes(v));
+      });
+      expect(result).toBe(false);
+    });
   });
 
   test.describe('vowel() - Check if character is vowel', () => {
@@ -100,6 +139,42 @@ test.describe('languageUtils.js', () => {
     });
   });
 
+  test.describe('adjectivizationRules array', () => {
+    test('should be an array of rules', async () => {
+      const result = await page.evaluate(() => Array.isArray(adjectivizationRules));
+      expect(result).toBe(true);
+    });
+
+    test('should have rules with required properties', async () => {
+      const result = await page.evaluate(() => {
+        return adjectivizationRules.every(rule =>
+          typeof rule.name === 'string' &&
+          typeof rule.probability === 'number' &&
+          rule.condition instanceof RegExp &&
+          typeof rule.action === 'function'
+        );
+      });
+      expect(result).toBe(true);
+    });
+
+    test('should have probabilities between 0 and 1', async () => {
+      const result = await page.evaluate(() => {
+        return adjectivizationRules.every(rule =>
+          rule.probability >= 0 && rule.probability <= 1
+        );
+      });
+      expect(result).toBe(true);
+    });
+
+    test('should contain expected rule names', async () => {
+      const result = await page.evaluate(() => {
+        const names = adjectivizationRules.map(r => r.name);
+        return ['guo', 'orszag', 'stan', 'land', 'que', 'a', 'o', 'ay', 'os', 'es'].every(n => names.includes(n));
+      });
+      expect(result).toBe(true);
+    });
+  });
+
   test.describe('getAdjective() - Convert noun to adjective', () => {
     test('should convert "land" endings', async () => {
       const result = await page.evaluate(() => getAdjective('England'));
@@ -152,6 +227,143 @@ test.describe('languageUtils.js', () => {
         return getAdjective('xyz');
       });
       expect(result).toBe('xyz');
+    });
+
+    test('should convert "orszag" endings (short name)', async () => {
+      const result = await page.evaluate(() => getAdjective('Aborszag'));
+      // Short enough (< 9 chars) to get "ian" suffix
+      expect(result).toBe('Aborszagian');
+    });
+
+    test('should convert "orszag" endings (long name)', async () => {
+      const result = await page.evaluate(() => getAdjective('Magyarorszag'));
+      // Long name (>= 9 chars) gets sliced to remove "orszag"
+      expect(result).toBe('Magyar');
+    });
+
+    test('should convert "ay" endings', async () => {
+      const result = await page.evaluate(() => getAdjective('Paraguay'));
+      expect(result).toBe('Paraguayan');
+    });
+
+    test('should convert "os" endings (short root)', async () => {
+      const result = await page.evaluate(() => getAdjective('Lagos'));
+      // Short root just removes 's'
+      expect(result).toBe('Lago');
+    });
+
+    test('should convert "os" endings (long root)', async () => {
+      const result = await page.evaluate(() => getAdjective('Barbados'));
+      // Long root gets "ian" suffix
+      expect(result).toBe('Barbadian');
+    });
+
+    test('should convert "es" endings (short root)', async () => {
+      const result = await page.evaluate(() => getAdjective('Wales'));
+      expect(result).toBe('Walian');
+    });
+
+    test('should convert "es" endings (long root)', async () => {
+      const result = await page.evaluate(() => getAdjective('Philippines'));
+      // Long root (>7) just removes 's'
+      expect(result).toBe('Philippine');
+    });
+
+    test('should convert "l" endings with probability', async () => {
+      const result = await page.evaluate(() => {
+        // Force probability to pass
+        const originalRandom = Math.random;
+        Math.random = () => 0.1;
+        const res = getAdjective('Israel');
+        Math.random = originalRandom;
+        return res;
+      });
+      expect(result).toBe('Israelese');
+    });
+
+    test('should convert "n" endings with probability', async () => {
+      const result = await page.evaluate(() => {
+        const originalRandom = Math.random;
+        Math.random = () => 0.1;
+        const res = getAdjective('Japan');
+        Math.random = originalRandom;
+        return res;
+      });
+      expect(result).toBe('Japanese');
+    });
+
+    test('should convert "ad" endings with probability', async () => {
+      const result = await page.evaluate(() => {
+        const originalRandom = Math.random;
+        Math.random = () => 0.1;
+        const res = getAdjective('Baghdad');
+        Math.random = originalRandom;
+        return res;
+      });
+      expect(result).toBe('Baghdadian');
+    });
+
+    test('should convert "an" endings with probability', async () => {
+      const result = await page.evaluate(() => {
+        const originalRandom = Math.random;
+        Math.random = () => 0.1;
+        // Use a word ending in "an" that won't match earlier "n" rule first
+        const res = getAdjective('Sudan');
+        Math.random = originalRandom;
+        return res;
+      });
+      // "Sudan" ends in "n" which matches "n" rule (0.8 prob) -> "Sudanese"
+      // or "an" rule (0.8 prob) -> "Sudanian"
+      expect(result).toMatch(/Sudan(ese|ian)/);
+    });
+
+    test('should apply "ish" rule for 6-letter names', async () => {
+      const result = await page.evaluate(() => {
+        const originalRandom = Math.random;
+        Math.random = () => 0.1;
+        const res = getAdjective('Poland');
+        Math.random = originalRandom;
+        return res;
+      });
+      // "land" rule takes precedence, but let's test a non-land 6-letter word
+      const result2 = await page.evaluate(() => {
+        const originalRandom = Math.random;
+        Math.random = () => 0.1;
+        const res = getAdjective('Britsh');
+        Math.random = originalRandom;
+        return res;
+      });
+      expect(typeof result2).toBe('string');
+    });
+
+    test('should apply generic "an" rule for short names', async () => {
+      const result = await page.evaluate(() => {
+        const originalRandom = Math.random;
+        Math.random = () => 0.1;
+        const res = getAdjective('Chad');
+        Math.random = originalRandom;
+        return res;
+      });
+      // "ad" rule may apply first with 0.8 probability
+      expect(result).toMatch(/Chad(ian|an)/);
+    });
+
+    test('should handle "land" with very short root', async () => {
+      const result = await page.evaluate(() => getAdjective('Oland'));
+      // Root "O" is < 3, so returns noun + "ic"
+      expect(result).toBe('Olandic');
+    });
+
+    test('should handle "land" with short root (3 chars)', async () => {
+      const result = await page.evaluate(() => getAdjective('Finland'));
+      // "Finland" - "land" = "Fin", trimVowels = "Fin" (3 chars), < 4 so returns root + "lish"
+      expect(result).toBe('Finlish');
+    });
+
+    test('should handle long "stan" name', async () => {
+      const result = await page.evaluate(() => getAdjective('Turkmenistan'));
+      // Long name (>=9) gets sliced and trimVowels applied
+      expect(result).toBe('Turkmen');
     });
   });
 

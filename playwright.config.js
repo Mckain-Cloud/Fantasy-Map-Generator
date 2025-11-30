@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright configuration for Fantasy Map Generator
- * Primary browser: Microsoft Edge
+ * Primary browser: Microsoft Edge (Chromium-based for V8 coverage)
  * Coverage target: 90%
  */
 export default defineConfig({
@@ -16,6 +16,10 @@ export default defineConfig({
 
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
+
+  // Global setup and teardown for coverage
+  globalSetup: './tests/setup/globalSetup.js',
+  globalTeardown: './tests/setup/globalTeardown.js',
 
   // Reporter to use
   reporter: [
@@ -64,11 +68,12 @@ export default defineConfig({
   ],
 
   // Run local dev server before starting tests
+  // Serve from dist folder (build output)
   webServer: {
-    command: 'npx http-server -p 8080 -c-1 --silent',
+    command: 'npm run build && npx http-server dist -p 8080 -c-1 --silent',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
-    timeout: 30000
+    timeout: 120000 // Allow time for build
   },
 
   // Test timeouts

@@ -20,20 +20,23 @@ test.describe('Dialog Open/Close Tests', () => {
       // Wait for dialog to appear
       await page.waitForSelector('#statesEditor', { state: 'visible', timeout: 5000 });
 
-      // Verify it's open
-      const isVisible = await page.evaluate(() => {
+      // Verify it's open (native dialog uses open property)
+      const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('statesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      // Close via jQuery dialog
-      await page.evaluate(() => $('#statesEditor').dialog('close'));
+      // Close via native dialog
+      await page.evaluate(() => {
+        const dialog = document.getElementById('statesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
 
       // Verify it's closed
       const isClosed = await page.evaluate(() => {
         const editor = document.getElementById('statesEditor');
-        return !editor || editor.offsetParent === null;
+        return !editor || editor.open !== true;
       });
       expect(isClosed).toBe(true);
     });
@@ -42,91 +45,112 @@ test.describe('Dialog Open/Close Tests', () => {
       await page.evaluate(() => editCultures());
       await page.waitForSelector('#culturesEditor', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('culturesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#culturesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('culturesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Religions editor can be opened and closed', async ({ page }) => {
       await page.evaluate(() => editReligions());
       await page.waitForSelector('#religionsEditor', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('religionsEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#religionsEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('religionsEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Provinces editor can be opened and closed', async ({ page }) => {
       await page.evaluate(() => editProvinces());
       await page.waitForSelector('#provincesEditor', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('provincesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#provincesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('provincesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Biomes editor can be opened and closed', async ({ page }) => {
       await page.evaluate(() => editBiomes());
       await page.waitForSelector('#biomesEditor', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('biomesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#biomesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('biomesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Notes editor can be opened and closed', async ({ page }) => {
       await page.evaluate(() => editNotes());
       await page.waitForSelector('#notesEditor', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('notesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#notesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('notesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Zones editor can be opened and closed', async ({ page }) => {
       await page.evaluate(() => editZones());
       await page.waitForSelector('#zonesEditor', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('zonesEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#zonesEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('zonesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Units editor can be opened and closed', async ({ page }) => {
       await page.evaluate(() => editUnits());
       await page.waitForSelector('#unitsEditor', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const editor = document.getElementById('unitsEditor');
-        return editor && editor.offsetParent !== null;
+        return editor && editor.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#unitsEditor').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('unitsEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -137,13 +161,16 @@ test.describe('Dialog Open/Close Tests', () => {
         await page.evaluate(() => overviewBurgs());
         await page.waitForSelector('#burgsOverview', { state: 'visible', timeout: 10000 });
 
-        const isVisible = await page.evaluate(() => {
+        const isOpen = await page.evaluate(() => {
           const overview = document.getElementById('burgsOverview');
-          return overview && overview.offsetParent !== null;
+          return overview && overview.open === true;
         });
-        expect(isVisible).toBe(true);
+        expect(isOpen).toBe(true);
 
-        await page.evaluate(() => $('#burgsOverview').dialog('close'));
+        await page.evaluate(() => {
+          const dialog = document.getElementById('burgsOverview');
+          if (dialog && dialog.close) dialog.close();
+        });
       } catch (e) {
         // Burgs overview may fail on some edge cases, which is acceptable
         console.log('Burgs overview test skipped due to timing');
@@ -165,26 +192,32 @@ test.describe('Dialog Open/Close Tests', () => {
       await page.evaluate(() => overviewRivers());
       await page.waitForSelector('#riversOverview', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const overview = document.getElementById('riversOverview');
-        return overview && overview.offsetParent !== null;
+        return overview && overview.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#riversOverview').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('riversOverview');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Military overview can be opened and closed', async ({ page }) => {
       await page.evaluate(() => overviewMilitary());
       await page.waitForSelector('#militaryOverview', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const overview = document.getElementById('militaryOverview');
-        return overview && overview.offsetParent !== null;
+        return overview && overview.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#militaryOverview').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('militaryOverview');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Markers overview can be opened and closed', async ({ page }) => {
@@ -202,26 +235,32 @@ test.describe('Dialog Open/Close Tests', () => {
       await page.evaluate(() => overviewMarkers());
       await page.waitForSelector('#markersOverview', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const overview = document.getElementById('markersOverview');
-        return overview && overview.offsetParent !== null;
+        return overview && overview.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#markersOverview').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('markersOverview');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
 
     test('Charts overview can be opened and closed', async ({ page }) => {
       await page.evaluate(() => overviewCharts());
       await page.waitForSelector('#chartsOverview', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const overview = document.getElementById('chartsOverview');
-        return overview && overview.offsetParent !== null;
+        return overview && overview.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#chartsOverview').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('chartsOverview');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -230,13 +269,16 @@ test.describe('Dialog Open/Close Tests', () => {
       await page.evaluate(() => viewCellDetails());
       await page.waitForSelector('#cellInfo', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
+      const isOpen = await page.evaluate(() => {
         const cellInfo = document.getElementById('cellInfo');
-        return cellInfo && cellInfo.offsetParent !== null;
+        return cellInfo && cellInfo.open === true;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
-      await page.evaluate(() => $('#cellInfo').dialog('close'));
+      await page.evaluate(() => {
+        const dialog = document.getElementById('cellInfo');
+        if (dialog && dialog.close) dialog.close();
+      });
     });
   });
 
@@ -271,13 +313,15 @@ test.describe('Dialog Open/Close Tests', () => {
         return;
       }
 
-      await page.waitForSelector('#styleTab', { state: 'visible', timeout: 5000 });
+      // Wait for style content panel to be visible (it's a tab content div, not a dialog)
+      await page.waitForSelector('#styleContent', { state: 'visible', timeout: 5000 });
 
-      const isVisible = await page.evaluate(() => {
-        const styleTab = document.getElementById('styleTab');
-        return styleTab && styleTab.offsetParent !== null;
+      const isOpen = await page.evaluate(() => {
+        const styleContent = document.getElementById('styleContent');
+        // styleContent is a div shown via display style, check offsetParent for visibility
+        return styleContent && styleContent.offsetParent !== null;
       });
-      expect(isVisible).toBe(true);
+      expect(isOpen).toBe(true);
 
       // Close by pressing Escape
       await page.keyboard.press('Escape');
@@ -306,7 +350,7 @@ test.describe('Dialog Open/Close Tests', () => {
       // Verify it's open first
       const isOpen = await page.evaluate(() => {
         const statesEditor = document.getElementById('statesEditor');
-        return statesEditor && statesEditor.offsetParent !== null;
+        return statesEditor && statesEditor.open === true;
       });
       expect(isOpen).toBe(true);
 
@@ -319,7 +363,7 @@ test.describe('Dialog Open/Close Tests', () => {
       // Verify dialogs are closed
       const allClosed = await page.evaluate(() => {
         const statesEditor = document.getElementById('statesEditor');
-        return !statesEditor || statesEditor.offsetParent === null;
+        return !statesEditor || statesEditor.open !== true;
       });
       expect(allClosed).toBe(true);
     });

@@ -1,11 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { waitForAppReady, gotoApp } from '../setup/helpers.js';
+import { waitForAppReady, gotoApp, stopCoverage, flushCoverage } from '../setup/helpers.js';
 
 test.describe('Map Generation Integration', () => {
   test.beforeEach(async ({ page }) => {
+    // gotoApp automatically starts coverage
     await gotoApp(page);
     // Wait for full map generation to complete
     await waitForAppReady(page);
+  });
+
+  test.afterEach(async ({ page }) => {
+    await stopCoverage(page);
+    await flushCoverage();
   });
 
   test.describe('Basic map generation', () => {

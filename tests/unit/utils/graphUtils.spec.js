@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { startCoverage, stopCoverage, flushCoverage } from '../../setup/coverageHelpers.js';
 
 test.describe('graphUtils.js', () => {
   let page;
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage();
+    await startCoverage(page);
     await page.goto('/');
     await page.waitForFunction(() => {
       try {
@@ -17,6 +19,8 @@ test.describe('graphUtils.js', () => {
   });
 
   test.afterAll(async () => {
+    await stopCoverage(page);
+    await flushCoverage();
     await page.close();
   });
 
@@ -319,6 +323,175 @@ test.describe('graphUtils.js', () => {
       const result = await page.evaluate(() => {
         return typeof Delaunator !== 'undefined';
       });
+      expect(result).toBe(true);
+    });
+  });
+
+  test.describe('isLand() and isWater() - Cell type checks', () => {
+    test('should have isLand function available', async () => {
+      const result = await page.evaluate(() => typeof isLand === 'function');
+      expect(result).toBe(true);
+    });
+
+    test('should have isWater function available', async () => {
+      const result = await page.evaluate(() => typeof isWater === 'function');
+      expect(result).toBe(true);
+    });
+
+    test('isLand and isWater should be opposites for same height', async () => {
+      const result = await page.evaluate(() => {
+        // Create mock pack data
+        window.pack = {
+          cells: {
+            h: [10, 15, 19, 20, 25, 50, 100]
+          }
+        };
+
+        const results = [];
+        for (let i = 0; i < pack.cells.h.length; i++) {
+          results.push({
+            h: pack.cells.h[i],
+            land: isLand(i),
+            water: isWater(i)
+          });
+        }
+        return results;
+      });
+
+      for (const r of result) {
+        if (r.h >= 20) {
+          expect(r.land).toBe(true);
+          expect(r.water).toBe(false);
+        } else {
+          expect(r.land).toBe(false);
+          expect(r.water).toBe(true);
+        }
+      }
+    });
+
+    test('should classify height 20 as land', async () => {
+      const result = await page.evaluate(() => {
+        window.pack = { cells: { h: [20] } };
+        return { land: isLand(0), water: isWater(0) };
+      });
+      expect(result.land).toBe(true);
+      expect(result.water).toBe(false);
+    });
+
+    test('should classify height 19 as water', async () => {
+      const result = await page.evaluate(() => {
+        window.pack = { cells: { h: [19] } };
+        return { land: isLand(0), water: isWater(0) };
+      });
+      expect(result.land).toBe(false);
+      expect(result.water).toBe(true);
+    });
+  });
+
+  test.describe('poissonDiscSampler() - Poisson disc sampling', () => {
+    test('should have poissonDiscSampler function available', async () => {
+      const result = await page.evaluate(() => typeof poissonDiscSampler === 'function');
+      expect(result).toBe(true);
+    });
+
+    test('should generate points as a generator', async () => {
+      const result = await page.evaluate(() => {
+        const sampler = poissonDiscSampler(0, 0, 100, 100, 20);
+        const firstPoint = sampler.next();
+        return {
+          done: firstPoint.done,
+          hasValue: !!firstPoint.value
+        };
+      });
+      expect(result.done).toBe(false);
+      expect(result.hasValue).toBe(true);
+    });
+
+    test('should generate first point near center', async () => {
+      const result = await page.evaluate(() => {
+        const sampler = poissonDiscSampler(0, 0, 100, 100, 10);
+        const firstPoint = sampler.next().value;
+        return { x: firstPoint[0], y: firstPoint[1] };
+      });
+      // First point should be near center (50, 50)
+      expect(result.x).toBeCloseTo(50, 0);
+      expect(result.y).toBeCloseTo(50, 0);
+    });
+
+    test('should generate multiple points', async () => {
+      const result = await page.evaluate(() => {
+        // Use smaller radius for more points
+        const sampler = poissonDiscSampler(0, 0, 100, 100, 10);
+        const points = [];
+        let iterations = 0;
+        for (const point of sampler) {
+          points.push(point);
+          iterations++;
+          if (iterations > 100) break; // prevent infinite loop
+        }
+        return points.length;
+      });
+      expect(result).toBeGreaterThan(1);
+    });
+
+    test('should throw error for invalid parameters', async () => {
+      const result = await page.evaluate(() => {
+        try {
+          const sampler = poissonDiscSampler(100, 100, 0, 0, 10); // invalid: x1 < x0
+          sampler.next();
+          return false;
+        } catch (e) {
+          return true;
+        }
+      });
+      expect(result).toBe(true);
+    });
+
+    test('should throw error for negative radius', async () => {
+      const result = await page.evaluate(() => {
+        try {
+          const sampler = poissonDiscSampler(0, 0, 100, 100, -10);
+          sampler.next();
+          return false;
+        } catch (e) {
+          return true;
+        }
+      });
+      expect(result).toBe(true);
+    });
+
+    test('should generate points within bounds', async () => {
+      const result = await page.evaluate(() => {
+        Math.random = () => 0.5;
+        const sampler = poissonDiscSampler(10, 20, 110, 120, 15);
+        const points = [];
+        let iterations = 0;
+        for (const point of sampler) {
+          points.push(point);
+          iterations++;
+          if (iterations > 30) break;
+        }
+        return points.every(([x, y]) => x >= 10 && x <= 110 && y >= 20 && y <= 120);
+      });
+      expect(result).toBe(true);
+    });
+  });
+
+  test.describe('findGridAll() - Find cells in radius', () => {
+    test('should have findGridAll function available', async () => {
+      const result = await page.evaluate(() => typeof findGridAll === 'function');
+      expect(result).toBe(true);
+    });
+  });
+
+  test.describe('getPackPolygon() and getGridPolygon() - Get polygon points', () => {
+    test('should have getPackPolygon function available', async () => {
+      const result = await page.evaluate(() => typeof getPackPolygon === 'function');
+      expect(result).toBe(true);
+    });
+
+    test('should have getGridPolygon function available', async () => {
+      const result = await page.evaluate(() => typeof getGridPolygon === 'function');
       expect(result).toBe(true);
     });
   });

@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { startCoverage, stopCoverage, flushCoverage } from '../../setup/coverageHelpers.js';
 
 test.describe('pathUtils.js', () => {
   let page;
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage();
+    await startCoverage(page);
     await page.goto('/');
     await page.waitForFunction(
       () => typeof window.getFillPath === 'function',
@@ -13,6 +15,8 @@ test.describe('pathUtils.js', () => {
   });
 
   test.afterAll(async () => {
+    await stopCoverage(page);
+    await flushCoverage();
     await page.close();
   });
 
@@ -370,6 +374,100 @@ test.describe('pathUtils.js', () => {
 
       expect(result.first).toBe(0);
       expect(result.last).toBe(3);
+    });
+
+    test('should handle same start and exit', async () => {
+      const result = await page.evaluate(() => {
+        const from = [null];
+        const path = restorePath(0, 0, from);
+        return path;
+      });
+
+      expect(result).toEqual([0]);
+    });
+
+    test('should handle longer non-linear path', async () => {
+      const result = await page.evaluate(() => {
+        const from = [null, 0, 0, 2, 2, 4];
+        const path = restorePath(5, 0, from);
+        return path;
+      });
+
+      expect(result).toEqual([0, 2, 4, 5]);
+    });
+  });
+
+  test.describe('getFillPath() edge cases', () => {
+    test('should handle two-point chain', async () => {
+      const result = await page.evaluate(() => {
+        const mockVertices = { p: [[0, 0], [100, 100]] };
+        const vertexChain = [0, 1];
+        return getFillPath(mockVertices, vertexChain);
+      });
+
+      expect(result).toContain('M');
+      expect(result).toContain('L');
+      expect(result).toContain('Z');
+    });
+
+    test('should handle decimal coordinates', async () => {
+      const result = await page.evaluate(() => {
+        const mockVertices = { p: [[1.5, 2.5], [3.5, 4.5], [5.5, 6.5]] };
+        const vertexChain = [0, 1, 2];
+        return getFillPath(mockVertices, vertexChain);
+      });
+
+      expect(result).toContain('1.5,2.5');
+    });
+
+    test('should handle negative coordinates', async () => {
+      const result = await page.evaluate(() => {
+        const mockVertices = { p: [[-10, -20], [10, 20], [-10, 20]] };
+        const vertexChain = [0, 1, 2];
+        return getFillPath(mockVertices, vertexChain);
+      });
+
+      expect(result).toContain('-10,-20');
+      expect(result).toContain('10,20');
+    });
+  });
+
+  test.describe('getBorderPath() edge cases', () => {
+    test('should handle empty vertex chain', async () => {
+      const result = await page.evaluate(() => {
+        const mockVertices = { p: [[0, 0], [10, 10]] };
+        const vertexChain = [];
+        const discontinue = () => false;
+        return getBorderPath(mockVertices, vertexChain, discontinue);
+      });
+
+      expect(result).toBe('');
+    });
+
+    test('should handle single vertex', async () => {
+      const result = await page.evaluate(() => {
+        const mockVertices = { p: [[50, 50]] };
+        const vertexChain = [0];
+        const discontinue = () => false;
+        return getBorderPath(mockVertices, vertexChain, discontinue);
+      });
+
+      expect(result).toContain('M');
+      expect(result).toContain('50,50');
+    });
+
+    test('should handle alternating discontinuities', async () => {
+      const result = await page.evaluate(() => {
+        const mockVertices = {
+          p: [[0, 0], [10, 10], [20, 20], [30, 30], [40, 40]]
+        };
+        const vertexChain = [0, 1, 2, 3, 4];
+        const discontinue = (vertexId) => vertexId % 2 === 1;
+        return getBorderPath(mockVertices, vertexChain, discontinue);
+      });
+
+      const mCount = (result.match(/M/g) || []).length;
+      expect(mCount).toBe(3); // vertices 0, 2, 4 each start a new M
     });
   });
 });

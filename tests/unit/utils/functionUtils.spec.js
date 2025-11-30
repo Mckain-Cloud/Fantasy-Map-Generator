@@ -1,15 +1,19 @@
 import { test, expect } from '@playwright/test';
+import { startCoverage, stopCoverage, flushCoverage } from '../../setup/coverageHelpers.js';
 
 test.describe('functionUtils.js', () => {
   let page;
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage();
+    await startCoverage(page);
     await page.goto('/');
     await page.waitForFunction(() => typeof window.rollups === 'function', { timeout: 30000 });
   });
 
   test.afterAll(async () => {
+    await stopCoverage(page);
+    await flushCoverage();
     await page.close();
   });
 
@@ -300,6 +304,110 @@ test.describe('functionUtils.js', () => {
           ['X', [['I', 1]]]
         ]]
       ]);
+    });
+
+    test('should handle no keys (apply reduce to all)', async () => {
+      const result = await page.evaluate(() => {
+        const data = [
+          { value: 1 },
+          { value: 2 },
+          { value: 3 }
+        ];
+        const nested = nest(
+          data,
+          map => Array.from(map),
+          values => values.reduce((sum, d) => sum + d.value, 0),
+          []
+        );
+        return nested;
+      });
+      expect(result).toBe(6);
+    });
+
+    test('should handle keys returning same value for all items', async () => {
+      const result = await page.evaluate(() => {
+        const data = [
+          { type: 'A', value: 1 },
+          { type: 'A', value: 2 },
+          { type: 'A', value: 3 }
+        ];
+        const nested = nest(
+          data,
+          map => Array.from(map),
+          values => values.length,
+          [d => d.type]
+        );
+        return nested;
+      });
+      expect(result).toEqual([['A', 3]]);
+    });
+
+    test('should handle numeric keys', async () => {
+      const result = await page.evaluate(() => {
+        const data = [
+          { id: 1, value: 'a' },
+          { id: 2, value: 'b' },
+          { id: 1, value: 'c' }
+        ];
+        const nested = nest(
+          data,
+          map => Array.from(map),
+          values => values.map(d => d.value).join(','),
+          [d => d.id]
+        );
+        return nested;
+      });
+      expect(result).toEqual([[1, 'a,c'], [2, 'b']]);
+    });
+  });
+
+  test.describe('rollups() edge cases', () => {
+    test('should handle objects with undefined values', async () => {
+      const result = await page.evaluate(() => {
+        const data = [
+          { type: 'A', value: undefined },
+          { type: 'A', value: 1 },
+          { type: 'B', value: null }
+        ];
+        const grouped = rollups(data, v => v.length, d => d.type);
+        return Array.from(grouped);
+      });
+      expect(result).toEqual([['A', 2], ['B', 1]]);
+    });
+
+    test('should handle keying by complex expression', async () => {
+      const result = await page.evaluate(() => {
+        const data = [
+          { x: 1, y: 2 },
+          { x: 1, y: 2 },
+          { x: 3, y: 4 }
+        ];
+        const grouped = rollups(data, v => v.length, d => `${d.x},${d.y}`);
+        return Array.from(grouped);
+      });
+      expect(result).toEqual([['1,2', 2], ['3,4', 1]]);
+    });
+
+    test('should handle index parameter in key function', async () => {
+      const result = await page.evaluate(() => {
+        const data = ['a', 'b', 'c', 'd', 'e'];
+        const grouped = rollups(data, v => v.join(''), (d, i) => i % 2);
+        return Array.from(grouped);
+      });
+      expect(result).toEqual([[0, 'ace'], [1, 'bd']]);
+    });
+  });
+
+  test.describe('dist2() edge cases', () => {
+    test('should handle very large numbers', async () => {
+      const result = await page.evaluate(() => dist2([0, 0], [1000000, 1000000]));
+      expect(result).toBe(2e12);
+    });
+
+    test('should handle floating point precision', async () => {
+      const result = await page.evaluate(() => dist2([0.1, 0.1], [0.2, 0.2]));
+      // (0.1)^2 + (0.1)^2 = 0.02
+      expect(result).toBeCloseTo(0.02, 10);
     });
   });
 });

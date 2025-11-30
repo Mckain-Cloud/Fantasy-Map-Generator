@@ -179,11 +179,11 @@ test.describe('User Journey: Entity Editing', () => {
       const count = await stateRows.count();
       expect(count).toBeGreaterThanOrEqual(0);
 
-      // Step 5: Close the dialog by clicking the X button
-      const closeBtn = page.locator('.ui-dialog:has(#statesEditor) .ui-dialog-titlebar-close');
-      if (await closeBtn.isVisible()) {
-        await closeBtn.click();
-      }
+      // Step 5: Close the dialog (native HTML5 dialog)
+      await page.evaluate(() => {
+        const dialog = document.getElementById('statesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     }
   });
 
@@ -209,11 +209,11 @@ test.describe('User Journey: Entity Editing', () => {
         expect(true).toBe(true);
       }
 
-      // Step 5: Close dialog
-      const closeBtn = page.locator('.ui-dialog:has(#culturesEditor) .ui-dialog-titlebar-close');
-      if (await closeBtn.isVisible()) {
-        await closeBtn.click();
-      }
+      // Step 5: Close dialog (native HTML5 dialog)
+      await page.evaluate(() => {
+        const dialog = document.getElementById('culturesEditor');
+        if (dialog && dialog.close) dialog.close();
+      });
     }
   });
 
@@ -246,11 +246,11 @@ test.describe('User Journey: Entity Editing', () => {
         expect(true).toBe(true);
       }
 
-      // Step 6: Close dialog
-      const closeBtn = page.locator('.ui-dialog:has(#burgsOverview) .ui-dialog-titlebar-close');
-      if (await closeBtn.isVisible()) {
-        await closeBtn.click();
-      }
+      // Step 6: Close dialog (native HTML5 dialog)
+      await page.evaluate(() => {
+        const dialog = document.getElementById('burgsOverview');
+        if (dialog && dialog.close) dialog.close();
+      });
     }
   });
 
@@ -302,11 +302,11 @@ test.describe('User Journey: Entity Editing', () => {
         const count = await biomeRows.count();
         expect(count).toBeGreaterThan(0);
 
-        // Step 5: Close dialog
-        const closeBtn = page.locator('.ui-dialog:has(#biomesEditor) .ui-dialog-titlebar-close');
-        if (await closeBtn.isVisible()) {
-          await closeBtn.click();
-        }
+        // Step 5: Close dialog (native HTML5 dialog)
+        await page.evaluate(() => {
+          const dialog = document.getElementById('biomesEditor');
+          if (dialog && dialog.close) dialog.close();
+        });
       }
     }
   });
@@ -345,11 +345,11 @@ test.describe('User Journey: Military Operations', () => {
           expect(count).toBeGreaterThanOrEqual(0);
         }
 
-        // Step 4: Close dialog
-        const closeBtn = page.locator('.ui-dialog:has(#militaryOverview) .ui-dialog-titlebar-close');
-        if (await closeBtn.isVisible()) {
-          await closeBtn.click();
-        }
+        // Step 4: Close dialog (native HTML5 dialog)
+        await page.evaluate(() => {
+          const dialog = document.getElementById('militaryOverview');
+          if (dialog && dialog.close) dialog.close();
+        });
       }
     }
   });

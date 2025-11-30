@@ -1,15 +1,19 @@
 import { test, expect } from '@playwright/test';
+import { startCoverage, stopCoverage, flushCoverage } from '../../setup/coverageHelpers.js';
 
 test.describe('stringUtils.js', () => {
   let page;
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage();
+    await startCoverage(page);
     await page.goto('/');
     await page.waitForFunction(() => typeof capitalize === 'function', { timeout: 30000 });
   });
 
   test.afterAll(async () => {
+    await stopCoverage(page);
+    await flushCoverage();
     await page.close();
   });
 

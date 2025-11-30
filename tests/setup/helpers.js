@@ -4,14 +4,21 @@
  */
 
 import { TEST_MAPS } from './fixtures.js';
+import { startCoverage, stopCoverage, flushCoverage } from './coverageHelpers.js';
+
+// Re-export coverage helpers for convenience
+export { startCoverage, stopCoverage, flushCoverage };
 
 // Use the http server URL (configured in playwright.config.js)
-export const APP_URL = 'http://localhost:8080/index.html';
+// Serving from dist folder after build
+export const APP_URL = 'http://localhost:8080/';
 
 /**
  * Navigate to the app using HTTP server
+ * Automatically starts coverage collection if enabled
  */
 export async function gotoApp(page, options = {}) {
+  await startCoverage(page);
   const defaultOptions = { waitUntil: 'domcontentloaded' };
   return page.goto(APP_URL, { ...defaultOptions, ...options });
 }
@@ -249,7 +256,7 @@ export async function openEditor(page, editorType) {
  */
 export async function closeAllDialogs(page) {
   await page.evaluate(() => {
-    $('.dialog').dialog('close');
+    document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
   });
 }
 

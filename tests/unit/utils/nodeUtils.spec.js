@@ -1,20 +1,20 @@
 import { test, expect } from '@playwright/test';
+import { waitForAppReady, startCoverage, stopCoverage, flushCoverage } from '../../setup/helpers.js';
 
 test.describe('nodeUtils.js', () => {
-  let page;
-
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-    await page.goto('/');
-    await page.waitForFunction(() => typeof window.getNextId === 'function', { timeout: 30000 });
+  test.beforeEach(async ({ page }) => {
+    await startCoverage(page);
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await waitForAppReady(page);
   });
 
-  test.afterAll(async () => {
-    await page.close();
+  test.afterEach(async ({ page }) => {
+    await stopCoverage(page);
+    await flushCoverage();
   });
 
   test.describe('getComposedPath() - Get event path polyfill', () => {
-    test('should return path with single node', async () => {
+    test('should return path with single node', async ({ page }) => {
       const result = await page.evaluate(() => {
         const div = document.createElement('div');
         const path = getComposedPath(div);
@@ -23,7 +23,7 @@ test.describe('nodeUtils.js', () => {
       expect(result).toBeGreaterThan(0);
     });
 
-    test('should return path including parent nodes', async () => {
+    test('should return path including parent nodes', async ({ page }) => {
       const result = await page.evaluate(() => {
         const parent = document.createElement('div');
         const child = document.createElement('span');
@@ -43,7 +43,7 @@ test.describe('nodeUtils.js', () => {
       expect(result.length).toBeGreaterThan(2);
     });
 
-    test('should include document and window', async () => {
+    test('should include document and window', async ({ page }) => {
       const result = await page.evaluate(() => {
         const div = document.createElement('div');
         document.body.appendChild(div);
@@ -60,7 +60,7 @@ test.describe('nodeUtils.js', () => {
       expect(result.hasWindow).toBe(true);
     });
 
-    test('should handle deeply nested elements', async () => {
+    test('should handle deeply nested elements', async ({ page }) => {
       const result = await page.evaluate(() => {
         const root = document.createElement('div');
         const level1 = document.createElement('div');
@@ -90,7 +90,7 @@ test.describe('nodeUtils.js', () => {
       expect(result.root).toBe(3);
     });
 
-    test('should handle detached nodes', async () => {
+    test('should handle detached nodes', async ({ page }) => {
       const result = await page.evaluate(() => {
         const div = document.createElement('div');
         const path = getComposedPath(div);
@@ -101,7 +101,7 @@ test.describe('nodeUtils.js', () => {
   });
 
   test.describe('getNextId() - Get next unused ID', () => {
-    test('should return core + number if no element exists', async () => {
+    test('should return core + number if no element exists', async ({ page }) => {
       const result = await page.evaluate(() => {
         const uniqueCore = 'testElement' + Date.now();
         return getNextId(uniqueCore);
@@ -109,7 +109,7 @@ test.describe('nodeUtils.js', () => {
       expect(result).toMatch(/testElement\d+/);
     });
 
-    test('should return next number if element exists', async () => {
+    test('should return next number if element exists', async ({ page }) => {
       const result = await page.evaluate(() => {
         const elem1 = document.createElement('div');
         elem1.id = 'testElem1';
@@ -124,7 +124,7 @@ test.describe('nodeUtils.js', () => {
       expect(result).toBe('testElem2');
     });
 
-    test('should skip multiple existing IDs', async () => {
+    test('should skip multiple existing IDs', async ({ page }) => {
       const result = await page.evaluate(() => {
         const elem1 = document.createElement('div');
         const elem2 = document.createElement('div');
@@ -147,7 +147,7 @@ test.describe('nodeUtils.js', () => {
       expect(result).toBe('skipTest4');
     });
 
-    test('should handle gaps in sequence', async () => {
+    test('should handle gaps in sequence', async ({ page }) => {
       const result = await page.evaluate(() => {
         const uniquePrefix = 'gapTest' + Date.now();
         const elem1 = document.createElement('div');
@@ -167,14 +167,14 @@ test.describe('nodeUtils.js', () => {
       expect(result).toMatch(/gapTest\d+\d+/);
     });
 
-    test('should handle custom starting index', async () => {
+    test('should handle custom starting index', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getNextId('customStart', 10);
       });
       expect(result).toBe('customStart10');
     });
 
-    test('should increment from custom starting index', async () => {
+    test('should increment from custom starting index', async ({ page }) => {
       const result = await page.evaluate(() => {
         const elem5 = document.createElement('div');
         elem5.id = 'customInc5';
@@ -189,14 +189,14 @@ test.describe('nodeUtils.js', () => {
       expect(result).toBe('customInc6');
     });
 
-    test('should handle numeric core names', async () => {
+    test('should handle numeric core names', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getNextId('123');
       });
       expect(result).toMatch(/^123/);
     });
 
-    test('should handle empty core name', async () => {
+    test('should handle empty core name', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getNextId('');
       });
@@ -205,7 +205,7 @@ test.describe('nodeUtils.js', () => {
   });
 
   test.describe('getAbsolutePath() - Convert to absolute URL', () => {
-    test('should return absolute path for relative URL', async () => {
+    test('should return absolute path for relative URL', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('test.html');
       });
@@ -213,14 +213,14 @@ test.describe('nodeUtils.js', () => {
       expect(result).toContain('test.html');
     });
 
-    test('should preserve absolute URLs', async () => {
+    test('should preserve absolute URLs', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('https://example.com/test.html');
       });
       expect(result).toBe('https://example.com/test.html');
     });
 
-    test('should handle paths with directories', async () => {
+    test('should handle paths with directories', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('path/to/file.html');
       });
@@ -228,7 +228,7 @@ test.describe('nodeUtils.js', () => {
       expect(result).toContain('path/to/file.html');
     });
 
-    test('should handle root-relative paths', async () => {
+    test('should handle root-relative paths', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('/absolute/path.html');
       });
@@ -236,14 +236,14 @@ test.describe('nodeUtils.js', () => {
       expect(result).toContain('/absolute/path.html');
     });
 
-    test('should handle empty string', async () => {
+    test('should handle empty string', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('');
       });
       expect(typeof result).toBe('string');
     });
 
-    test('should handle null/undefined', async () => {
+    test('should handle null/undefined', async ({ page }) => {
       const result = await page.evaluate(() => {
         return {
           fromNull: getAbsolutePath(null),
@@ -254,7 +254,7 @@ test.describe('nodeUtils.js', () => {
       expect(result.fromUndefined).toBe('');
     });
 
-    test('should handle query strings', async () => {
+    test('should handle query strings', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('test.html?param=value');
       });
@@ -262,7 +262,7 @@ test.describe('nodeUtils.js', () => {
       expect(result).toContain('test.html?param=value');
     });
 
-    test('should handle URL fragments', async () => {
+    test('should handle URL fragments', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('test.html#section');
       });
@@ -270,14 +270,14 @@ test.describe('nodeUtils.js', () => {
       expect(result).toContain('test.html#section');
     });
 
-    test('should handle protocol-relative URLs', async () => {
+    test('should handle protocol-relative URLs', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('//example.com/test.html');
       });
       expect(result).toMatch(/^https?:\/\/example\.com\/test\.html/);
     });
 
-    test('should handle data URLs', async () => {
+    test('should handle data URLs', async ({ page }) => {
       const result = await page.evaluate(() => {
         return getAbsolutePath('data:text/plain;base64,SGVsbG8=');
       });
@@ -286,7 +286,7 @@ test.describe('nodeUtils.js', () => {
   });
 
   test.describe('removeParent() - Remove parent element', () => {
-    test('should remove parent element when called on child', async () => {
+    test('should remove parent element when called on child', async ({ page }) => {
       const result = await page.evaluate(() => {
         const parent = document.createElement('div');
         const child = document.createElement('button');
@@ -301,7 +301,7 @@ test.describe('nodeUtils.js', () => {
       expect(result).toBe(false);
     });
 
-    test('should handle nested structure', async () => {
+    test('should handle nested structure', async ({ page }) => {
       const result = await page.evaluate(() => {
         const grandparent = document.createElement('div');
         const parent = document.createElement('div');
@@ -324,7 +324,7 @@ test.describe('nodeUtils.js', () => {
       expect(result.parentExists).toBe(false);
     });
 
-    test('should remove correct parent with multiple siblings', async () => {
+    test('should remove correct parent with multiple siblings', async ({ page }) => {
       const result = await page.evaluate(() => {
         const container = document.createElement('div');
         const parent1 = document.createElement('div');
