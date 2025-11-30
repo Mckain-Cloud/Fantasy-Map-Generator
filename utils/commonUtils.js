@@ -6,6 +6,7 @@ import {last} from "./arrayUtils.js";
 import {rand} from "./probabilityUtils.js";
 import {dist2} from "./functionUtils.js";
 import {ERROR} from "../src/core/state.js";
+import {polygonclip} from "./lineclipWrapper.js";
 
 // clip polygon by graph bbox
 export function clipPoly(points, secure = 0) {

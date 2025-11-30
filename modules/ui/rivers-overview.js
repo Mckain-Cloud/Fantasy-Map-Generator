@@ -1,8 +1,10 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog} from "../../utils/dialog.js";
 
 function overviewRivers() {
   if (customization) return;
@@ -11,12 +13,12 @@ function overviewRivers() {
 
   const body = document.getElementById("riversBody");
   riversOverviewAddLines();
-  $("#riversOverview").dialog();
+  openEditorDialog("#riversOverview");
 
   if (modules.overviewRivers) return;
   modules.overviewRivers = true;
 
-  $("#riversOverview").dialog({
+  openEditorDialog("#riversOverview", {
     title: "Rivers Overview",
     resizable: false,
     width: fitContent(),
@@ -163,37 +165,34 @@ function overviewRivers() {
 
   function triggerRiverRemove() {
     const river = +this.parentNode.dataset.id;
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove the river? All tributaries will be auto-removed`;
-
-    $("#alert").dialog({
-      resizable: false,
-      width: "22em",
+    alertDialog({
+      message: "Are you sure you want to remove the river? All tributaries will be auto-removed",
       title: "Remove river",
+      width: "22em",
       buttons: {
         Remove: function () {
           Rivers.remove(river);
           riversOverviewAddLines();
-          $(this).dialog("close");
+          this.close();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
   }
 
   function triggerAllRiversRemove() {
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove all rivers?`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: "Are you sure you want to remove all rivers?",
       title: "Remove all rivers",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
           removeAllRivers();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

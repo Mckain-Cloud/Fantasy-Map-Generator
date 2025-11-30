@@ -1,6 +1,8 @@
 "use strict";
 
+import * as d3 from "d3";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog} from "../../utils/dialog.js";
 
 // module to control the Tools options (click to edit, to re-geenerate, tp add)
 
@@ -35,29 +37,26 @@ toolsContent.addEventListener("click", function (event) {
     const dontAsk = sessionStorage.getItem("regenerateFeatureDontAsk");
     if (dontAsk) return processFeatureRegeneration(event, button);
 
-    alertMessage.innerHTML = /* html */ `Regeneration will remove all the custom changes for the element.<br /><br />Are you sure you want to proceed?`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: "Regeneration will remove all the custom changes for the element.<br /><br />Are you sure you want to proceed?",
       title: "Regenerate element",
       buttons: {
         Proceed: function () {
           processFeatureRegeneration(event, button);
-          $(this).dialog("close");
+          this.close();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       },
-      open: function () {
+      open: function (buttonContainer) {
         const checkbox =
           '<span><input id="dontAsk" class="checkbox" type="checkbox"><label for="dontAsk" class="checkbox-label dontAsk"><i>do not ask again</i></label><span>';
-        const pane = this.parentElement.querySelector(".ui-dialog-buttonpane");
-        pane.insertAdjacentHTML("afterbegin", checkbox);
+        buttonContainer.insertAdjacentHTML("afterbegin", checkbox);
       },
       close: function () {
-        const box = this.parentElement.querySelector(".checkbox");
+        const box = this.querySelector(".checkbox");
         if (box?.checked) sessionStorage.setItem("regenerateFeatureDontAsk", true);
-        $(this).dialog("destroy");
       }
     });
   }
@@ -78,7 +77,7 @@ toolsContent.addEventListener("click", function (event) {
 
 function processFeatureRegeneration(event, button) {
   if (button === "regenerateStateLabels") {
-    $("#labels").fadeIn();
+    document.getElementById("labels").style.display = "";
     drawStateLabels();
   } else if (button === "regenerateReliefIcons") {
     drawReliefIcons();
@@ -861,8 +860,6 @@ function addMarkerOnClick(event) {
 }
 
 function configMarkersGeneration() {
-  drawConfigTable();
-
   function drawConfigTable() {
     const config = Markers.getConfig();
 
@@ -891,26 +888,11 @@ function configMarkersGeneration() {
     });
 
     const table = `<table class="table">${headers}<tbody>${lines.join("")}</tbody></table>`;
-    alertMessage.innerHTML = table;
-
-    alertMessage.querySelectorAll("button.changeIcon").forEach(selectIconButton => {
-      selectIconButton.addEventListener("click", function () {
-        const image = this.parentElement.querySelector(".image");
-        const emoji = this.parentElement.querySelector(".emoji");
-        const icon = image.getAttribute("src") || emoji.textContent;
-
-        selectIcon(icon, value => {
-          const isExternal = value.startsWith("http") || value.startsWith("data:image");
-          image.setAttribute("src", isExternal ? value : "");
-          image.hidden = !isExternal;
-          emoji.textContent = isExternal ? "" : value;
-        });
-      });
-    });
+    return table;
   }
 
-  const applyChanges = () => {
-    const rows = alertMessage.querySelectorAll("tbody > tr");
+  const applyChanges = (container) => {
+    const rows = container.querySelectorAll("tbody > tr");
     const rowsData = Array.from(rows).map(row => {
       const type = row.querySelector(".type").value;
 
@@ -931,33 +913,48 @@ function configMarkersGeneration() {
     Markers.setConfig(newConfig);
   };
 
-  $("#alert").dialog({
-    resizable: false,
+  alertDialog({
+    message: drawConfigTable(),
     title: "Markers generation settings",
-    position: {my: "left top", at: "left+10 top+10", of: "svg", collision: "fit"},
     buttons: {
-      Regenerate: () => {
-        applyChanges();
+      Regenerate: function () {
+        applyChanges(this);
         regenerateMarkers();
-        drawConfigTable();
+        this.querySelector(".alertMessage").innerHTML = drawConfigTable();
+        setupIconButtons(this);
       },
       Close: function () {
-        $(this).dialog("close");
+        this.close();
       }
     },
-    open: function () {
-      const buttons = $(this).dialog("widget").find(".ui-dialog-buttonset > button");
+    open: function (container, buttonContainer) {
+      setupIconButtons(container);
+      const buttons = buttonContainer.querySelectorAll("button");
       buttons[0].addEventListener("mousemove", () => tip("Apply changes and regenerate markers"));
       buttons[1].addEventListener("mousemove", () => tip("Close the window"));
-    },
-    close: function () {
-      $(this).dialog("destroy");
     }
   });
+
+  function setupIconButtons(container) {
+    container.querySelectorAll("button.changeIcon").forEach(selectIconButton => {
+      selectIconButton.addEventListener("click", function () {
+        const image = this.parentElement.querySelector(".image");
+        const emoji = this.parentElement.querySelector(".emoji");
+        const icon = image.getAttribute("src") || emoji.textContent;
+
+        selectIcon(icon, value => {
+          const isExternal = value.startsWith("http") || value.startsWith("data:image");
+          image.setAttribute("src", isExternal ? value : "");
+          image.hidden = !isExternal;
+          emoji.textContent = isExternal ? "" : value;
+        });
+      });
+    });
+  }
 }
 
 function viewCellDetails() {
-  $("#cellInfo").dialog({
+  openEditorDialog("#cellInfo", {
     resizable: false,
     width: "22em",
     title: "Cell Details",

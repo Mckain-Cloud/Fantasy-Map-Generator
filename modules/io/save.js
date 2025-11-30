@@ -3,6 +3,7 @@
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {ERROR, WARN} from "../../src/core/state.js";
+import {alertDialog} from "../../utils/dialog.js";
 
 // functions to save the project to a file
 export async function saveMap(method) {
@@ -18,25 +19,22 @@ export async function saveMap(method) {
     if (method === "dropbox") saveToDropbox(mapData, filename);
   } catch (error) {
     ERROR && console.error(error);
-    alertMessage.innerHTML = /* html */ `An error is occured on map saving. If the issue persists, please copy the message below and report it on ${link(
-      "https://github.com/Azgaar/Fantasy-Map-Generator/issues",
-      "GitHub"
-    )}. <p id="errorBox">${parseError(error)}</p>`;
-
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: /* html */ `An error is occured on map saving. If the issue persists, please copy the message below and report it on ${link(
+        "https://github.com/Azgaar/Fantasy-Map-Generator/issues",
+        "GitHub"
+      )}. <p id="errorBox">${parseError(error)}</p>`,
       title: "Saving error",
       width: "28em",
       buttons: {
         Retry: function () {
-          $(this).dialog("close");
+          this.close();
           saveMap(method);
         },
         Close: function () {
-          $(this).dialog("close");
+          this.close();
         }
-      },
-      position: {my: "center", at: "center", of: "svg"}
+      }
     });
   }
 }

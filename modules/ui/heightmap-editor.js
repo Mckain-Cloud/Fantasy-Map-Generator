@@ -1,10 +1,13 @@
 "use strict";
 
+import * as d3 from "d3";
+import RgbQuant from "rgbquant";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {rand, P, gauss} from "../../utils/probabilityUtils.js";
 import {findCell, findGridCell} from "../../utils/graphUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {TIME} from "../../src/core/state.js";
+import {makeSortable, alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function editHeightmap(options) {
   const {mode, tool} = options || {};
@@ -29,7 +32,7 @@ function editHeightmap(options) {
   byId("templateRedo").on("click", () => restoreHistory(edits.n + 1));
 
   function showModeDialog() {
-    alertMessage.innerHTML = /* html */ `Heightmap is a core element on which all other data (rivers, burgs, states etc) is based. So the best edit approach is to
+    const message = /* html */ `Heightmap is a core element on which all other data (rivers, burgs, states etc) is based. So the best edit approach is to
     <i>erase</i> the secondary data and let the system automatically regenerate it on edit completion.
     <p><i>Erase</i> mode also allows you Convert an Image into a heightmap or use Template Editor.</p>
     <p>You can <i>keep</i> the data, but you won't be able to change the coastline.</p>
@@ -40,16 +43,25 @@ function editHeightmap(options) {
       "wiki"
     )} for guidance.</p>`;
 
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message,
       title: "Edit Heightmap",
       width: "28em",
       buttons: {
-        Erase: () => enterHeightmapEditMode("erase"),
-        Keep: () => enterHeightmapEditMode("keep"),
-        Risk: () => enterHeightmapEditMode("risk"),
+        Erase: function () {
+          enterHeightmapEditMode("erase");
+          this.close();
+        },
+        Keep: function () {
+          enterHeightmapEditMode("keep");
+          this.close();
+        },
+        Risk: function () {
+          enterHeightmapEditMode("risk");
+          this.close();
+        },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
@@ -127,8 +139,8 @@ function editHeightmap(options) {
     else openBrushesPanel();
   }
 
-  function moveCursor() {
-    const [x, y] = d3.mouse(this);
+  function moveCursor(event) {
+    const [x, y] = d3.pointer(event, this);
     const cell = findGridCell(x, y, grid);
     heightmapInfoX.innerHTML = rn(x);
     heightmapInfoY.innerHTML = rn(y);
@@ -566,14 +578,13 @@ function editHeightmap(options) {
   }
 
   function openBrushesPanel() {
-    if ($("#brushesPanel").is(":visible")) return;
-    $("#brushesPanel")
-      .dialog({
-        title: "Paint Brushes",
-        resizable: false,
-        position: {my: "right top", at: "right-10 top+10", of: "svg"}
-      })
-      .on("dialogclose", exitBrushMode);
+    if (document.getElementById("brushesPanel")?.open) return;
+    openEditorDialog("#brushesPanel", {
+      title: "Paint Brushes",
+      resizable: false,
+      position: {my: "right top", at: "right-10 top+10", of: "svg"},
+      close: exitBrushMode
+    });
 
     if (modules.openBrushesPanel) return;
     modules.openBrushesPanel = true;
@@ -637,8 +648,8 @@ function editHeightmap(options) {
       }
     }
 
-    function placeLinearFeature() {
-      const [x, y] = d3.mouse(this);
+    function placeLinearFeature(event) {
+      const [x, y] = d3.pointer(event, this);
       const toCell = findGridCell(x, y, grid);
 
       const lineCircle = debug.selectAll(".lineCircle");
@@ -684,22 +695,22 @@ function editHeightmap(options) {
       updateHistory();
     }
 
-    function dragBrush() {
+    function dragBrush(event) {
       const r = heightmapBrushRadius.valueAsNumber;
-      const [x, y] = d3.mouse(this);
+      const [x, y] = d3.pointer(event, this);
       const start = findGridCell(x, y, grid);
 
-      d3.event.on("drag", () => {
-        const p = d3.mouse(this);
+      event.on("drag", (event) => {
+        const p = d3.pointer(event, this);
         moveCircle(p[0], p[1], r, "#333");
-        if (~~d3.event.sourceEvent.timeStamp % 5 != 0) return; // slow down the edit
+        if (~~event.sourceEvent.timeStamp % 5 != 0) return; // slow down the edit
 
         const inRadius = findGridAll(p[0], p[1], r);
         const selection = changeOnlyLand.checked ? inRadius.filter(i => grid.cells.h[i] >= 20) : inRadius;
         if (selection && selection.length) changeHeightForSelection(selection, start);
       });
 
-      d3.event.on("end", updateHeightmap);
+      event.on("end", updateHeightmap);
     }
 
     function changeHeightForSelection(selection, start) {
@@ -800,10 +811,10 @@ function editHeightmap(options) {
   }
 
   function openTemplateEditor() {
-    if ($("#templateEditor").is(":visible")) return;
+    if (document.getElementById("templateEditor")?.open) return;
     const $body = byId("templateBody");
 
-    $("#templateEditor").dialog({
+    openEditorDialog("#templateEditor", {
       title: "Template Editor",
       minHeight: "auto",
       width: "fit-content",
@@ -814,10 +825,9 @@ function editHeightmap(options) {
     if (modules.openTemplateEditor) return;
     modules.openTemplateEditor = true;
 
-    $("#templateBody").sortable({
+    makeSortable(document.getElementById("templateBody"), {
       items: "> div",
       handle: ".icon-resize-vertical",
-      containment: "#templateBody",
       axis: "y"
     });
 
@@ -1014,17 +1024,16 @@ function editHeightmap(options) {
       const template = e.target.value;
       if (!steps || !changed) return changeTemplate(template);
 
-      alertMessage.innerHTML = "Are you sure you want to select a different template? All changes will be lost.";
-      $("#alert").dialog({
-        resizable: false,
+      alertDialog({
+        message: "Are you sure you want to select a different template? All changes will be lost.",
         title: "Change Template",
         buttons: {
           Change: function () {
             changeTemplate(template);
-            $(this).dialog("close");
+            this.close();
           },
           Cancel: function () {
-            $(this).dialog("close");
+            this.close();
           }
         }
       });
@@ -1131,11 +1140,11 @@ function editHeightmap(options) {
   }
 
   function openImageConverter() {
-    if ($("#imageConverter").is(":visible")) return;
+    if (document.getElementById("imageConverter")?.open) return;
     imageToLoad.click();
     closeDialogs("#imageConverter");
 
-    $("#imageConverter").dialog({
+    openEditorDialog("#imageConverter", {
       title: "Image Converter",
       maxHeight: svgHeight * 0.8,
       minHeight: "auto",
@@ -1443,29 +1452,29 @@ function editHeightmap(options) {
       colorsSelectValue.innerHTML = colorsSelectFriendly.innerHTML = 0;
       viewbox.style("cursor", "default").on(".drag", null);
       tip('Heightmap edit mode is active. Click on "Exit Customization" to finalize the heightmap', true);
-      $("#imageConverter").dialog("destroy");
+      closeEditorDialog("#imageConverter");
       openBrushesPanel();
     }
 
     function closeImageConverter(event) {
       event.preventDefault();
       event.stopPropagation();
-      alertMessage.innerHTML = /* html */ ` Are you sure you want to close the Image Converter? Click "Cancel" to geck back to convertion. Click "Complete" to apply
+      const message = /* html */ ` Are you sure you want to close the Image Converter? Click "Cancel" to geck back to convertion. Click "Complete" to apply
       the conversion. Click "Close" to exit conversion mode and restore previous heightmap`;
 
-      $("#alert").dialog({
-        resizable: false,
+      alertDialog({
+        message,
         title: "Close Image Converter",
         buttons: {
           Cancel: function () {
-            $(this).dialog("close");
+            this.close();
           },
           Complete: function () {
-            $(this).dialog("close");
+            this.close();
             applyConversion();
           },
           Close: function () {
-            $(this).dialog("close");
+            this.close();
             restoreImageConverterState();
             viewbox.select("#heights").selectAll("polygon").remove();
             restoreHistory(edits.n - 1);

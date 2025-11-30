@@ -2,6 +2,7 @@
 
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 async function openTransformTool() {
   const width = Math.min(400, window.innerWidth * 0.5);
@@ -15,7 +16,7 @@ async function openTransformTool() {
   resetInputs();
   loadPreview();
 
-  $("#transformTool").dialog({
+  openEditorDialog("#transformTool", {
     title: "Transform map",
     resizable: false,
     position: {my: "center", at: "center", of: "svg"},
@@ -25,7 +26,7 @@ async function openTransformTool() {
         transformMap();
       },
       Cancel: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#transformTool");
       }
     }
   });

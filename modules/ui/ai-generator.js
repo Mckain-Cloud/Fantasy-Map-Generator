@@ -1,6 +1,7 @@
 "use strict";
 
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 const PROVIDERS = {
   openai: {
@@ -150,7 +151,7 @@ async function handleStream(response, getContent) {
 function generateWithAi(defaultPrompt, onApply) {
   updateValues();
 
-  $("#aiGenerator").dialog({
+  openEditorDialog("#aiGenerator", {
     title: "AI Text Generator",
     position: {my: "center", at: "center", of: "svg"},
     resizable: false,
@@ -162,10 +163,10 @@ function generateWithAi(defaultPrompt, onApply) {
         const result = byId("aiGeneratorResult").value;
         if (!result) return tip("No result to apply", true, "error", 4000);
         onApply(result);
-        $(this).dialog("close");
+        closeEditorDialog("#aiGenerator");
       },
       Close: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#aiGenerator");
       }
     }
   });

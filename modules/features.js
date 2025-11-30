@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../utils/numberUtils.js";
 import {unique, createTypedArray} from "../utils/arrayUtils.js";
 import {clipPoly} from "../utils/commonUtils.js";

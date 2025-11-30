@@ -164,3 +164,9 @@ const heightmapTemplates = (function () {
     fractious: {id: 13, name: "Fractious", template: fractious, probability: 3}
   };
 })();
+
+export {heightmapTemplates};
+
+if (typeof window !== "undefined") {
+  window.heightmapTemplates = heightmapTemplates;
+}

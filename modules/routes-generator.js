@@ -1,5 +1,7 @@
 "use strict";
 
+import * as d3 from "d3";
+import Delaunator from "delaunator";
 import {rn} from "../utils/numberUtils.js";
 import {ra, rw} from "../utils/probabilityUtils.js";
 import {getAdjective} from "../utils/languageUtils.js";

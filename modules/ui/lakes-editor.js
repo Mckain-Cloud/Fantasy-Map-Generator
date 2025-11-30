@@ -1,23 +1,25 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {unique} from "../../utils/arrayUtils.js";
+import {alertDialog, openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../utils/dialog.js";
 
-function editLake() {
+function editLake(event) {
   if (customization) return;
   closeDialogs(".stable");
   if (layerIsOn("toggleCells")) toggleCells();
 
-  $("#lakeEditor").dialog({
+  openEditorDialog("#lakeEditor", {
     title: "Edit Lake",
     resizable: false,
-    position: {my: "center top+20", at: "top", of: d3.event, collision: "fit"},
+    position: {my: "center top+20", at: "top", of: event, collision: "fit"},
     close: closeLakesEditor
   });
 
-  const node = d3.event.target;
+  const node = event.target;
   debug.append("g").attr("id", "vertices");
   elSelected = d3.select(node);
   updateLakeValues();
@@ -100,9 +102,9 @@ function editLake() {
       );
   }
 
-  function handleVertexDrag() {
-    const x = rn(d3.event.x, 2);
-    const y = rn(d3.event.y, 2);
+  function handleVertexDrag(event) {
+    const x = rn(event.x, 2);
+    const y = rn(event.y, 2);
     this.setAttribute("cx", x);
     this.setAttribute("cy", y);
 
@@ -223,14 +225,13 @@ function editLake() {
     }
 
     const count = elSelected.node().parentNode.childElementCount;
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove the group? All lakes of the group (${count}) will be turned into Freshwater`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: /* html */ `Are you sure you want to remove the group? All lakes of the group (${count}) will be turned into Freshwater`,
       title: "Remove lake group",
       width: "26em",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
           const freshwater = byId("freshwater");
           const groupEl = byId(group);
           while (groupEl.childNodes.length) {
@@ -241,7 +242,7 @@ function editLake() {
           byId("lakeGroup").value = "freshwater";
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

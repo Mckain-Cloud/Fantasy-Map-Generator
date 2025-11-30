@@ -1,7 +1,16 @@
 "use strict";
 
+import * as d3 from "d3";
+import simplifyJs from "simplify-js";
 import {round} from "../../utils/stringUtils.js";
 import {TIME, ERROR} from "../../src/core/state.js";
+
+// Wrapper to convert between [x,y] arrays (used in codebase) and {x,y} objects (used by simplify-js)
+function simplify(points, tolerance) {
+  const objectPoints = points.map(([x, y]) => ({x, y}));
+  const simplified = simplifyJs(objectPoints, tolerance, true);
+  return simplified.map(({x, y}) => [x, y]);
+}
 
 export function drawFeatures() {
   TIME && console.time("drawFeatures");

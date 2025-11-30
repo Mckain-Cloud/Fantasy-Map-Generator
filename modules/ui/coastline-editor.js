@@ -1,22 +1,24 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../utils/dialog.js";
 
-function editCoastline() {
+function editCoastline(event) {
   if (customization) return;
   closeDialogs(".stable");
   if (layerIsOn("toggleCells")) toggleCells();
 
-  $("#coastlineEditor").dialog({
+  openEditorDialog("#coastlineEditor", {
     title: "Edit Coastline",
     resizable: false,
-    position: {my: "center top+20", at: "top", of: d3.event, collision: "fit"},
+    position: {my: "center top+20", at: "top", of: event, collision: "fit"},
     close: closeCoastlineEditor
   });
 
   debug.append("g").attr("id", "vertices");
-  const node = d3.event.target;
+  const node = event.target;
   elSelected = d3.select(node);
   selectCoastlineGroup(node);
   drawCoastlineVertices();
@@ -67,11 +69,11 @@ function editCoastline() {
     coastlineArea.innerHTML = si(getArea(area)) + " " + getAreaUnit();
   }
 
-  function handleVertexDrag() {
+  function handleVertexDrag(event) {
     const {vertices, features} = pack;
 
-    const x = rn(d3.event.x, 2);
-    const y = rn(d3.event.y, 2);
+    const x = rn(event.x, 2);
+    const y = rn(event.y, 2);
     this.setAttribute("cx", x);
     this.setAttribute("cy", y);
 
@@ -181,15 +183,14 @@ function editCoastline() {
       return tip("This is one of the default groups, it cannot be removed", false, "error");
 
     const count = elSelected.node().parentNode.childElementCount;
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove the group? All coastline elements of the group (${count}) will be moved under
-      <i>sea_island</i> group`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: `Are you sure you want to remove the group? All coastline elements of the group (${count}) will be moved under
+      <i>sea_island</i> group`,
       title: "Remove coastline group",
       width: "26em",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
           const sea = byId("sea_island");
           const groupEl = byId(group);
           while (groupEl.childNodes.length) {
@@ -200,7 +201,7 @@ function editCoastline() {
           byId("coastlineGroup").value = "sea_island";
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

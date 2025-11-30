@@ -1,9 +1,11 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {minmax} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {P, Pint} from "../../utils/probabilityUtils.js";
+import {openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../utils/dialog.js";
 
 class Battle {
   constructor(attacker, defender) {
@@ -30,7 +32,7 @@ class Battle {
     this.calculateStrength("defenders");
     this.getInitialMorale();
 
-    $("#battleScreen").dialog({
+    openEditorDialog("#battleScreen", {
       title: this.name,
       resizable: false,
       width: fitContent(),
@@ -226,7 +228,7 @@ class Battle {
       })
       .join("");
 
-    $("#regimentSelectorScreen").dialog({
+    openEditorDialog("#regimentSelectorScreen", {
       resizable: false,
       width: fitContent(),
       title: "Add regiment to the battle",
@@ -235,7 +237,7 @@ class Battle {
       buttons: {
         "Add to attackers": () => addSideClicked("attackers"),
         "Add to defenders": () => addSideClicked("defenders"),
-        Cancel: () => $("#regimentSelectorScreen").dialog("close")
+        Cancel: () => closeEditorDialog("#regimentSelectorScreen")
       }
     });
 
@@ -257,7 +259,7 @@ class Battle {
         return;
       }
 
-      $("#regimentSelectorScreen").dialog("close");
+      closeEditorDialog("#regimentSelectorScreen");
       selected.forEach(line => {
         const state = pack.states[line.dataset.s];
         const regiment = state.military.find(r => r.i == +line.dataset.i);
@@ -296,7 +298,7 @@ class Battle {
 
   changeName(ev) {
     this.name = ev.target.value;
-    $("#battleScreen").dialog({title: this.name});
+    updateEditorDialog("#battleScreen", {title: this.name});
   }
 
   generateName(type) {
@@ -306,7 +308,7 @@ class Battle {
         : Names.getBase(rand(nameBases.length - 1));
     byId("battleNamePlace").value = this.place = place;
     byId("battleNameFull").value = this.name = this.defineName();
-    $("#battleScreen").dialog({title: this.name});
+    updateEditorDialog("#battleScreen", {title: this.name});
   }
 
   getJoinedForces(regiments) {
@@ -799,7 +801,7 @@ class Battle {
     this.calculateStrength("attackers");
     this.calculateStrength("defenders");
     this.name = this.defineName();
-    $("#battleScreen").dialog({title: this.name});
+    updateEditorDialog("#battleScreen", {title: this.name});
   }
 
   changePhase(ev, side) {
@@ -899,7 +901,7 @@ class Battle {
 
     tip(`${this.name} is over. ${result}`, true, "success", 4000);
 
-    $("#battleScreen").dialog("destroy");
+    closeEditorDialog("#battleScreen");
     this.cleanData();
   }
 
@@ -908,7 +910,7 @@ class Battle {
     this.attackers.regiments.forEach(r => moveRegiment(r, r.px, r.py));
     this.defenders.regiments.forEach(r => moveRegiment(r, r.px, r.py));
 
-    $("#battleScreen").dialog("close");
+    closeEditorDialog("#battleScreen");
     this.cleanData();
   }
 

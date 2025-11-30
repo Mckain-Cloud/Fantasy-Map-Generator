@@ -33,5 +33,6 @@ export function dist2([x1, y1], [x2, y2]) {
 // Backward compatibility - expose on window during transition
 if (typeof window !== "undefined") {
   window.rollups = rollups;
+  window.nest = nest;
   window.dist2 = dist2;
 }

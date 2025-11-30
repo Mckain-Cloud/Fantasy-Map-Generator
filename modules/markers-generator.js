@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../utils/numberUtils.js";
 import {gauss, P, ra, rand, rw} from "../utils/probabilityUtils.js";
 import {getAdjective} from "../utils/languageUtils.js";

@@ -1,5 +1,7 @@
 "use strict";
 
+import * as d3 from "d3";
+import polylabel from "polylabel";
 import {rn} from "../../utils/numberUtils.js";
 import {round} from "../../utils/stringUtils.js";
 import {findCell} from "../../utils/graphUtils.js";
@@ -76,19 +78,19 @@ class Measurer {
     return rn(30 / distanceScale, 2);
   }
 
-  drag() {
+  drag(event) {
     const tr = parseTransform(this.getAttribute("transform"));
-    const x = +tr[0] - d3.event.x,
-      y = +tr[1] - d3.event.y;
+    const x = +tr[0] - event.x,
+      y = +tr[1] - event.y;
 
-    d3.event.on("drag", function () {
-      const transform = `translate(${x + d3.event.x},${y + d3.event.y})`;
+    event.on("drag", function (event) {
+      const transform = `translate(${x + event.x},${y + event.y})`;
       this.setAttribute("transform", transform);
     });
   }
 
-  addPoint(point) {
-    const MIN_DIST = d3.event.sourceEvent.shiftKey ? 9 : 100;
+  addPoint(point, event) {
+    const MIN_DIST = event?.sourceEvent?.shiftKey ? 9 : 100;
     const prev = last(this.points);
     point = [point[0] | 0, point[1] | 0];
     const dist2 = (prev[0] - point[0]) ** 2 + (prev[1] - point[1]) ** 2;
@@ -157,7 +159,7 @@ class Ruler extends Measurer {
       .attr("points", points)
       .attr("class", "white")
       .attr("stroke-width", size)
-      .call(d3.drag().on("start", () => this.addControl(this)));
+      .call(d3.drag().on("start", (event) => this.addControl(this, event)));
     el.append("polyline")
       .attr("points", points)
       .attr("class", "gray")
@@ -200,8 +202,8 @@ class Ruler extends Measurer {
         d3
           .drag()
           .clickDistance(3)
-          .on("start", function () {
-            context.dragControl(context, i);
+          .on("start", function (event) {
+            context.dragControl(context, i, event);
           })
       );
   }
@@ -227,18 +229,18 @@ class Ruler extends Measurer {
     return length;
   }
 
-  dragControl(context, pointId) {
-    let addPoint = context.isEdge(pointId) && d3.event.sourceEvent.ctrlKey;
+  dragControl(context, pointId, startEvent) {
+    let addPoint = context.isEdge(pointId) && startEvent.sourceEvent.ctrlKey;
     let circle = context.el.select(`circle:nth-child(${pointId + 1})`);
     const line = context.el.selectAll("polyline");
 
-    let x0 = rn(d3.event.x, 1);
-    let y0 = rn(d3.event.y, 1);
+    let x0 = rn(startEvent.x, 1);
+    let y0 = rn(startEvent.y, 1);
     let axis;
 
-    d3.event.on("drag", function () {
+    startEvent.on("drag", function (event) {
       if (addPoint) {
-        if (d3.event.dx < 0.1 && d3.event.dy < 0.1) return;
+        if (event.dx < 0.1 && event.dy < 0.1) return;
         context.pushPoint(pointId);
         context.drawPoints(context.el);
         if (pointId) pointId++;
@@ -246,11 +248,11 @@ class Ruler extends Measurer {
         addPoint = false;
       }
 
-      const shiftPressed = d3.event.sourceEvent.shiftKey;
-      if (shiftPressed && !axis) axis = Math.abs(d3.event.dx) > Math.abs(d3.event.dy) ? "x" : "y";
+      const shiftPressed = event.sourceEvent.shiftKey;
+      if (shiftPressed && !axis) axis = Math.abs(event.dx) > Math.abs(event.dy) ? "x" : "y";
 
-      const x = axis === "y" ? x0 : rn(d3.event.x, 1);
-      const y = axis === "x" ? y0 : rn(d3.event.y, 1);
+      const x = axis === "y" ? x0 : rn(event.x, 1);
+      const y = axis === "x" ? y0 : rn(event.y, 1);
 
       if (!shiftPressed) {
         axis = null;
@@ -265,14 +267,14 @@ class Ruler extends Measurer {
     });
   }
 
-  addControl(context) {
-    const x = rn(d3.event.x, 1);
-    const y = rn(d3.event.y, 1);
+  addControl(context, event) {
+    const x = rn(event.x, 1);
+    const y = rn(event.y, 1);
     const pointId = getSegmentId(context.points, [x, y]);
 
     context.points.splice(pointId, 0, [x, y]);
     context.drawPoints(context.el);
-    context.dragControl(context, pointId);
+    context.dragControl(context, pointId, event);
   }
 
   removePoint(context, pointId) {
@@ -349,12 +351,12 @@ class Opisometer extends Measurer {
     this.el.select("text").attr("x", x).attr("y", y).text(text);
   }
 
-  dragControl(context, rigth) {
-    const MIN_DIST = d3.event.sourceEvent.shiftKey ? 9 : 100;
+  dragControl(context, rigth, startEvent) {
+    const MIN_DIST = startEvent.sourceEvent.shiftKey ? 9 : 100;
     let prev = rigth ? last(context.points) : context.points[0];
 
-    d3.event.on("drag", function () {
-      const point = [d3.event.x | 0, d3.event.y | 0];
+    startEvent.on("drag", function (event) {
+      const point = [event.x | 0, event.y | 0];
 
       const dist2 = (prev[0] - point[0]) ** 2 + (prev[1] - point[1]) ** 2;
       if (dist2 < MIN_DIST) return;
@@ -366,8 +368,8 @@ class Opisometer extends Measurer {
       context.updateLabel();
     });
 
-    d3.event.on("end", function () {
-      if (!d3.event.sourceEvent.shiftKey) context.optimize();
+    startEvent.on("end", function (event) {
+      if (!event.sourceEvent.shiftKey) context.optimize();
     });
   }
 }
@@ -447,16 +449,16 @@ class RouteOpisometer extends Measurer {
       .append("circle")
       .attr("r", "1em")
       .call(
-        d3.drag().on("start", function () {
-          context.dragControl(context, 0);
+        d3.drag().on("start", function (event) {
+          context.dragControl(context, 0, event);
         })
       );
     rulerPoints
       .append("circle")
       .attr("r", "1em")
       .call(
-        d3.drag().on("start", function () {
-          context.dragControl(context, 1);
+        d3.drag().on("start", function (event) {
+          context.dragControl(context, 1, event);
         })
       );
     el.append("text")
@@ -487,13 +489,13 @@ class RouteOpisometer extends Measurer {
     this.el.select("text").attr("x", x).attr("y", y).text(text);
   }
 
-  dragControl(context, rigth) {
-    d3.event.on("drag", function () {
-      const mousePoint = [d3.event.x | 0, d3.event.y | 0];
+  dragControl(context, rigth, startEvent) {
+    startEvent.on("drag", function (event) {
+      const mousePoint = [event.x | 0, event.y | 0];
       const cells = pack.cells;
 
       const c = findCell(mousePoint[0], mousePoint[1]);
-      if (!Routes.isConnected(c) && !d3.event.sourceEvent.shiftKey) return;
+      if (!Routes.isConnected(c) && !event.sourceEvent.shiftKey) return;
 
       context.trackCell(c, rigth);
     });

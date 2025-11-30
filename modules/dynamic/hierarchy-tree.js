@@ -1,9 +1,12 @@
+import * as d3 from "d3";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
+
 appendStyleSheet();
 insertHtml();
 
 const MARGINS = {top: 10, right: 10, bottom: -5, left: 10};
 
-const handleZoom = () => viewbox.attr("transform", d3.event.transform);
+const handleZoom = (event) => viewbox.attr("transform", event.transform);
 const zoom = d3.zoom().scaleExtent([0.2, 1.5]).on("zoom", handleZoom);
 
 // store old root for transitions
@@ -53,7 +56,7 @@ export function open(props) {
   zoom.extent([Array(2).fill(0), [width, height]]);
   svg.attr("viewBox", `0, 0, ${width}, ${height}`);
 
-  $("#hierarchyTree").dialog({
+  openEditorDialog("#hierarchyTree", {
     title: `${capitalize(props.type)} tree`,
     position: {my: "left center", at: "left+10 center", of: "svg"},
     width
@@ -442,12 +445,12 @@ function selectElement(d) {
       </form>
     `;
 
-    $("#hierarchyTree_originSelector").dialog({
+    openEditorDialog("#hierarchyTree_originSelector", {
       title: "Select origins",
       position: {my: "center", at: "center", of: "svg"},
       buttons: {
         Select: () => {
-          $("#hierarchyTree_originSelector").dialog("close");
+          closeEditorDialog("#hierarchyTree_originSelector");
           const $selector = byId("hierarchyTree_originSelector");
           const selectedRadio = $selector.querySelector("input[type='radio']:checked");
           const selectedCheckboxes = $selector.querySelectorAll("input[type='checkbox']:checked");
@@ -463,7 +466,7 @@ function selectElement(d) {
           createOriginButtons();
         },
         Cancel: () => {
-          $("#hierarchyTree_originSelector").dialog("close");
+          closeEditorDialog("#hierarchyTree_originSelector");
         }
       }
     });
@@ -494,16 +497,16 @@ function handleNodeExit(d) {
   tip("");
 }
 
-function dragToReorigin(from) {
+function dragToReorigin(event, from) {
   if (from.id == 0) return;
 
   dragLine.attr("d", `M${from.x},${from.y}L${from.x},${from.y}`);
 
-  d3.event.on("drag", () => {
-    dragLine.attr("d", `M${from.x},${from.y}L${d3.event.x},${d3.event.y}`);
+  event.on("drag", (event) => {
+    dragLine.attr("d", `M${from.x},${from.y}L${event.x},${event.y}`);
   });
 
-  d3.event.on("end", function () {
+  event.on("end", function () {
     dragLine.attr("d", "");
     const selected = nodes.select("g.selected");
     if (!selected.size()) return;

@@ -1,6 +1,7 @@
 "use strict";
 
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog} from "../../utils/dialog.js";
 
 function editRouteGroups() {
   if (customization) return;
@@ -8,7 +9,7 @@ function editRouteGroups() {
 
   addLines();
 
-  $("#routeGroupsEditor").dialog({
+  openEditorDialog("#routeGroupsEditor", {
     title: "Edit Route groups",
     resizable: false,
     position: {my: "left top", at: "left+10 top+140", of: "#map"}

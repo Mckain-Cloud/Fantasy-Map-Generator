@@ -1,20 +1,22 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
-function editLabel() {
+function editLabel(event) {
   if (customization) return;
   closeDialogs();
   if (!layerIsOn("toggleLabels")) toggleLabels();
 
-  const tspan = d3.event.target;
+  const tspan = event.target;
   const textPath = tspan.parentNode;
   const text = textPath.parentNode;
   elSelected = d3.select(text).call(d3.drag().on("start", dragLabel)).classed("draggable", true);
   viewbox.on("touchmove mousemove", showEditorTips);
 
-  $("#labelEditor").dialog({
+  openEditorDialog("#labelEditor", {
     title: "Edit Label",
     resizable: false,
     width: fitContent(),
@@ -57,12 +59,12 @@ function editLabel() {
   byId("labelLegend").on("click", editLabelLegend);
   byId("labelRemoveSingle").on("click", removeLabel);
 
-  function showEditorTips() {
+  function showEditorTips(event) {
     showMainTip();
-    if (d3.event.target.parentNode.parentNode.id === elSelected.attr("id")) tip("Drag to shift the label");
-    else if (d3.event.target.parentNode.id === "controlPoints") {
-      if (d3.event.target.tagName === "circle") tip("Drag to move, click to delete the control point");
-      if (d3.event.target.tagName === "path") tip("Click to add a control point");
+    if (event.target.parentNode.parentNode.id === elSelected.attr("id")) tip("Drag to shift the label");
+    else if (event.target.parentNode.id === "controlPoints") {
+      if (event.target.tagName === "circle") tip("Drag to move, click to delete the control point");
+      if (event.target.tagName === "path") tip("Click to add a control point");
     }
   }
 
@@ -118,9 +120,9 @@ function editLabel() {
       .on("click", clickControlPoint);
   }
 
-  function dragControlPoint() {
-    this.setAttribute("cx", d3.event.x);
-    this.setAttribute("cy", d3.event.y);
+  function dragControlPoint(event) {
+    this.setAttribute("cx", event.x);
+    this.setAttribute("cy", event.y);
     redrawLabelPath();
   }
 
@@ -144,8 +146,8 @@ function editLabel() {
     redrawLabelPath();
   }
 
-  function addInterimControlPoint() {
-    const point = d3.mouse(this);
+  function addInterimControlPoint(event) {
+    const point = d3.pointer(event, this);
 
     const dists = [];
     debug
@@ -180,14 +182,14 @@ function editLabel() {
     redrawLabelPath();
   }
 
-  function dragLabel() {
+  function dragLabel(event) {
     const tr = parseTransform(elSelected.attr("transform"));
-    const dx = +tr[0] - d3.event.x,
-      dy = +tr[1] - d3.event.y;
+    const dx = +tr[0] - event.x,
+      dy = +tr[1] - event.y;
 
-    d3.event.on("drag", function () {
-      const x = d3.event.x,
-        y = d3.event.y;
+    event.on("drag", function (event) {
+      const x = event.x,
+        y = event.y;
       const transform = `translate(${dx + x},${dy + y})`;
       elSelected.attr("transform", transform);
       debug.select("#controlPoints").attr("transform", transform);
@@ -267,17 +269,17 @@ function editLabel() {
     const group = elSelected.node().parentNode.id;
     const basic = group === "states" || group === "addedLabels";
     const count = elSelected.node().parentNode.childElementCount;
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove ${
+    const message = /* html */ `Are you sure you want to remove ${
       basic ? "all elements in the group" : "the entire label group"
     }? <br /><br />Labels to be
       removed: ${count}`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message,
       title: "Remove route group",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
-          $("#labelEditor").dialog("close");
+          this.close();
+          closeEditorDialog("#labelEditor");
           hideGroupSection();
           labels
             .select("#" + group)
@@ -289,7 +291,7 @@ function editLabel() {
           if (!basic) labels.select("#" + group).remove();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
@@ -392,19 +394,18 @@ function editLabel() {
   }
 
   function removeLabel() {
-    alertMessage.innerHTML = "Are you sure you want to remove the label?";
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: "Are you sure you want to remove the label?",
       title: "Remove label",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
           defs.select("#textPath_" + elSelected.attr("id")).remove();
           elSelected.remove();
-          $("#labelEditor").dialog("close");
+          closeEditorDialog("#labelEditor");
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

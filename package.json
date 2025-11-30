@@ -17,7 +17,7 @@
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
     "test:headed": "playwright test --headed",
-    "test:coverage": "c8 playwright test",
+    "test:coverage": "COLLECT_COVERAGE=true playwright test",
     "test:report": "playwright show-report",
     "serve": "python -m http.server 8080",
     "test:watch": "playwright test --ui"
@@ -44,7 +44,21 @@
     "url": "https://github.com/Azgaar/Fantasy-Map-Generator.git"
   },
   "dependencies": {
+    "alea": "^1.0.1",
     "compression": "^1.8.1",
-    "express": "^5.1.0"
+    "d3": "^7.9.0",
+    "delaunator": "^5.0.1",
+    "dropbox": "^10.34.0",
+    "express": "^5.1.0",
+    "flatqueue": "^3.0.0",
+    "jszip": "^3.10.1",
+    "lineclip": "^2.0.0",
+    "polylabel": "^2.0.1",
+    "rgbquant": "^1.1.2",
+    "simplify-js": "^1.2.4",
+    "three": "^0.181.2",
+    "three-subdivide": "^1.1.5",
+    "tinymce": "^8.2.2",
+    "vite-plugin-static-copy": "^3.1.4"
   }
 }

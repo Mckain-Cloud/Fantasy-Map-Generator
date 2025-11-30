@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../utils/numberUtils.js";
 import {each, rw} from "../utils/probabilityUtils.js";
 import {round} from "../utils/stringUtils.js";

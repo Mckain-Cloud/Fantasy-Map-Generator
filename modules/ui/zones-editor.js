@@ -1,9 +1,11 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {getRandomColor} from "../../utils/colorUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {makeSortable, alertDialog, openEditorDialog, updateEditorDialog} from "../../utils/dialog.js";
 
 function editZones() {
   closeDialogs("#zonesEditor, .stable");
@@ -16,7 +18,7 @@ function editZones() {
   if (modules.editZones) return;
   modules.editZones = true;
 
-  $("#zonesEditor").dialog({
+  openEditorDialog("#zonesEditor", {
     title: "Zones Editor",
     resizable: false,
     close: () => exitZonesManualAssignment("close"),
@@ -138,7 +140,7 @@ function editZones() {
       body.dataset.type = "absolute";
       togglePercentageMode();
     }
-    $("#zonesEditor").dialog({width: fitContent()});
+    updateEditorDialog("#zonesEditor", {width: fitContent()});
   }
 
   function zoneHighlightOn(event) {
@@ -156,21 +158,19 @@ function editZones() {
     zonesEditorAddLines();
   }
 
-  $(body).sortable({
+  makeSortable(body, {
     items: "div.states",
     handle: ".icon-resize-vertical",
-    containment: "parent",
     axis: "y",
     update: movezone
   });
 
-  function movezone(_ev, ui) {
-    const zone = pack.zones.find(z => z.i === +ui.item[0].dataset.id);
-    const oldIndex = pack.zones.indexOf(zone);
-    const newIndex = ui.item.index();
-    if (oldIndex === newIndex) return;
+  function movezone(item, oldIndex, newIndex) {
+    const zone = pack.zones.find(z => z.i === +item.dataset.id);
+    if (!zone) return;
 
-    pack.zones.splice(oldIndex, 1);
+    const currentIndex = pack.zones.indexOf(zone);
+    pack.zones.splice(currentIndex, 1);
     pack.zones.splice(newIndex, 0, zone);
     drawZones();
   }
@@ -184,7 +184,7 @@ function editZones() {
     zonesEditor.querySelectorAll(".hide").forEach(el => el.classList.add("hidden"));
     zonesFooter.style.display = "none";
     body.querySelectorAll("div > input, select, svg").forEach(e => (e.style.pointerEvents = "none"));
-    $("#zonesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
+    updateEditorDialog("#zonesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
 
     tip("Click to select a zone, drag to paint a zone", true);
     viewbox
@@ -213,23 +213,23 @@ function editZones() {
       .attr("data-cell", d => d.cell);
   }
 
-  function selectZoneOnMapClick() {
-    if (d3.event.target.parentElement.id !== "zones") return;
-    const zoneId = d3.event.target.dataset.zone;
+  function selectZoneOnMapClick(event) {
+    if (event.target.parentElement.id !== "zones") return;
+    const zoneId = event.target.dataset.zone;
     const el = body.querySelector("div[data-id='" + zoneId + "']");
 
     body.querySelector("div.selected").classList.remove("selected");
     el.classList.add("selected");
   }
 
-  function dragZoneBrush() {
+  function dragZoneBrush(event) {
     const radius = +byId("zonesBrush").value;
     const eraseMode = byId("zonesRemove").classList.contains("pressed");
     const landOnly = byId("zonesBrushLandOnly").checked;
 
-    d3.event.on("drag", () => {
-      if (!d3.event.dx && !d3.event.dy) return;
-      const [x, y] = d3.mouse(this);
+    event.on("drag", (event) => {
+      if (!event.dx && !event.dy) return;
+      const [x, y] = d3.pointer(event, this);
       moveCircle(x, y, radius);
 
       let selection = radius > 5 ? findAll(x, y, radius) : [findCell(x, y)];
@@ -265,9 +265,9 @@ function editZones() {
     });
   }
 
-  function moveZoneBrush() {
+  function moveZoneBrush(event) {
     showMainTip();
-    const point = d3.mouse(this);
+    const point = d3.pointer(event, this);
     const radius = +zonesBrush.value;
     moveCircle(...point, radius);
   }
@@ -305,7 +305,7 @@ function editZones() {
     zonesFooter.style.display = "block";
     body.querySelectorAll("div > input, select, svg").forEach(e => (e.style.pointerEvents = "all"));
     if (!close)
-      $("#zonesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
+      updateEditorDialog("#zonesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
 
     restoreDefaultEvents();
     clearMainTip();
@@ -424,7 +424,7 @@ function editZones() {
     const total = rural + urban;
     const l = n => Number(n).toLocaleString();
 
-    alertMessage.innerHTML = /* html */ `Rural: <input type="number" min="0" step="1" id="ruralPop" value=${rural} style="width:6em" /> Urban:
+    const message = /* html */ `Rural: <input type="number" min="0" step="1" id="ruralPop" value=${rural} style="width:6em" /> Urban:
       <input type="number" min="0" step="1" id="urbanPop" value=${urban} style="width:6em" ${
       burgs.length ? "" : "disabled"
     } />
@@ -432,30 +432,30 @@ function editZones() {
       total
     )}</span> (<span id="totalPopPerc">100</span>%)</p>`;
 
-    const update = function () {
-      const totalNew = ruralPop.valueAsNumber + urbanPop.valueAsNumber;
-      if (isNaN(totalNew)) return;
-      totalPop.innerHTML = l(totalNew);
-      totalPopPerc.innerHTML = rn((totalNew / total) * 100);
-    };
-
-    ruralPop.oninput = () => update();
-    urbanPop.oninput = () => update();
-
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message,
       title: "Change zone population",
       width: "24em",
       buttons: {
         Apply: function () {
           applyPopulationChange();
-          $(this).dialog("close");
+          this.close();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       },
-      position: {my: "center", at: "center", of: "svg"}
+      open: function () {
+        const update = function () {
+          const totalNew = ruralPop.valueAsNumber + urbanPop.valueAsNumber;
+          if (isNaN(totalNew)) return;
+          totalPop.innerHTML = l(totalNew);
+          totalPopPerc.innerHTML = rn((totalNew / total) * 100);
+        };
+
+        ruralPop.oninput = () => update();
+        urbanPop.oninput = () => update();
+      }
     });
 
     function applyPopulationChange() {

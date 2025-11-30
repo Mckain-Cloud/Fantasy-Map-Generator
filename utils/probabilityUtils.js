@@ -1,6 +1,7 @@
 "use strict";
 // FMG utils related to randomness
 
+import * as d3 from "d3";
 import {rn, minmax} from "./numberUtils.js";
 import {ERROR} from "../src/core/state.js";
 

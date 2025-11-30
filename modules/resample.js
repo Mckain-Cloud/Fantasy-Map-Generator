@@ -1,10 +1,12 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../utils/numberUtils.js";
 import {unique, deepCopy} from "../utils/arrayUtils.js";
 import {findCell, findAll} from "../utils/graphUtils.js";
 import {getPolesOfInaccessibility} from "../utils/pathUtils.js";
 import {WARN} from "../src/core/state.js";
+import {lineclip} from "../utils/lineclipWrapper.js";
 
 /*
   generate new map based on an existing one (resampling parentMap)

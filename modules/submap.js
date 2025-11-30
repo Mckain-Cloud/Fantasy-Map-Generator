@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../utils/numberUtils.js";
 import {findCell} from "../utils/graphUtils.js";
 import {INFO, WARN} from "../src/core/state.js";

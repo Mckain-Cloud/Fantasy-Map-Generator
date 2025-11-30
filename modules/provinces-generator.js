@@ -1,5 +1,7 @@
 "use strict";
 
+import * as d3 from "d3";
+import FlatQueue from "flatqueue";
 import {gauss, P, rw} from "../utils/probabilityUtils.js";
 import {getMixedColor} from "../utils/colorUtils.js";
 import {getPolesOfInaccessibility} from "../utils/pathUtils.js";

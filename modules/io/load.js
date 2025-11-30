@@ -1,9 +1,11 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {last} from "../../utils/arrayUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {ERROR, WARN} from "../../src/core/state.js";
+import {alertDialog} from "../../utils/dialog.js";
 
 // Functions to load and parse .map/.gz files
 export async function quickLoad() {
@@ -49,18 +51,17 @@ export function loadMapPrompt(blob) {
     return;
   }
 
-  alertMessage.innerHTML = /* html */ `Are you sure you want to load saved map?<br />
-    All unsaved changes made to the current map will be lost`;
-  $("#alert").dialog({
-    resizable: false,
+  alertDialog({
+    message: /* html */ `Are you sure you want to load saved map?<br />
+      All unsaved changes made to the current map will be lost`,
     title: "Load saved map",
     buttons: {
       Cancel: function () {
-        $(this).dialog("close");
+        this.close();
       },
       Load: function () {
         loadLastSavedMap();
-        $(this).dialog("close");
+        this.close();
       }
     }
   });
@@ -93,17 +94,17 @@ export function loadMapFromURL(maplink, random) {
 
 export function showUploadErrorMessage(error, URL, random) {
   ERROR && console.error(error);
-  alertMessage.innerHTML = /* html */ `Cannot load map from the ${link(URL, "link provided")}. ${
-    random ? `A new random map is generated. ` : ""
-  } Please ensure the
-  linked file is reachable and CORS is allowed on server side`;
-  $("#alert").dialog({
+  alertDialog({
+    message: /* html */ `Cannot load map from the ${link(URL, "link provided")}. ${
+      random ? `A new random map is generated. ` : ""
+    } Please ensure the
+    linked file is reachable and CORS is allowed on server side`,
     title: "Loading error",
     width: "32em",
     buttons: {
       "Clear cache": () => cleanupData(),
       OK: function () {
-        $(this).dialog("close");
+        this.close();
       }
     }
   });
@@ -207,13 +208,13 @@ export function showUploadMessage(type, mapData, mapVersion) {
     return;
   }
 
-  alertMessage.innerHTML = message;
-  $("#alert").dialog({
+  alertDialog({
+    message,
     title,
     buttons: {
       "Clear cache": () => cleanupData(),
       OK: function () {
-        $(this).dialog("close");
+        this.close();
       }
     }
   });
@@ -749,28 +750,25 @@ export async function parseLoadedData(data, mapVersion) {
     ERROR && console.error(error);
     clearMainTip();
 
-    alertMessage.innerHTML = /* html */ `An error is occured on map loading. Select a different file to load, <br>generate a new random map or cancel the loading.<br>Map version: ${mapVersion}. Generator version: ${VERSION}.
-      <p id="errorBox">${parseError(error)}</p>`;
-
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: /* html */ `An error is occured on map loading. Select a different file to load, <br>generate a new random map or cancel the loading.<br>Map version: ${mapVersion}. Generator version: ${VERSION}.
+        <p id="errorBox">${parseError(error)}</p>`,
       title: "Loading error",
-      maxWidth: "40em",
+      width: "40em",
       buttons: {
         "Clear cache": () => cleanupData(),
         "Select file": function () {
-          $(this).dialog("close");
+          this.close();
           mapToLoad.click();
         },
         "New map": function () {
-          $(this).dialog("close");
+          this.close();
           regenerateMap("loading error");
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
-      },
-      position: {my: "center", at: "center", of: "svg"}
+      }
     });
   }
 }

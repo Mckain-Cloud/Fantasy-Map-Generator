@@ -2416,8 +2416,252 @@ svg.button {
   }
 }
 
+/* Native dialog styles */
+dialog.native-dialog {
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  padding: 0;
+  background: var(--bg-light, #fff);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  min-width: 280px;
+  max-width: 90vw;
+  font-family: var(--sans-serif, Arial, sans-serif);
+}
+
+dialog.native-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+dialog.native-dialog .dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+  border-bottom: 1px solid #ccc;
+  cursor: grab;
+}
+
+dialog.native-dialog .dialog-title {
+  font-weight: bold;
+  font-size: 0.95em;
+  color: #333;
+}
+
+dialog.native-dialog .dialog-close {
+  background: none;
+  border: none;
+  font-size: 1.4em;
+  color: #666;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+dialog.native-dialog .dialog-close:hover {
+  color: #000;
+}
+
+dialog.native-dialog .dialog-content {
+  padding: 16px;
+}
+
+dialog.native-dialog .dialog-message {
+  margin: 0;
+  line-height: 1.5;
+}
+
+dialog.native-dialog .dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+  background: #f8f8f8;
+}
+
+dialog.native-dialog .dialog-btn {
+  padding: 6px 16px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #fff, #f0f0f0);
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+dialog.native-dialog .dialog-btn:hover {
+  background: linear-gradient(to bottom, #f8f8f8, #e8e8e8);
+  border-color: #999;
+}
+
+dialog.native-dialog .dialog-btn:first-child {
+  background: linear-gradient(to bottom, #5e4fa2, #4a3d80);
+  color: #fff;
+  border-color: #4a3d80;
+}
+
+dialog.native-dialog .dialog-btn:first-child:hover {
+  background: linear-gradient(to bottom, #7060b0, #5e4fa2);
+}
+
+dialog.native-dialog .dialog-input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 1em;
+}
+
+dialog.native-dialog .dialog-input:focus {
+  border-color: #5e4fa2;
+  outline: none;
+}
+
+/* Native editor dialog styles (persistent panel dialogs) */
+dialog.native-editor-dialog {
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  padding: 0;
+  background: var(--bg-light, #fff);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  font-family: var(--sans-serif, Arial, sans-serif);
+  font-size: 11px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow: visible;
+}
+
+dialog.native-editor-dialog::backdrop {
+  background: transparent;
+}
+
+dialog.native-editor-dialog .dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: linear-gradient(to bottom, #e8e8e8, #d8d8d8);
+  border-bottom: 1px solid #bbb;
+  cursor: grab;
+  min-height: 24px;
+}
+
+dialog.native-editor-dialog .dialog-title {
+  font-weight: bold;
+  font-size: 12px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+dialog.native-editor-dialog .dialog-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #666;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  margin-left: 8px;
+}
+
+dialog.native-editor-dialog .dialog-close:hover {
+  color: #c00;
+}
+
+dialog.native-editor-dialog .dialog-content {
+  padding: 8px;
+  overflow: auto;
+  max-height: calc(90vh - 40px);
+}
+
+/* Make native editor dialogs match existing .dialog styles */
+dialog.native-editor-dialog.dialog {
+  max-width: 93vw;
+}
+
+dialog.native-editor-dialog.dialog > .dialog-content > div {
+  width: max-content;
+}
+
 @media (prefers-color-scheme: dark) {
   body {
     background: #25252a;
+  }
+
+  dialog.native-dialog {
+    background: #2d2d35;
+    border-color: #444;
+  }
+
+  dialog.native-dialog .dialog-header {
+    background: linear-gradient(to bottom, #3a3a45, #2d2d35);
+    border-bottom-color: #444;
+  }
+
+  dialog.native-dialog .dialog-title {
+    color: #e0e0e0;
+  }
+
+  dialog.native-dialog .dialog-close {
+    color: #aaa;
+  }
+
+  dialog.native-dialog .dialog-close:hover {
+    color: #fff;
+  }
+
+  dialog.native-dialog .dialog-message {
+    color: #ddd;
+  }
+
+  dialog.native-dialog .dialog-buttons {
+    background: #252530;
+    border-top-color: #444;
+  }
+
+  dialog.native-dialog .dialog-btn {
+    background: linear-gradient(to bottom, #3a3a45, #2d2d35);
+    border-color: #555;
+    color: #ddd;
+  }
+
+  dialog.native-dialog .dialog-btn:hover {
+    background: linear-gradient(to bottom, #454550, #3a3a45);
+  }
+
+  dialog.native-dialog .dialog-input {
+    background: #1a1a20;
+    border-color: #555;
+    color: #ddd;
+  }
+
+  /* Dark mode for editor dialogs */
+  dialog.native-editor-dialog {
+    background: #2d2d35;
+    border-color: #444;
+  }
+
+  dialog.native-editor-dialog .dialog-header {
+    background: linear-gradient(to bottom, #3a3a45, #2d2d35);
+    border-bottom-color: #444;
+  }
+
+  dialog.native-editor-dialog .dialog-title {
+    color: #e0e0e0;
+  }
+
+  dialog.native-editor-dialog .dialog-close {
+    color: #aaa;
+  }
+
+  dialog.native-editor-dialog .dialog-close:hover {
+    color: #ff6666;
+  }
+
+  dialog.native-editor-dialog .dialog-content {
+    color: #ddd;
   }
 }

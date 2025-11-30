@@ -1,5 +1,7 @@
 "use strict";
 
+import FlatQueue from "flatqueue";
+import polylabel from "polylabel";
 import {rn} from "./numberUtils.js";
 import {ERROR} from "../src/core/state.js";
 

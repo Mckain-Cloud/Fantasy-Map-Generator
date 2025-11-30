@@ -1,16 +1,18 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog} from "../../utils/dialog.js";
 
 function editUnits() {
   closeDialogs("#unitsEditor, .stable");
-  $("#unitsEditor").dialog();
+  openEditorDialog("#unitsEditor");
 
   if (modules.editUnits) return;
   modules.editUnits = true;
 
-  $("#unitsEditor").dialog({
+  openEditorDialog("#unitsEditor", {
     title: "Units Editor",
     position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}
   });
@@ -151,21 +153,21 @@ function editUnits() {
       unitsBottom.querySelectorAll(".pressed").forEach(button => button.classList.remove("pressed"));
       this.classList.add("pressed");
       viewbox.style("cursor", "crosshair").call(
-        d3.drag().on("start", function () {
-          const point = d3.mouse(this);
+        d3.drag().on("start", function (event) {
+          const point = d3.pointer(event, this);
           const opisometer = rulers.create(Opisometer, [point]).draw();
 
-          d3.event.on("drag", function () {
-            const point = d3.mouse(this);
+          event.on("drag", function (event) {
+            const point = d3.pointer(event, this);
             opisometer.addPoint(point);
           });
 
-          d3.event.on("end", function () {
+          event.on("end", function (event) {
             restoreDefaultEvents();
             clearMainTip();
             addOpisometer.classList.remove("pressed");
             if (opisometer.points.length < 2) rulers.remove(opisometer.id);
-            if (!d3.event.sourceEvent.shiftKey) opisometer.optimize();
+            if (!event.sourceEvent.shiftKey) opisometer.optimize();
           });
         })
       );
@@ -184,27 +186,27 @@ function editUnits() {
       this.classList.add("pressed");
 
       viewbox.style("cursor", "crosshair").call(
-        d3.drag().on("start", function () {
+        d3.drag().on("start", function (event) {
           const cells = pack.cells;
           const burgs = pack.burgs;
-          const point = d3.mouse(this);
+          const point = d3.pointer(event, this);
           const c = findCell(point[0], point[1]);
 
-          if (Routes.isConnected(c) || d3.event.sourceEvent.shiftKey) {
+          if (Routes.isConnected(c) || event.sourceEvent.shiftKey) {
             const b = cells.burg[c];
             const x = b ? burgs[b].x : cells.p[c][0];
             const y = b ? burgs[b].y : cells.p[c][1];
             const routeOpisometer = rulers.create(RouteOpisometer, [[x, y]]).draw();
 
-            d3.event.on("drag", function () {
-              const point = d3.mouse(this);
+            event.on("drag", function (event) {
+              const point = d3.pointer(event, this);
               const c = findCell(point[0], point[1]);
-              if (Routes.isConnected(c) || d3.event.sourceEvent.shiftKey) {
+              if (Routes.isConnected(c) || event.sourceEvent.shiftKey) {
                 routeOpisometer.trackCell(c, true);
               }
             });
 
-            d3.event.on("end", function () {
+            event.on("end", function () {
               restoreDefaultEvents();
               clearMainTip();
               addRouteOpisometer.classList.remove("pressed");
@@ -234,21 +236,21 @@ function editUnits() {
       unitsBottom.querySelectorAll(".pressed").forEach(button => button.classList.remove("pressed"));
       this.classList.add("pressed");
       viewbox.style("cursor", "crosshair").call(
-        d3.drag().on("start", function () {
-          const point = d3.mouse(this);
+        d3.drag().on("start", function (event) {
+          const point = d3.pointer(event, this);
           const planimeter = rulers.create(Planimeter, [point]).draw();
 
-          d3.event.on("drag", function () {
-            const point = d3.mouse(this);
+          event.on("drag", function (event) {
+            const point = d3.pointer(event, this);
             planimeter.addPoint(point);
           });
 
-          d3.event.on("end", function () {
+          event.on("end", function (event) {
             restoreDefaultEvents();
             clearMainTip();
             addPlanimeter.classList.remove("pressed");
             if (planimeter.points.length < 3) rulers.remove(planimeter.id);
-            else if (!d3.event.sourceEvent.shiftKey) planimeter.optimize();
+            else if (!event.sourceEvent.shiftKey) planimeter.optimize();
           });
         })
       );
@@ -257,19 +259,18 @@ function editUnits() {
 
   function removeAllRulers() {
     if (!rulers.data.length) return;
-    alertMessage.innerHTML = /* html */ ` Are you sure you want to remove all placed rulers?
-      <br />If you just want to hide rulers, toggle the Rulers layer off in Menu`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: `Are you sure you want to remove all placed rulers?
+      <br />If you just want to hide rulers, toggle the Rulers layer off in Menu`,
       title: "Remove all rulers",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
           rulers.undraw();
           rulers = new Rulers();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

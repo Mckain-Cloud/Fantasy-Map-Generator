@@ -1,13 +1,15 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
-function editMarker(markerI) {
+function editMarker(markerI, event) {
   if (customization) return;
   closeDialogs(".stable");
 
-  const [element, marker] = getElement(markerI, d3.event);
+  const [element, marker] = getElement(markerI, event);
   if (!marker || !element) return;
 
   elSelected = d3.select(element).raise().call(d3.drag().on("start", dragMarker)).classed("draggable", true);
@@ -33,7 +35,7 @@ function editMarker(markerI) {
 
   updateInputs();
 
-  $("#markerEditor").dialog({
+  openEditorDialog("#markerEditor", {
     title: "Edit Marker",
     resizable: false,
     position: {my: "left top", at: "left+10 top+10", of: "svg", collision: "fit"},
@@ -74,18 +76,18 @@ function editMarker(markerI) {
     return pack.markers.filter(({type}) => type === currentType);
   }
 
-  function dragMarker() {
-    const dx = +this.getAttribute("x") - d3.event.x;
-    const dy = +this.getAttribute("y") - d3.event.y;
+  function dragMarker(event) {
+    const dx = +this.getAttribute("x") - event.x;
+    const dy = +this.getAttribute("y") - event.y;
 
-    d3.event.on("drag", function () {
-      const {x, y} = d3.event;
+    event.on("drag", function (event) {
+      const {x, y} = event;
       this.setAttribute("x", dx + x);
       this.setAttribute("y", dy + y);
     });
 
-    d3.event.on("end", function () {
-      const {x, y} = d3.event;
+    event.on("end", function (event) {
+      const {x, y} = event;
       this.setAttribute("x", rn(dx + x, 2));
       this.setAttribute("y", rn(dy + y, 2));
 
@@ -251,7 +253,7 @@ function editMarker(markerI) {
   function deleteMarker() {
     Markers.deleteMarker(marker.i);
     element.remove();
-    $("#markerEditor").dialog("close");
+    closeEditorDialog("#markerEditor");
     if (byId("markersOverviewRefresh").offsetParent) markersOverviewRefresh.click();
   }
 

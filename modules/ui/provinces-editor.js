@@ -1,8 +1,10 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../utils/dialog.js";
 
 function editProvinces() {
   if (customization) return;
@@ -19,7 +21,7 @@ function editProvinces() {
   if (modules.editProvinces) return;
   modules.editProvinces = true;
 
-  $("#provincesEditor").dialog({
+  openEditorDialog("#provincesEditor", {
     title: "Provinces Editor",
     resizable: false,
     width: fitContent(),
@@ -209,7 +211,7 @@ function editProvinces() {
       togglePercentageMode();
     }
     applySorting(provincesHeader);
-    $("#provincesEditor").dialog({width: fitContent()});
+    updateEditorDialog("#provincesEditor", {width: fitContent()});
   }
 
   function getCapitalOptions(burgs, capital) {
@@ -405,7 +407,7 @@ function editProvinces() {
     const total = rural + urban;
     const l = n => Number(n).toLocaleString();
 
-    alertMessage.innerHTML = /* html */ ` Rural: <input type="number" min="0" step="1" id="ruralPop" value=${rural} style="width:6em" /> Urban:
+    const message = /* html */ ` Rural: <input type="number" min="0" step="1" id="ruralPop" value=${rural} style="width:6em" /> Urban:
       <input type="number" min="0" step="1" id="urbanPop" value=${urban} style="width:6em" ${
       p.burgs.length ? "" : "disabled"
     } />
@@ -420,23 +422,23 @@ function editProvinces() {
       totalPopPerc.innerHTML = rn((totalNew / total) * 100);
     };
 
-    ruralPop.oninput = () => update();
-    urbanPop.oninput = () => update();
-
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message,
       title: "Change province population",
       width: "24em",
       buttons: {
         Apply: function () {
           applyPopulationChange();
-          $(this).dialog("close");
+          this.close();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       },
-      position: {my: "center", at: "center", of: "svg"}
+      open: function () {
+        ruralPop.oninput = () => update();
+        urbanPop.oninput = () => update();
+      }
     });
 
     function applyPopulationChange() {
@@ -473,9 +475,8 @@ function editProvinces() {
   }
 
   function removeProvince(p) {
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove the province? <br />This action cannot be reverted`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: /* html */ `Are you sure you want to remove the province? <br />This action cannot be reverted`,
       title: "Remove province",
       buttons: {
         Remove: function () {
@@ -499,10 +500,10 @@ function editProvinces() {
           g.select("#province-gap" + p).remove();
           if (layerIsOn("toggleBorders")) drawBorders();
           refreshProvincesEditor();
-          $(this).dialog("close");
+          this.close();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
@@ -518,16 +519,16 @@ function editProvinces() {
     const cultureId = pack.cells.culture[p.center];
     byId("provinceCultureDisplay").innerText = pack.cultures[cultureId].name;
 
-    $("#provinceNameEditor").dialog({
+    openEditorDialog("#provinceNameEditor", {
       resizable: false,
       title: "Change province name",
       buttons: {
         Apply: function () {
           applyNameChange(p);
-          $(this).dialog("close");
+          closeEditorDialog("#provinceNameEditor");
         },
         Cancel: function () {
-          $(this).dialog("close");
+          closeEditorDialog("#provinceNameEditor");
         }
       },
       position: {my: "center", at: "center", of: "svg"}
@@ -642,22 +643,15 @@ function editProvinces() {
     const treeLayout = d3.treemap().size([w, h]).padding(2);
 
     // prepare svg
-    alertMessage.innerHTML = /* html */ `<select id="provincesTreeType" style="display:block; margin-left:13px; font-size:11px">
+    const message = /* html */ `<select id="provincesTreeType" style="display:block; margin-left:13px; font-size:11px">
       <option value="area" selected>Area</option>
       <option value="population">Total population</option>
       <option value="rural">Rural population</option>
       <option value="urban">Urban population</option>
-    </select>`;
-    alertMessage.innerHTML += `<div id='provinceInfo' class='chartInfo'>&#8205;</div>`;
-    const svg = d3
-      .select("#alertMessage")
-      .insert("svg", "#provinceInfo")
-      .attr("id", "provincesTree")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("font-size", "10px");
-    const graph = svg.append("g").attr("transform", `translate(10, 0)`);
-    byId("provincesTreeType").on("change", updateChart);
+    </select>
+    <div id='provinceInfo' class='chartInfo'>&#8205;</div>`;
+
+    let svg, graph;
 
     treeLayout(root);
 
@@ -766,17 +760,26 @@ function editProvinces() {
       setTimeout(hideNonfittingLabels, 2000);
     }
 
-    $("#alert").dialog({
+    alertDialog({
+      message,
       title: "Provinces chart",
       width: fitContent(),
-      position: {my: "left bottom", at: "left+10 bottom-10", of: "svg"},
       buttons: {},
-      close: () => {
-        alertMessage.innerHTML = "";
+      open: function (container) {
+        svg = d3
+          .select(container)
+          .select(".alertMessage")
+          .insert("svg", "#provinceInfo")
+          .attr("id", "provincesTree")
+          .attr("width", width)
+          .attr("height", height)
+          .attr("font-size", "10px");
+        graph = svg.append("g").attr("transform", `translate(10, 0)`);
+        byId("provincesTreeType").on("change", updateChart);
+
+        hideNonfittingLabels();
       }
     });
-
-    hideNonfittingLabels();
   }
 
   function toggleLabels() {
@@ -839,7 +842,7 @@ function editProvinces() {
     provincesHeader.querySelector("div[data-sortby='state']").style.left = "7.7em";
     provincesFooter.style.display = "none";
     body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "none"));
-    $("#provincesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
+    updateEditorDialog("#provincesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
 
     tip("Click on a province to select, drag the circle to change province", true);
     viewbox
@@ -860,8 +863,8 @@ function editProvinces() {
     selectProvince(+this.dataset.id);
   }
 
-  function selectProvinceOnMapClick() {
-    const point = d3.mouse(this);
+  function selectProvinceOnMapClick(event) {
+    const point = d3.pointer(event, this);
     const i = findCell(point[0], point[1]);
     if (pack.cells.h[i] < 20 || !pack.cells.state[i]) return;
 
@@ -885,12 +888,12 @@ function editProvinces() {
     debug.append("path").attr("class", "selected").attr("d", path);
   }
 
-  function dragBrush() {
+  function dragBrush(event) {
     const r = +provincesBrush.value;
 
-    d3.event.on("drag", () => {
-      if (!d3.event.dx && !d3.event.dy) return;
-      const p = d3.mouse(this);
+    event.on("drag", (event) => {
+      if (!event.dx && !event.dy) return;
+      const p = d3.pointer(event, this);
       moveCircle(p[0], p[1], r);
 
       const found = r > 5 ? findAll(p[0], p[1], r) : [findCell(p[0], p[1])];
@@ -941,9 +944,9 @@ function editProvinces() {
     });
   }
 
-  function moveBrush() {
+  function moveBrush(event) {
     showMainTip();
-    const point = d3.mouse(this);
+    const point = d3.pointer(event, this);
     const radius = +provincesBrush.value;
     moveCircle(point[0], point[1], radius);
   }
@@ -984,7 +987,7 @@ function editProvinces() {
     provincesFooter.style.display = "block";
     body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "all"));
     if (!close)
-      $("#provincesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
+      updateEditorDialog("#provincesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
 
     restoreDefaultEvents();
     clearMainTip();
@@ -1002,9 +1005,9 @@ function editProvinces() {
     body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "none"));
   }
 
-  function addProvince() {
+  function addProvince(event) {
     const {cells, provinces} = pack;
-    const point = d3.mouse(this);
+    const point = d3.pointer(event, this);
     const center = findCell(point[0], point[1]);
     if (cells.h[center] < 20)
       return tip("You cannot place province into the water. Please click on a land cell", false, "error");
@@ -1021,7 +1024,7 @@ function editProvinces() {
         "error"
       );
 
-    if (d3.event.shiftKey === false) exitAddProvinceMode();
+    if (event.shiftKey === false) exitAddProvinceMode();
 
     const province = provinces.length;
     pack.states[state].provinces.push(province);
@@ -1108,13 +1111,12 @@ function editProvinces() {
   }
 
   function removeAllProvinces() {
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove all provinces? <br />This action cannot be reverted`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: /* html */ `Are you sure you want to remove all provinces? <br />This action cannot be reverted`,
       title: "Remove all provinces",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
 
           // remove emblems
           document.querySelectorAll("[id^='provinceCOA']").forEach(el => el.remove());
@@ -1133,19 +1135,19 @@ function editProvinces() {
           provincesEditorAddLines();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
   }
 
-  function dragLabel() {
+  function dragLabel(event) {
     const tr = parseTransform(this.getAttribute("transform"));
-    const x = +tr[0] - d3.event.x,
-      y = +tr[1] - d3.event.y;
+    const x = +tr[0] - event.x,
+      y = +tr[1] - event.y;
 
-    d3.event.on("drag", function () {
-      const transform = `translate(${x + d3.event.x},${y + d3.event.y})`;
+    event.on("drag", function (event) {
+      const transform = `translate(${x + event.x},${y + event.y})`;
       this.setAttribute("transform", transform);
     });
   }

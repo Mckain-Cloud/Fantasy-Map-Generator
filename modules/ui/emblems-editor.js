@@ -1,12 +1,14 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {openEmblemEditor} from "./tools.js";
+import {openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../utils/dialog.js";
 
-function editEmblem(type, id, el) {
+function editEmblem(type, id, el, event) {
   if (customization) return;
-  if (!id && d3.event) defineEmblemData(d3.event);
+  if (!id && event) defineEmblemData(event);
 
   emblems.selectAll("use").call(d3.drag().on("drag", dragEmblem)).classed("draggable", true);
 
@@ -17,7 +19,7 @@ function editEmblem(type, id, el) {
 
   updateElementSelectors(type, id, el);
 
-  $("#emblemEditor").dialog({
+  openEditorDialog("#emblemEditor", {
     title: "Edit Emblem",
     resizable: true,
     width: "18.2em",
@@ -522,22 +524,22 @@ function editEmblem(type, id, el) {
     return Promise.allSettled(promises).then(res => clearMainTip());
   }
 
-  function dragEmblem() {
-    const x = Number(this.getAttribute("x")) - d3.event.x;
-    const y = Number(this.getAttribute("y")) - d3.event.y;
+  function dragEmblem(event) {
+    const x = Number(this.getAttribute("x")) - event.x;
+    const y = Number(this.getAttribute("y")) - event.y;
 
-    d3.event.on("drag", function () {
-      this.setAttribute("x", x + d3.event.x);
-      this.setAttribute("y", y + d3.event.y);
+    event.on("drag", function (event) {
+      this.setAttribute("x", x + event.x);
+      this.setAttribute("y", y + event.y);
     });
 
-    d3.event.on("end", function () {
+    event.on("end", function (event) {
       const categotySize = Number(this.parentNode.getAttribute("font-size"));
       const size = el.coa.size || 1;
       const shift = (categotySize * size) / 2;
 
-      el.coa.x = rn(x + d3.event.x + shift, 2);
-      el.coa.y = rn(y + d3.event.y + shift, 2);
+      el.coa.x = rn(x + event.x + shift, 2);
+      el.coa.y = rn(y + event.y + shift, 2);
     });
   }
 

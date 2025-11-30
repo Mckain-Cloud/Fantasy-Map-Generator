@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {round} from "../../utils/stringUtils.js";
 import {findCell} from "../../utils/graphUtils.js";

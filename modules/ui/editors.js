@@ -1,6 +1,7 @@
 // module stub to store common functions for ui editors
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {parseTransform} from "../../utils/stringUtils.js";
@@ -8,6 +9,7 @@ import {findCell} from "../../utils/graphUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {each} from "../../utils/probabilityUtils.js";
 import {ERROR, TIME} from "../../src/core/state.js";
+import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 modules.editors = true;
 
@@ -20,8 +22,8 @@ function restoreDefaultEvents() {
 }
 
 // handle viewbox click
-function clicked() {
-  const el = d3.event.target;
+function clicked(event) {
+  const el = event.target;
   const parent = el?.parentElement;
   const grand = parent?.parentElement;
   const great = grand?.parentElement;
@@ -55,11 +57,11 @@ function unselect() {
 // close all dialogs except stated
 function closeDialogs(except = "#except") {
   try {
-    $(".dialog:visible")
-      .not(except)
-      .each(function () {
-        $(this).dialog("close");
-      });
+    document.querySelectorAll("dialog[open]").forEach(dialog => {
+      if (!dialog.matches(except)) {
+        closeEditorDialog(dialog);
+      }
+    });
   } catch (error) {}
 }
 
@@ -534,16 +536,16 @@ function redrawLegend() {
   }
 }
 
-function dragLegendBox() {
+function dragLegendBox(event) {
   const tr = parseTransform(this.getAttribute("transform"));
-  const x = +tr[0] - d3.event.x,
-    y = +tr[1] - d3.event.y;
+  const x = +tr[0] - event.x,
+    y = +tr[1] - event.y;
   const bbox = legend.node().getBBox();
 
-  d3.event.on("drag", function () {
-    const px = rn(((x + d3.event.x + bbox.width) / svgWidth) * 100, 2);
-    const py = rn(((y + d3.event.y + bbox.height) / svgHeight) * 100, 2);
-    const transform = `translate(${x + d3.event.x},${y + d3.event.y})`;
+  event.on("drag", function (event) {
+    const px = rn(((x + event.x + bbox.width) / svgWidth) * 100, 2);
+    const py = rn(((y + event.y + bbox.height) / svgHeight) * 100, 2);
+    const transform = `translate(${x + event.x},${y + event.y})`;
     legend.attr("transform", transform).attr("data-x", px).attr("data-y", py);
   });
 }
@@ -794,17 +796,17 @@ function getPickerControl(control, max) {
   return (current / delta) * max;
 }
 
-function dragPicker() {
+function dragPicker(event) {
   const tr = parseTransform(this.getAttribute("transform"));
-  const x = +tr[0] - d3.event.x,
-    y = +tr[1] - d3.event.y;
+  const x = +tr[0] - event.x,
+    y = +tr[1] - event.y;
   const picker = d3.select("#picker");
   const bbox = picker.node().getBBox();
 
-  d3.event.on("drag", function () {
-    const px = rn(((x + d3.event.x + bbox.width) / svgWidth) * 100, 2);
-    const py = rn(((y + d3.event.y + bbox.height) / svgHeight) * 100, 2);
-    const transform = `translate(${x + d3.event.x},${y + d3.event.y})`;
+  event.on("drag", function (event) {
+    const px = rn(((x + event.x + bbox.width) / svgWidth) * 100, 2);
+    const py = rn(((y + event.y + bbox.height) / svgHeight) * 100, 2);
+    const transform = `translate(${x + event.x},${y + event.y})`;
     picker.attr("transform", transform).attr("data-x", px).attr("data-y", py);
   });
 }
@@ -820,20 +822,20 @@ function pickerFillClicked() {
   updateSpaces();
 }
 
-function clickPickerControl() {
+function clickPickerControl(event) {
   const min = this.getScreenCTM().e;
-  this.nextSibling.setAttribute("cx", d3.event.x - min);
+  this.nextSibling.setAttribute("cx", event.x - min);
   updateSpaces();
   updatePickerColors();
   openPicker.updateFill();
 }
 
-function dragPickerControl() {
+function dragPickerControl(event) {
   const min = +this.previousSibling.getAttribute("x1");
   const max = +this.previousSibling.getAttribute("x2");
 
-  d3.event.on("drag", function () {
-    const x = Math.max(Math.min(d3.event.x, max), min);
+  event.on("drag", function (event) {
+    const x = Math.max(Math.min(event.x, max), min);
     this.setAttribute("cx", x);
     updateSpaces();
     updatePickerColors();
@@ -973,7 +975,7 @@ function highlightElement(element, zoom) {
 
 function selectIcon(initial, callback) {
   if (!callback) return;
-  $("#iconSelector").dialog();
+  openEditorDialog("#iconSelector");
 
   const table = byId("iconTable");
   const input = byId("iconInput");
@@ -1231,16 +1233,16 @@ function selectIcon(initial, callback) {
       div.onclick = () => callback(div.style.backgroundImage.slice(5, -2));
     });
 
-  $("#iconSelector").dialog({
+  openEditorDialog("#iconSelector", {
     width: fitContent(),
     title: "Select Icon",
     buttons: {
       Apply: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#iconSelector");
       },
       Close: function () {
         callback(initial);
-        $(this).dialog("close");
+        closeEditorDialog("#iconSelector");
       }
     }
   });
@@ -1267,16 +1269,19 @@ function confirmationDialog(options) {
   const buttons = {
     [confirm]: function () {
       if (onConfirm) onConfirm();
-      $(this).dialog("close");
+      this.close();
     },
     [cancel]: function () {
       if (onCancel) onCancel();
-      $(this).dialog("close");
+      this.close();
     }
   };
 
-  byId("alertMessage").innerHTML = message;
-  $("#alert").dialog({resizable: false, title, buttons});
+  alertDialog({
+    message,
+    title,
+    buttons
+  });
 }
 
 // add and register event listeners to clean up on editor closure

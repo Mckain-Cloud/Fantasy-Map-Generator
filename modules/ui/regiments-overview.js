@@ -1,8 +1,10 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {last} from "../../utils/arrayUtils.js";
+import {openEditorDialog} from "../../utils/dialog.js";
 
 function overviewRegiments(state) {
   if (customization) return;
@@ -12,13 +14,13 @@ function overviewRegiments(state) {
   const body = document.getElementById("regimentsBody");
   updateFilter(state);
   addLines();
-  $("#regimentsOverview").dialog();
+  openEditorDialog("#regimentsOverview");
 
   if (modules.overviewRegiments) return;
   modules.overviewRegiments = true;
   updateHeaders();
 
-  $("#regimentsOverview").dialog({
+  openEditorDialog("#regimentsOverview", {
     title: "Regiments Overview",
     resizable: false,
     width: fitContent(),
@@ -179,11 +181,11 @@ function overviewRegiments(state) {
     }
   }
 
-  function addRegimentOnClick() {
+  function addRegimentOnClick(event) {
     const state = +regimentsFilter.value;
     if (state === -1) return tip("Please select state from the list", false, "error");
 
-    const point = d3.mouse(this);
+    const point = d3.pointer(event, this);
     const cell = findCell(point[0], point[1]);
     const x = pack.cells.p[cell][0],
       y = pack.cells.p[cell][1];

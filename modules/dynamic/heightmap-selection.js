@@ -1,3 +1,5 @@
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
+
 const initialSeed = generateSeed();
 let graph = getGraph(grid);
 
@@ -12,20 +14,20 @@ export function open() {
   setSelected($templateInput.value);
   graph = getGraph(graph);
 
-  $("#heightmapSelection").dialog({
+  openEditorDialog("#heightmapSelection", {
     title: "Select Heightmap",
     resizable: false,
     position: {my: "center", at: "center", of: "svg"},
     buttons: {
       Cancel: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#heightmapSelection");
       },
       Select: function () {
         const id = getSelected();
         applyOption($templateInput, id, getName(id));
         lock("template");
 
-        $(this).dialog("close");
+        closeEditorDialog("#heightmapSelection");
       },
       "New Map": function () {
         const id = getSelected();
@@ -35,7 +37,7 @@ export function open() {
         const seed = getSeed();
         regeneratePrompt({seed, graph});
 
-        $(this).dialog("close");
+        closeEditorDialog("#heightmapSelection");
       }
     }
   });

@@ -1,11 +1,14 @@
 "use strict";
 
+import * as d3 from "d3";
+import FlatQueue from "flatqueue";
 import {rn, minmax} from "../utils/numberUtils.js";
 import {rand, P, biased} from "../utils/probabilityUtils.js";
 import {getColors, getRandomColor} from "../utils/colorUtils.js";
 import {abbreviate} from "../utils/languageUtils.js";
 import {byId} from "../utils/shorthands.js";
 import {TIME, WARN, ERROR} from "../src/core/state.js";
+import {alertDialog} from "../utils/dialog.js";
 
 let cells;
 
@@ -27,33 +30,20 @@ const generate = function () {
         pack.cultures = [{name: "Wildlands", i: 0, base: 1, shield: "round"}];
         cells.culture = cultureIds;
 
-        alertMessage.innerHTML = /* html */ `The climate is harsh and people cannot live in this world.<br />
-          No cultures, states and burgs will be created.<br />
-          Please consider changing climate settings in the World Configurator`;
-
-        $("#alert").dialog({
-          resizable: false,
-          title: "Extreme climate warning",
-          buttons: {
-            Ok: function () {
-              $(this).dialog("close");
-            }
-          }
+        alertDialog({
+          message: `The climate is harsh and people cannot live in this world.<br />
+            No cultures, states and burgs will be created.<br />
+            Please consider changing climate settings in the World Configurator`,
+          title: "Extreme climate warning"
         });
         return;
       } else {
         WARN && console.warn(`Not enough populated cells (${populated.length}). Will generate only ${count} cultures`);
-        alertMessage.innerHTML = /* html */ ` There are only ${populated.length} populated cells and it's insufficient livable area.<br />
-          Only ${count} out of ${culturesInput.value} requested cultures will be generated.<br />
-          Please consider changing climate settings in the World Configurator`;
-        $("#alert").dialog({
-          resizable: false,
-          title: "Extreme climate warning",
-          buttons: {
-            Ok: function () {
-              $(this).dialog("close");
-            }
-          }
+        alertDialog({
+          message: `There are only ${populated.length} populated cells and it's insufficient livable area.<br />
+            Only ${count} out of ${culturesInput.value} requested cultures will be generated.<br />
+            Please consider changing climate settings in the World Configurator`,
+          title: "Extreme climate warning"
         });
       }
     }

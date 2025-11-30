@@ -1,7 +1,9 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function editRoute(id) {
   if (customization) return;
@@ -29,7 +31,7 @@ function editRoute(id) {
     updateLockIcon();
   }
 
-  $("#routeEditor").dialog({
+  openEditorDialog("#routeEditor", {
     title: "Edit Route",
     resizable: false,
     position: {my: "left top", at: "left+10 top+10", of: "#map"},
@@ -101,17 +103,17 @@ function editRoute(id) {
       .attr("points", p => getPackPolygon(p[2]));
   }
 
-  function dragControlPoint() {
+  function dragControlPoint(event) {
     const route = getRoute();
-    const initCell = d3.event.subject[2];
-    const pointIndex = route.points.indexOf(d3.event.subject);
+    const initCell = event.subject[2];
+    const pointIndex = route.points.indexOf(event.subject);
 
-    d3.event.on("drag", function () {
-      this.setAttribute("cx", d3.event.x);
-      this.setAttribute("cy", d3.event.y);
+    event.on("drag", function (event) {
+      this.setAttribute("cx", event.x);
+      this.setAttribute("cy", event.y);
 
-      const x = rn(d3.event.x, 2);
-      const y = rn(d3.event.y, 2);
+      const x = rn(event.x, 2);
+      const y = rn(event.y, 2);
       const cellId = findCell(x, y);
 
       this.__data__ = route.points[pointIndex] = [x, y, cellId];
@@ -119,8 +121,8 @@ function editRoute(id) {
       drawCells(route.points);
     });
 
-    d3.event.on("end", () => {
-      const movedToCell = findCell(d3.event.x, d3.event.y);
+    event.on("end", (event) => {
+      const movedToCell = findCell(event.x, event.y);
 
       if (movedToCell !== initCell) {
         const prev = route.points[pointIndex - 1];
@@ -144,9 +146,9 @@ function editRoute(id) {
     if (byId("elevationProfile").offsetParent) showRouteElevationProfile();
   }
 
-  function addControlPoint() {
+  function addControlPoint(event) {
     const route = getRoute();
-    const [x, y] = d3.mouse(this);
+    const [x, y] = d3.pointer(event, this);
     const cellId = findCell(x, y);
 
     const point = [rn(x, 2), rn(y, 2), cellId];
@@ -261,24 +263,24 @@ function editRoute(id) {
         const length = rn(r.length * distanceScale) + " " + distanceUnitInput.value;
         return `<option value="${r.i}">${r.name} (${length})</option>`;
       });
-      alertMessage.innerHTML = /* html */ `<div>Route to join with:
+      const message = /* html */ `<div>Route to join with:
         <select>${options.join("")}</select>
       </div>`;
 
-      $("#alert").dialog({
+      alertDialog({
+        message,
         title: "Join routes",
         width: fitContent(),
-        position: {my: "left top", at: "left+10 top+150", of: "#map"},
         buttons: {
-          Cancel: () => {
-            $("#alert").dialog("close");
+          Cancel: function () {
+            this.close();
           },
-          Join: () => {
-            const selectedRouteId = +alertMessage.querySelector("select").value;
+          Join: function () {
+            const selectedRouteId = +this.querySelector(".alertMessage select").value;
             const selectedRoute = pack.routes.find(r => r.i === selectedRouteId);
             joinRoutes(route, selectedRoute);
             tip("Routes joined", false, "success", 5000);
-            $("#alert").dialog("close");
+            this.close();
           }
         }
       });
@@ -399,7 +401,7 @@ function editRoute(id) {
       confirm: "Remove",
       onConfirm: () => {
         Routes.remove(getRoute());
-        $("#routeEditor").dialog("close");
+        closeEditorDialog("#routeEditor");
       }
     });
   }

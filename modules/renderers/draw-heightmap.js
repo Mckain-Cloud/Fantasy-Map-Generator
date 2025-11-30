@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {round} from "../../utils/stringUtils.js";
 import {TIME, ERROR} from "../../src/core/state.js";
 

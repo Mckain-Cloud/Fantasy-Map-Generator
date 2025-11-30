@@ -1,8 +1,10 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {round} from "../../utils/stringUtils.js";
 import {convertTemperature} from "../../utils/unitUtils.js";
+import {alertDialog} from "../../utils/dialog.js";
 
 function showBurgTemperatureGraph(id) {
   const b = pack.burgs[id];
@@ -112,20 +114,20 @@ function showBurgTemperatureGraph(id) {
     tempMax.push([x, yscale(tempAverage + tempDelta) + yOffset]);
   });
 
-  drawGraph();
+  const message = drawGraph();
 
-  $("#alert").dialog({
-    title: "Average temperature in " + b.name,
-    position: {my: "center", at: "center", of: "svg"}
+  alertDialog({
+    message,
+    title: "Average temperature in " + b.name
   });
 
   function drawGraph() {
-    alertMessage.innerHTML = "";
+    const container = document.createElement("div");
     const getCurve = data => round(d3.line().curve(d3.curveBasis)(data), 2);
 
     const legendSize = 60;
     const chart = d3
-      .select("#alertMessage")
+      .select(container)
       .append("svg")
       .attr("width", chartWidth + 120)
       .attr("height", chartHeight + yOffset + legendSize);
@@ -209,13 +211,15 @@ function showBurgTemperatureGraph(id) {
       .attr("stroke", "red")
       .on("mousemove", printVal);
 
-    function printVal() {
-      const [x, y] = d3.mouse(this);
+    function printVal(event) {
+      const [x, y] = d3.pointer(event, this);
       const type = this.getAttribute("data-type");
       const temp = convertTemperature(yscale.invert(y - yOffset));
       const month = months[rn(((x - xOffset) / chartWidth) * 12)] || months[0];
       tip(`Average ${type} temperature in ${month}: ${temp}`);
     }
+
+    return container.innerHTML;
   }
 }
 

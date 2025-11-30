@@ -1,5 +1,7 @@
 "use strict";
 
+import * as d3 from "d3";
+import FlatQueue from "flatqueue";
 import {gauss, ra, rw, each} from "../utils/probabilityUtils.js";
 import {getRandomColor, getMixedColor} from "../utils/colorUtils.js";
 import {abbreviate, trimVowels, getAdjective} from "../utils/languageUtils.js";

@@ -1,8 +1,10 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function overviewMilitary() {
   if (customization) return;
@@ -13,13 +15,13 @@ function overviewMilitary() {
 
   const body = document.getElementById("militaryBody");
   addLines();
-  $("#militaryOverview").dialog();
+  openEditorDialog("#militaryOverview");
 
   if (modules.overviewMilitary) return;
   modules.overviewMilitary = true;
   updateHeaders();
 
-  $("#militaryOverview").dialog({
+  openEditorDialog("#militaryOverview", {
     title: "Military Overview",
     resizable: false,
     width: fitContent(),
@@ -248,7 +250,7 @@ function overviewMilitary() {
     removeUnitLines();
     options.military.map(unit => addUnitLine(unit));
 
-    $("#militaryOptions").dialog({
+    openEditorDialog("#militaryOptions", {
       title: "Edit Military Units",
       resizable: false,
       width: fitContent(),
@@ -267,11 +269,12 @@ function overviewMilitary() {
           }),
         Restore: restoreDefaultUnits,
         Cancel: function () {
-          $(this).dialog("close");
+          closeEditorDialog("#militaryOptions");
         }
       },
       open: function () {
-        const buttons = $(this).dialog("widget").find(".ui-dialog-buttonset > button");
+        const dialog = document.getElementById("militaryOptions");
+        const buttons = dialog.querySelectorAll(".dialog-buttons button");
         buttons[0].addEventListener("mousemove", () =>
           tip("Apply military units settings. <span style='color:#cb5858'>All forces will be recalculated!</span>")
         );
@@ -394,22 +397,23 @@ function overviewMilitary() {
             <label for="el${i}" class="checkbox-label">${fullName || name}</label>
           </td></tr>`
       );
-      alertMessage.innerHTML = /* html */ `<b>Limit unit by ${type}:</b>
+      const limitMessage = /* html */ `<b>Limit unit by ${type}:</b>
         <table style="margin-top:.3em">
           <tbody>
             ${lines.join("")}
           </tbody>
         </table>`;
 
-      $("#alert").dialog({
+      alertDialog({
+        message: limitMessage,
         width: fitContent(),
         title: `Limit unit`,
         buttons: {
           Invert: function () {
-            alertMessage.querySelectorAll("input").forEach(el => (el.checked = !el.checked));
+            this.querySelectorAll("input").forEach(el => (el.checked = !el.checked));
           },
           Apply: function () {
-            const inputs = Array.from(alertMessage.querySelectorAll("input"));
+            const inputs = Array.from(this.querySelectorAll("input"));
             const selected = inputs.reduce((acc, input) => {
               if (input.checked) acc.push(input.dataset.i);
               return acc;
@@ -421,10 +425,10 @@ function overviewMilitary() {
             el.dataset.value = allAreSelected ? "" : selected.join(",");
             el.innerHTML = allAreSelected ? "all" : "some";
             el.setAttribute("title", getLimitTip(selected, data));
-            $(this).dialog("close");
+            this.close();
           },
           Cancel: function () {
-            $(this).dialog("close");
+            this.close();
           }
         }
       });
@@ -435,7 +439,7 @@ function overviewMilitary() {
       const names = unitLines.map(r => r.querySelector("input").value.replace(/[&\/\\#, +()$~%.'":*?<>{}]/g, "_"));
       if (new Set(names).size !== names.length) return tip("All units should have unique names", false, "error");
 
-      $("#militaryOptions").dialog("close");
+      closeEditorDialog("#militaryOptions");
 
       options.military = unitLines.map((r, i) => {
         const elements = Array.from(r.querySelectorAll("input, button, select"));
@@ -468,19 +472,17 @@ function overviewMilitary() {
   }
 
   function militaryRecalculate() {
-    alertMessage.innerHTML =
-      "Are you sure you want to recalculate military forces for all states?<br>Regiments for all states will be regenerated";
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: "Are you sure you want to recalculate military forces for all states?<br>Regiments for all states will be regenerated",
       title: "Remove regiment",
       buttons: {
         Recalculate: function () {
-          $(this).dialog("close");
+          this.close();
           Military.generate();
           addLines();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

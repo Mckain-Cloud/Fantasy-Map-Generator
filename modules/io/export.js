@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {TIME, ERROR} from "../../src/core/state.js";
@@ -79,8 +80,8 @@ export async function exportToPngTiles() {
   status.innerHTML = "Preparing files...";
 
   const urlSchema = await getMapURL("tiles", {debug: true, fullMap: true});
-  await import("../../libs/jszip.min.js");
-  const zip = new window.JSZip();
+  const JSZip = (await import("jszip")).default;
+  const zip = new JSZip();
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");

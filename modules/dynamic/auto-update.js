@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {P, rw} from "../../utils/probabilityUtils.js";
 import {parseTransform} from "../../utils/stringUtils.js";
@@ -57,7 +58,7 @@ export function resolveVersionConflicts(mapVersion) {
     BurgsAndStates.defineStateForms();
     Provinces.generate();
     Provinces.getPoles();
-    if (!layerIsOn("toggleBorders")) $("#borders").fadeOut();
+    if (!layerIsOn("toggleBorders")) document.getElementById("borders").style.display = "none";
     if (!layerIsOn("toggleStates")) regions.attr("display", "none").selectAll("path").remove();
 
     // v1.0 added zones layer

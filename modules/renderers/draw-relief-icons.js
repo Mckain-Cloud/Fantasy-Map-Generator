@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {rand} from "../../utils/probabilityUtils.js";
 import {TIME} from "../../src/core/state.js";

@@ -1,6 +1,7 @@
 "use strict";
 // FMG utils used for debugging
 
+import * as d3 from "d3";
 import {normalize} from "./numberUtils.js";
 import {C_12} from "./colorUtils.js";
 import {getGridPolygon} from "./graphUtils.js";

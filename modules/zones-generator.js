@@ -1,5 +1,7 @@
 "use strict";
 
+import * as d3 from "d3";
+import FlatQueue from "flatqueue";
 import {gauss, P, ra, rand, rw} from "../utils/probabilityUtils.js";
 import {getAdjective} from "../utils/languageUtils.js";
 import {TIME} from "../src/core/state.js";

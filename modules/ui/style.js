@@ -1,8 +1,10 @@
 // UI module to control the style
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 // add available filters to lists
 {
@@ -582,18 +584,6 @@ openCreateHeightmapSchemeButton.on("click", function () {
     ? scheme
     : (() => [0, 0.25, 0.5, 0.75, 1].map(heightmapColorSchemes[scheme]).map(toHEX).join(","))();
 
-  // render dialog base structure
-  alertMessage.innerHTML = /* html */ `<div>
-    <i>Define heightmap gradient colors from high to low altitude</i>
-    <img id="heightmapSchemePreview" alt="heightmap preview" style="margin-top: 0.5em; width: 100%;" />
-    <div id="heightmapSchemeStops" style="margin-block: 0.5em; display: flex; flex-wrap: wrap;"></div>
-    <div id="heightmapSchemeGradient" style="height: 1.9em; border: 1px solid #767676;"></div>
-  </div>`;
-
-  renderPreview();
-  renderStops();
-  renderGradient();
-
   function renderPreview() {
     const stops = openCreateHeightmapSchemeButton.dataset.stops.split(",");
     const scheme = d3.scaleSequential(d3.interpolateRgbBasis(stops));
@@ -674,23 +664,31 @@ openCreateHeightmapSchemeButton.on("click", function () {
     addCustomColorScheme(stops);
     getEl().attr("scheme", stops);
     drawHeightmap();
-
-    handleClose();
   }
 
-  function handleClose() {
-    $("#alert").dialog("close");
-  }
-
-  $("#alert").dialog({
-    resizable: false,
+  alertDialog({
+    message: /* html */ `<div>
+    <i>Define heightmap gradient colors from high to low altitude</i>
+    <img id="heightmapSchemePreview" alt="heightmap preview" style="margin-top: 0.5em; width: 100%;" />
+    <div id="heightmapSchemeStops" style="margin-block: 0.5em; display: flex; flex-wrap: wrap;"></div>
+    <div id="heightmapSchemeGradient" style="height: 1.9em; border: 1px solid #767676;"></div>
+  </div>`,
     title: "Create heightmap color scheme",
     width: "28em",
     buttons: {
-      Create: handleCreate,
-      Cancel: handleClose
+      Create: function () {
+        handleCreate();
+        this.close();
+      },
+      Cancel: function () {
+        this.close();
+      }
     },
-    position: {my: "center top+150", at: "center top", of: "svg"}
+    open: function () {
+      renderPreview();
+      renderStops();
+      renderGradient();
+    }
   });
 });
 
@@ -800,7 +798,7 @@ styleFontAdd.on("click", function () {
   addFontNameInput.value = "";
   addFontURLInput.value = "";
 
-  $("#addFontDialog").dialog({
+  openEditorDialog("#addFontDialog", {
     title: "Add custom font",
     width: "26em",
     position: {my: "center", at: "center", of: "svg"},
@@ -824,10 +822,10 @@ styleFontAdd.on("click", function () {
 
         addFontNameInput.value = "";
         addFontURLInput.value = "";
-        $(this).dialog("close");
+        closeEditorDialog("#addFontDialog");
       },
       Cancel: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#addFontDialog");
       }
     }
   });
@@ -989,12 +987,12 @@ emblemsBurgSizeInput.on("change", e => {
 
 // request a URL to image to be used as a texture
 function textureProvideURL() {
-  alertMessage.innerHTML = /* html */ `Provide a texture image URL:
+  const message = /* html */ `Provide a texture image URL:
     <input id="textureURL" type="url" style="width: 100%" placeholder="http://www.example.com/image.jpg" oninput="fetchTextureURL(this.value)" />
     <canvas id="texturePreview" width="256px" height="144px"></canvas>`;
 
-  $("#alert").dialog({
-    resizable: false,
+  alertDialog({
+    message,
     title: "Load custom texture",
     width: "28em",
     buttons: {
@@ -1002,10 +1000,10 @@ function textureProvideURL() {
         if (!textureURL.value) return tip("Please provide a valid URL", false, "error");
         changeTexture(textureURL.value);
         updateTextureSelectValue(textureURL.value);
-        $(this).dialog("close");
+        this.close();
       },
       Cancel: function () {
-        $(this).dialog("close");
+        this.close();
       }
     }
   });

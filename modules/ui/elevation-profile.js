@@ -1,7 +1,9 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog} from "../../utils/dialog.js";
 
 // data is an array of cell indexes, routeLen is the distance (in actual metres/feet), isRiver should be true for rivers, false otherwise
 function showElevationProfile(data, routeLen, isRiver) {
@@ -9,7 +11,7 @@ function showElevationProfile(data, routeLen, isRiver) {
   byId("epCurve").on("change", draw);
   byId("epSave").on("click", downloadCSV);
 
-  $("#elevationProfile").dialog({
+  openEditorDialog("#elevationProfile", {
     title: "Elevation profile",
     resizable: false,
     close: closeElevationProfile,

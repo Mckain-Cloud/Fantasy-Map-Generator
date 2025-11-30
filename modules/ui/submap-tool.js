@@ -3,11 +3,12 @@
 import {rn} from "../../utils/numberUtils.js";
 import {minmax} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function openSubmapTool() {
   resetInputs();
 
-  $("#submapTool").dialog({
+  openEditorDialog("#submapTool", {
     title: "Create a submap",
     resizable: false,
     width: "32em",
@@ -18,7 +19,7 @@ function openSubmapTool() {
         generateSubmap();
       },
       Cancel: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#submapTool");
       }
     }
   });

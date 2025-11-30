@@ -1,8 +1,10 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, updateEditorDialog} from "../../utils/dialog.js";
 
 function editBiomes() {
   if (customization) return;
@@ -20,7 +22,7 @@ function editBiomes() {
   if (modules.editBiomes) return;
   modules.editBiomes = true;
 
-  $("#biomesEditor").dialog({
+  openEditorDialog("#biomesEditor", {
     title: "Biomes Editor",
     resizable: false,
     width: fitContent(),
@@ -157,7 +159,7 @@ function editBiomes() {
       togglePercentageMode();
     }
     applySorting(biomesHeader);
-    $("#biomesEditor").dialog({width: fitContent()});
+    updateEditorDialog("#biomesEditor", {width: fitContent()});
   }
 
   function biomeHighlightOn(event) {
@@ -311,7 +313,7 @@ function editBiomes() {
 
     body.insertAdjacentHTML("beforeend", line);
     biomesFooterBiomes.innerHTML = body.querySelectorAll(":scope > div").length;
-    $("#biomesEditor").dialog({width: fitContent()});
+    updateEditorDialog("#biomesEditor", {width: fitContent()});
   }
 
   function removeCustomBiome(el) {
@@ -356,7 +358,7 @@ function editBiomes() {
     biomesEditor.querySelectorAll(".hide").forEach(el => el.classList.add("hidden"));
     body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "none"));
     biomesFooter.style.display = "none";
-    $("#biomesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg"}});
+    updateEditorDialog("#biomesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg"}});
 
     tip("Click on biome to select, drag the circle to change biome", true);
     viewbox
@@ -372,8 +374,8 @@ function editBiomes() {
     line.classList.add("selected");
   }
 
-  function selectBiomeOnMapClick() {
-    const point = d3.mouse(this);
+  function selectBiomeOnMapClick(event) {
+    const point = d3.pointer(event, this);
     const i = findCell(point[0], point[1]);
     if (pack.cells.h[i] < 20) {
       tip("You cannot reassign water via biomes. Please edit the Heightmap to change water", false, "error");
@@ -387,12 +389,12 @@ function editBiomes() {
     body.querySelector("div[data-id='" + biome + "']").classList.add("selected");
   }
 
-  function dragBiomeBrush() {
+  function dragBiomeBrush(event) {
     const r = +biomesBrush.value;
 
-    d3.event.on("drag", () => {
-      if (!d3.event.dx && !d3.event.dy) return;
-      const p = d3.mouse(this);
+    event.on("drag", (event) => {
+      if (!event.dx && !event.dy) return;
+      const p = d3.pointer(event, this);
       moveCircle(p[0], p[1], r);
 
       const found = r > 5 ? findAll(p[0], p[1], r) : [findCell(p[0], p[1])];
@@ -427,9 +429,9 @@ function editBiomes() {
     });
   }
 
-  function moveBiomeBrush() {
+  function moveBiomeBrush(event) {
     showMainTip();
-    const point = d3.mouse(this);
+    const point = d3.pointer(event, this);
     const radius = +biomesBrush.value;
     moveCircle(point[0], point[1], radius);
   }
@@ -460,7 +462,7 @@ function editBiomes() {
     body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "all"));
     biomesEditor.querySelectorAll(".hide").forEach(el => el.classList.remove("hidden"));
     biomesFooter.style.display = "block";
-    if (!close) $("#biomesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg"}});
+    if (!close) updateEditorDialog("#biomesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg"}});
 
     restoreDefaultEvents();
     clearMainTip();

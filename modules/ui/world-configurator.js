@@ -1,31 +1,37 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function editWorld() {
   if (customization) return;
 
-  $("#worldConfigurator").dialog({
+  const dialog = openEditorDialog("#worldConfigurator", {
     title: "Configure World",
     resizable: false,
     width: "minmax(40em, 85vw)",
     buttons: {"Update world": updateWorld},
-    open: function () {
-      const checkbox = /* html */ `<div class="dontAsk" data-tip="Automatically update world on input changes and button clicks">
-        <input id="wcAutoChange" class="checkbox" type="checkbox" checked />
-        <label for="wcAutoChange" class="checkbox-label"><i>auto-apply changes</i></label>
-      </div>`;
-      const pane = this.parentElement.querySelector(".ui-dialog-buttonpane");
-      pane.insertAdjacentHTML("afterbegin", checkbox);
-
-      const button = this.parentElement.querySelector(".ui-dialog-buttonset > button");
-      button.on("mousemove", () => tip("Apply current settings to the map"));
-    },
     close: function () {
-      $(this).dialog("destroy");
+      closeEditorDialog("#worldConfigurator");
     }
   });
+
+  // Open callback logic - executed after dialog opens
+  const checkbox = /* html */ `<div class="dontAsk" data-tip="Automatically update world on input changes and button clicks">
+    <input id="wcAutoChange" class="checkbox" type="checkbox" checked />
+    <label for="wcAutoChange" class="checkbox-label"><i>auto-apply changes</i></label>
+  </div>`;
+  const buttonPane = dialog.querySelector(".dialog-buttons");
+  if (buttonPane) {
+    buttonPane.insertAdjacentHTML("afterbegin", checkbox);
+  }
+
+  const button = dialog.querySelector(".dialog-buttons > button");
+  if (button) {
+    button.addEventListener("mousemove", () => tip("Apply current settings to the map"));
+  }
 
   const globe = d3.select("#globe");
   const projection = d3.geoOrthographic().translate([100, 100]).scale(100);
@@ -172,8 +178,8 @@ function editWorld() {
       });
   }
 
-  function handleWindChange() {
-    const arrow = d3.event.target.nextElementSibling;
+  function handleWindChange(event) {
+    const arrow = event.target.nextElementSibling;
     const tier = +arrow.dataset.tier;
     options.winds[tier] = (options.winds[tier] + 45) % 360;
     const tr = parseTransform(arrow.getAttribute("transform"));

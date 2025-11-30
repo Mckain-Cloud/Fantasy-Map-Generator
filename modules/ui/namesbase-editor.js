@@ -1,11 +1,13 @@
 "use strict";
 
+import * as d3 from "d3";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog} from "../../utils/dialog.js";
 
 function editNamesbase() {
   if (customization) return;
   closeDialogs("#namesbaseEditor, .stable");
-  $("#namesbaseEditor").dialog();
+  openEditorDialog("#namesbaseEditor");
 
   if (modules.editNamesbase) return;
   modules.editNamesbase = true;
@@ -42,7 +44,7 @@ function editNamesbase() {
   createBasesList();
   updateInputs();
 
-  $("#namesbaseEditor").dialog({
+  openEditorDialog("#namesbaseEditor", {
     title: "Namesbase Editor",
     width: "60vw",
     position: {my: "center", at: "center", of: "svg"}
@@ -168,7 +170,7 @@ function editNamesbase() {
       return "<span data-tip='Namesbase variety is good' style='color:green'>[good]</span>";
     };
 
-    alertMessage.innerHTML = /* html */ `<div style="line-height: 1.6em; max-width: 20em">
+    const analysisMessage = /* html */ `<div style="line-height: 1.6em; max-width: 20em">
       <div data-tip="Number of names provided">Namesbase length: ${length} ${getLengthQuality()}</div>
       <div data-tip="Average number of generation variants for each key in the chain">Namesbase variety: ${variety} ${getVarietyLevel()}</div>
       <hr />
@@ -188,13 +190,12 @@ function editNamesbase() {
       )}%</div>
     </div>`;
 
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: analysisMessage,
       title: "Data Analysis",
-      position: {my: "left top-30", at: "right+10 top", of: "#namesbaseEditor"},
       buttons: {
         OK: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
@@ -216,20 +217,19 @@ function editNamesbase() {
   }
 
   function namesbaseRestoreDefault() {
-    alertMessage.innerHTML = /* html */ `Are you sure you want to restore default namesbase?`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: "Are you sure you want to restore default namesbase?",
       title: "Restore default data",
       buttons: {
         Restore: function () {
-          $(this).dialog("close");
+          this.close();
           Names.clearChains();
           nameBases = Names.getNameBases();
           createBasesList();
           updateInputs();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

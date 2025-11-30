@@ -1,3 +1,6 @@
+import * as d3 from "d3";
+import {alertDialog, openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../../utils/dialog.js";
+
 const $body = insertEditorHtml();
 addListeners();
 
@@ -12,7 +15,7 @@ export function open() {
   refreshReligionsEditor();
   drawReligionCenters();
 
-  $("#religionsEditor").dialog({
+  openEditorDialog("#religionsEditor", {
     title: "Religions Editor",
     resizable: false,
     close: closeReligionsEditor,
@@ -253,7 +256,7 @@ function religionsEditorAddLines() {
   }
 
   applySorting(religionsHeader);
-  $("#religionsEditor").dialog({width: fitContent()});
+  updateEditorDialog("#religionsEditor", {width: fitContent()});
 }
 
 function getTypeOptions(type) {
@@ -401,7 +404,7 @@ function changePopulation() {
   const format = n => Number(n).toLocaleString();
   const burgs = pack.burgs.filter(b => !b.removed && pack.cells.religion[b.cell] === religionId);
 
-  alertMessage.innerHTML = /* html */ `<div>
+  const message = `<div>
     <i>All population of religion territory is considered believers of this religion. It means believers number change will directly affect population</i>
     <div style="margin: 0.5em 0">
       Rural: <input type="number" min="0" step="1" id="ruralPop" value=${rural} style="width:6em" />
@@ -412,32 +415,6 @@ function changePopulation() {
       (<span id="totalPopPerc">100</span>%)
     </div>
   </div>`;
-
-  const update = function () {
-    const totalNew = ruralPop.valueAsNumber + urbanPop.valueAsNumber;
-    if (isNaN(totalNew)) return;
-    totalPop.innerHTML = format(totalNew);
-    totalPopPerc.innerHTML = rn((totalNew / total) * 100);
-  };
-
-  ruralPop.oninput = () => update();
-  urbanPop.oninput = () => update();
-
-  $("#alert").dialog({
-    resizable: false,
-    title: "Change believers number",
-    width: "24em",
-    buttons: {
-      Apply: function () {
-        applyPopulationChange();
-        $(this).dialog("close");
-      },
-      Cancel: function () {
-        $(this).dialog("close");
-      }
-    },
-    position: {my: "center", at: "center", of: "svg"}
-  });
 
   function applyPopulationChange() {
     const ruralChange = ruralPop.value / rural;
@@ -465,6 +442,32 @@ function changePopulation() {
     if (layerIsOn("togglePopulation")) drawPopulation();
     refreshReligionsEditor();
   }
+
+  alertDialog({
+    message,
+    title: "Change believers number",
+    width: "24em",
+    buttons: {
+      Apply: function () {
+        applyPopulationChange();
+        this.close();
+      },
+      Cancel: function () {
+        this.close();
+      }
+    },
+    open: function() {
+      const update = function () {
+        const totalNew = ruralPop.valueAsNumber + urbanPop.valueAsNumber;
+        if (isNaN(totalNew)) return;
+        totalPop.innerHTML = format(totalNew);
+        totalPopPerc.innerHTML = rn((totalNew / total) * 100);
+      };
+
+      ruralPop.oninput = () => update();
+      urbanPop.oninput = () => update();
+    }
+  });
 }
 
 function religionChangeExtent() {
@@ -548,14 +551,14 @@ function drawReligionCenters() {
     .call(d3.drag().on("start", religionCenterDrag));
 }
 
-function religionCenterDrag() {
+function religionCenterDrag(event) {
   const religionId = +this.dataset.id;
   const tr = parseTransform(this.getAttribute("transform"));
-  const x0 = +tr[0] - d3.event.x;
-  const y0 = +tr[1] - d3.event.y;
+  const x0 = +tr[0] - event.x;
+  const y0 = +tr[1] - event.y;
 
-  function handleDrag() {
-    const {x, y} = d3.event;
+  function handleDrag(event) {
+    const {x, y} = event;
     this.setAttribute("transform", `translate(${x0 + x},${y0 + y})`);
     const cell = findCell(x, y);
     if (pack.cells.h[cell] < 20) return; // ignore dragging on water
@@ -565,7 +568,7 @@ function religionCenterDrag() {
   }
 
   const dragDebounced = debounce(handleDrag, 50);
-  d3.event.on("drag", dragDebounced);
+  event.on("drag", dragDebounced);
 }
 
 function toggleLegend() {
@@ -650,7 +653,7 @@ function enterReligionsManualAssignent() {
   religionsEditor.querySelectorAll(".hide").forEach(el => el.classList.add("hidden"));
   religionsFooter.style.display = "none";
   $body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "none"));
-  $("#religionsEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg"}});
+  updateEditorDialog("#religionsEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg"}});
 
   tip("Click on religion to select, drag the circle to change religion", true);
   viewbox
@@ -668,8 +671,8 @@ function selectReligionOnLineClick(i) {
   this.classList.add("selected");
 }
 
-function selectReligionOnMapClick() {
-  const point = d3.mouse(this);
+function selectReligionOnMapClick(event) {
+  const point = d3.pointer(event, this);
   const i = findCell(point[0], point[1]);
   if (pack.cells.h[i] < 20) return;
 
@@ -680,12 +683,12 @@ function selectReligionOnMapClick() {
   $body.querySelector("div[data-id='" + religion + "']").classList.add("selected");
 }
 
-function dragReligionBrush() {
+function dragReligionBrush(event) {
   const radius = +byId("religionsBrush").value;
 
-  d3.event.on("drag", () => {
-    if (!d3.event.dx && !d3.event.dy) return;
-    const [x, y] = d3.mouse(this);
+  event.on("drag", (event) => {
+    if (!event.dx && !event.dy) return;
+    const [x, y] = d3.pointer(event, this);
     moveCircle(x, y, radius);
 
     const found = radius > 5 ? findAll(x, y, radius) : [findCell(x, y, radius)];
@@ -718,9 +721,9 @@ function changeReligionForSelection(selection) {
   });
 }
 
-function moveReligionBrush() {
+function moveReligionBrush(event) {
   showMainTip();
-  const [x, y] = d3.mouse(this);
+  const [x, y] = d3.pointer(event, this);
   const radius = +byId("religionsBrush").value;
   moveCircle(x, y, radius);
 }
@@ -753,7 +756,7 @@ function exitReligionsManualAssignment(close) {
     .forEach(el => el.classList.remove("hidden"));
   byId("religionsFooter").style.display = "block";
   $body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "all"));
-  if (!close) $("#religionsEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg"}});
+  if (!close) updateEditorDialog("#religionsEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg"}});
 
   debug.select("#religionCenters").style("display", null);
   restoreDefaultEvents();
@@ -780,8 +783,8 @@ function exitAddReligionMode() {
   if (religionsAdd.classList.contains("pressed")) religionsAdd.classList.remove("pressed");
 }
 
-function addReligion() {
-  const [x, y] = d3.mouse(this);
+function addReligion(event) {
+  const [x, y] = d3.pointer(event, this);
   const center = findCell(x, y);
   if (pack.cells.h[center] < 20)
     return tip("You cannot place religion center into the water. Please click on a land cell", false, "error");
@@ -789,7 +792,7 @@ function addReligion() {
   const occupied = pack.religions.some(r => !r.removed && r.center === center);
   if (occupied) return tip("This cell is already a religion center. Please select a different cell", false, "error");
 
-  if (d3.event.shiftKey === false) exitAddReligionMode();
+  if (event.shiftKey === false) exitAddReligionMode();
   Religions.add(center);
 
   drawReligions();

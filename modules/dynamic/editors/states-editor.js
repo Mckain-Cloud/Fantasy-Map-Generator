@@ -1,3 +1,6 @@
+import * as d3 from "d3";
+import {alertDialog, openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../../utils/dialog.js";
+
 const $body = insertEditorHtml();
 addListeners();
 
@@ -11,7 +14,7 @@ export function open() {
 
   refreshStatesEditor();
 
-  $("#statesEditor").dialog({
+  openEditorDialog("#statesEditor", {
     title: "States Editor",
     resizable: false,
     close: closeStatesEditor,
@@ -286,7 +289,7 @@ function statesEditorAddLines() {
     togglePercentageMode();
   }
   applySorting(statesHeader);
-  $("#statesEditor").dialog({width: fitContent()});
+  updateEditorDialog("#statesEditor", {width: fitContent()});
 }
 
 function getCultureOptions(culture) {
@@ -379,16 +382,16 @@ function editStateName(state) {
   applyOption(stateNameEditorSelectForm, s.formName);
   byId("stateNameEditorFull").value = s.fullName || "";
 
-  $("#stateNameEditor").dialog({
+  openEditorDialog("#stateNameEditor", {
     resizable: false,
     title: "Change state name",
     buttons: {
       Apply: function () {
         applyNameChange(s);
-        $(this).dialog("close");
+        closeEditorDialog("#stateNameEditor");
       },
       Cancel: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#stateNameEditor");
       }
     },
     position: {my: "center", at: "center", of: "svg"}
@@ -481,7 +484,7 @@ function changePopulation(stateId) {
   const total = rural + urban;
   const format = n => Number(n).toLocaleString();
 
-  alertMessage.innerHTML = /* html */ `<div>
+  const message = /* html */ `<div>
     <i>Change population of all cells assigned to the state</i>
     <div style="margin: 0.5em 0">
       Rural: <input type="number" min="0" step="1" id="ruralPop" value=${rural} style="width:6em" />
@@ -499,23 +502,23 @@ function changePopulation(stateId) {
     totalPopPerc.innerHTML = rn((totalNew / total) * 100);
   };
 
-  ruralPop.oninput = () => update();
-  urbanPop.oninput = () => update();
-
-  $("#alert").dialog({
-    resizable: false,
+  alertDialog({
+    message,
     title: "Change state population",
     width: "24em",
     buttons: {
       Apply: function () {
         applyPopulationChange();
-        $(this).dialog("close");
+        this.close();
       },
       Cancel: function () {
-        $(this).dialog("close");
+        this.close();
       }
     },
-    position: {my: "center", at: "center", of: "svg"}
+    open: function () {
+      ruralPop.oninput = () => update();
+      urbanPop.oninput = () => update();
+    }
   });
 
   function applyPopulationChange() {
@@ -700,26 +703,16 @@ function showStatesChart() {
   const treeLayout = d3.pack().size([w, h]).padding(3);
 
   // prepare svg
-  alertMessage.innerHTML = /* html */ `<select id="statesTreeType" style="display:block; margin-left:13px; font-size:11px">
+  const message = /* html */ `<select id="statesTreeType" style="display:block; margin-left:13px; font-size:11px">
     <option value="area" selected>Area</option>
     <option value="population">Total population</option>
     <option value="rural">Rural population</option>
     <option value="urban">Urban population</option>
     <option value="burgs">Burgs number</option>
-  </select>`;
-  alertMessage.innerHTML += `<div id='statesInfo' class='chartInfo'>&#8205;</div>`;
+  </select>
+  <div id='statesInfo' class='chartInfo'>&#8205;</div>`;
 
-  const svg = d3
-    .select("#alertMessage")
-    .insert("svg", "#statesInfo")
-    .attr("id", "statesTree")
-    .attr("width", size)
-    .attr("height", size)
-    .style("font-family", "Almendra SC")
-    .attr("text-anchor", "middle")
-    .attr("dominant-baseline", "central");
-  const graph = svg.append("g").attr("transform", `translate(-50, 0)`);
-  byId("statesTreeType").on("change", updateChart);
+  let svg, graph;
 
   treeLayout(root);
 
@@ -814,13 +807,24 @@ function showStatesChart() {
       .style("font-size", d => rn((d.r ** 0.97 * 4) / lp(d.data.name), 2) + "px");
   }
 
-  $("#alert").dialog({
+  alertDialog({
+    message,
     title: "States bubble chart",
     width: fitContent(),
-    position: {my: "left bottom", at: "left+10 bottom-10", of: "svg"},
     buttons: {},
-    close: () => {
-      alertMessage.innerHTML = "";
+    open: function (container) {
+      svg = d3
+        .select(container)
+        .select(".alertMessage")
+        .insert("svg", "#statesInfo")
+        .attr("id", "statesTree")
+        .attr("width", size)
+        .attr("height", size)
+        .style("font-family", "Almendra SC")
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central");
+      graph = svg.append("g").attr("transform", `translate(-50, 0)`);
+      byId("statesTreeType").on("change", updateChart);
     }
   });
 }
@@ -834,7 +838,7 @@ function openRegenerationMenu() {
   byId("statesEditor")
     .querySelectorAll(".show")
     .forEach(el => el.classList.remove("hidden"));
-  $("#statesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
+  updateEditorDialog("#statesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
 }
 
 function recalculateStates(must) {
@@ -871,7 +875,7 @@ function exitRegenerationMenu() {
   byId("statesEditor")
     .querySelectorAll(".show")
     .forEach(el => el.classList.add("hidden"));
-  $("#statesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
+  updateEditorDialog("#statesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
 }
 
 function enterStatesManualAssignent() {
@@ -887,7 +891,7 @@ function enterStatesManualAssignent() {
     .forEach(el => el.classList.add("hidden"));
   statesFooter.style.display = "none";
   $body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "none"));
-  $("#statesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
+  updateEditorDialog("#statesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
 
   tip("Click on state to select, drag the circle to change state", true);
   viewbox
@@ -906,8 +910,8 @@ function selectStateOnLineClick() {
   this.classList.add("selected");
 }
 
-function selectStateOnMapClick() {
-  const point = d3.mouse(this);
+function selectStateOnMapClick(event) {
+  const point = d3.pointer(event, this);
   const i = findCell(point[0], point[1]);
   if (pack.cells.h[i] < 20) return;
 
@@ -918,12 +922,12 @@ function selectStateOnMapClick() {
   $body.querySelector("div[data-id='" + state + "']").classList.add("selected");
 }
 
-function dragStateBrush() {
+function dragStateBrush(event) {
   const r = +statesBrush.value;
 
-  d3.event.on("drag", () => {
-    if (!d3.event.dx && !d3.event.dy) return;
-    const p = d3.mouse(this);
+  event.on("drag", (event) => {
+    if (!event.dx && !event.dy) return;
+    const p = d3.pointer(event, this);
     moveCircle(p[0], p[1], r);
 
     const found = r > 5 ? findAll(p[0], p[1], r) : [findCell(p[0], p[1])];
@@ -959,9 +963,9 @@ function changeStateForSelection(selection) {
   });
 }
 
-function moveStateBrush() {
+function moveStateBrush(event) {
   showMainTip();
-  const point = d3.mouse(this);
+  const point = d3.pointer(event, this);
   const radius = +statesBrush.value;
   moveCircle(point[0], point[1], radius);
 }
@@ -1154,7 +1158,7 @@ function exitStatesManualAssignment(close) {
   statesFooter.style.display = "block";
   $body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "all"));
   if (!close)
-    $("#statesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
+    updateEditorDialog("#statesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}});
 
   restoreDefaultEvents();
   clearMainTip();
@@ -1174,9 +1178,9 @@ function enterAddStateMode() {
   $body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "none"));
 }
 
-function addState() {
+function addState(event) {
   const {cells, states, burgs} = pack;
-  const point = d3.mouse(this);
+  const point = d3.pointer(event, this);
   const center = findCell(point[0], point[1]);
   if (cells.h[center] < 20)
     return tip("You cannot place state into the water. Please click on a land cell", false, "error");
@@ -1195,7 +1199,7 @@ function addState() {
   burgs[burg].state = newState;
   moveBurgToGroup(burg, "cities");
 
-  if (d3.event.shiftKey === false) exitAddStateMode();
+  if (event.shiftKey === false) exitAddStateMode();
 
   const culture = cells.culture[center];
   const basename = center % 5 === 0 ? burgs[burg].name : Names.getCulture(culture);
@@ -1292,7 +1296,7 @@ function openStateMergeDialog() {
     )
     .join("");
 
-  alertMessage.innerHTML = /* html */ `
+  const message = /* html */ `
     <form id='mergeStatesForm' style="overflow: hidden; display: flex; flex-direction: column; gap: 1em;">
       <header style='font-weight:bold;'>Select multiple states to merge and the ruling state to merge into</header>
       <main style='display: grid; grid-template-columns: 1fr 1fr; gap: .3em;'>
@@ -1301,7 +1305,8 @@ function openStateMergeDialog() {
     </form>
   `;
 
-  $("#alert").dialog({
+  alertDialog({
+    message,
     width: fitContent(),
     title: `Merge states`,
     buttons: {
@@ -1328,12 +1333,12 @@ function openStateMergeDialog() {
           confirm: "Merge",
           onConfirm: () => {
             mergeStates(statesToMerge, rulingStateId);
-            $(this).dialog("close");
+            this.close();
           }
         });
       },
       Cancel: function () {
-        $(this).dialog("close");
+        this.close();
       }
     }
   });

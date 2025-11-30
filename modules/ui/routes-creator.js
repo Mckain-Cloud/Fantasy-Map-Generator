@@ -1,7 +1,9 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function createRoute(defaultGroup) {
   if (customization) return;
@@ -25,7 +27,7 @@ function createRoute(defaultGroup) {
     return `<option value="${el.id}" ${el.id === selected ? "selected" : ""}>${el.id}</option>`;
   });
 
-  $("#routeCreator").dialog({
+  openEditorDialog("#routeCreator", {
     title: "Create Route",
     resizable: false,
     position: {my: "left top", at: "left+10 top+10", of: "#map"},
@@ -39,13 +41,13 @@ function createRoute(defaultGroup) {
   byId("routeCreatorGroupSelect").on("change", () => drawRoute(createRoute.points));
   byId("routeCreatorGroupEdit").on("click", editRouteGroups);
   byId("routeCreatorComplete").on("click", completeCreation);
-  byId("routeCreatorCancel").on("click", () => $("#routeCreator").dialog("close"));
+  byId("routeCreatorCancel").on("click", () => closeEditorDialog("#routeCreator"));
   body.on("click", ev => {
     if (ev.target.classList.contains("icon-trash-empty")) removePoint(ev.target.parentNode.dataset.point);
   });
 
-  function onClick() {
-    const [x, y] = d3.mouse(this);
+  function onClick(event) {
+    const [x, y] = d3.pointer(event, this);
     const cellId = findCell(x, y);
     const point = [rn(x, 2), rn(y, 2), cellId];
     createRoute.points.push(point);

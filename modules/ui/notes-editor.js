@@ -1,6 +1,34 @@
 "use strict";
 
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
+
+let tinymce = null;
+
+async function loadTinyMCE() {
+  if (tinymce) return tinymce;
+
+  const module = await import("tinymce");
+  tinymce = module.default;
+
+  await Promise.all([
+    import("tinymce/models/dom"),
+    import("tinymce/themes/silver"),
+    import("tinymce/icons/default"),
+    import("tinymce/plugins/autolink"),
+    import("tinymce/plugins/lists"),
+    import("tinymce/plugins/link"),
+    import("tinymce/plugins/charmap"),
+    import("tinymce/plugins/code"),
+    import("tinymce/plugins/fullscreen"),
+    import("tinymce/plugins/image"),
+    import("tinymce/plugins/media"),
+    import("tinymce/plugins/table"),
+    import("tinymce/plugins/wordcount")
+  ]);
+
+  return tinymce;
+}
 
 function editNotes(id, name) {
   // elements
@@ -40,7 +68,7 @@ function editNotes(id, name) {
     notesLegend.innerHTML = "No notes added. Click on an element (e.g. label or marker) and add a free text note";
   }
 
-  $("#notesEditor").dialog({
+  openEditorDialog("#notesEditor", {
     title: "Notes Editor",
     width: svgWidth * 0.8,
     height: svgHeight * 0.75,
@@ -66,46 +94,33 @@ function editNotes(id, name) {
   byId("notesRemove").addEventListener("click", triggerNotesRemove);
 
   async function initEditor() {
-    if (!window.tinymce) {
-      const url = "https://azgaar.github.io/Fantasy-Map-Generator/libs/tinymce/tinymce.min.js";
-      try {
-        await import(url);
-      } catch (error) {
-        // error may be caused by failed request being cached, try again with random hash
-        try {
-          const hash = Math.random().toString(36).substring(2, 15);
-          await import(`${url}#${hash}`);
-        } catch (error) {
-          console.error(error);
-        }
+    await loadTinyMCE();
+    tinymce.init({
+      license_key: "gpl",
+      selector: "#notesLegend",
+      height: "90%",
+      menubar: false,
+      skin_url: "/tinymce/skins/ui/oxide",
+      content_css: "/tinymce/skins/content/default/content.css",
+      plugins: "autolink lists link charmap code fullscreen image media table wordcount",
+      toolbar:
+        "code | undo redo | removeformat | bold italic strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | blocks fontfamily fontsize | blockquote hr charmap | fullscreen",
+      media_alt_source: false,
+      media_poster: false,
+      browser_spellcheck: true,
+      contextmenu: false,
+      promotion: false,
+      setup: editor => {
+        editor.on("Change", updateLegend);
       }
-    }
-
-    if (window.tinymce) {
-      window.tinymce._setBaseUrl("https://azgaar.github.io/Fantasy-Map-Generator/libs/tinymce");
-      tinymce.init({
-        license_key: "gpl",
-        selector: "#notesLegend",
-        height: "90%",
-        menubar: false,
-        plugins: `autolink lists link charmap code fullscreen image link media table wordcount`,
-        toolbar: `code | undo redo | removeformat | bold italic strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | fontselect fontsizeselect | blockquote hr charmap | print fullscreen`,
-        media_alt_source: false,
-        media_poster: false,
-        browser_spellcheck: true,
-        contextmenu: false,
-        setup: editor => {
-          editor.on("Change", updateLegend);
-        }
-      });
-    }
+    });
   }
 
   function updateLegend() {
     const note = notes.find(note => note.id === notesSelect.value);
     if (!note) return tip("Note element is not found", true, "error", 4000);
 
-    const isTinyEditorActive = window.tinymce?.activeEditor;
+    const isTinyEditorActive = tinymce.activeEditor;
     note.legend = isTinyEditorActive ? tinymce.activeEditor.getContent() : notesLegend.innerHTML;
     updateNotesBox(note);
   }
@@ -123,7 +138,7 @@ function editNotes(id, name) {
     notesLegend.innerHTML = note.legend;
     updateNotesBox(note);
 
-    if (window.tinymce) tinymce.activeEditor.setContent(note.legend);
+    if (tinymce.activeEditor) tinymce.activeEditor.setContent(note.legend);
   }
 
   function changeName() {
@@ -158,7 +173,7 @@ function editNotes(id, name) {
       if (note) {
         note.legend = result;
         updateNotesBox(note);
-        if (window.tinymce) tinymce.activeEditor.setContent(note.legend);
+        if (tinymce.activeEditor) tinymce.activeEditor.setContent(note.legend);
       }
     };
 
@@ -183,7 +198,7 @@ function editNotes(id, name) {
       notes = notes.filter(({id}) => id !== notesSelect.value);
 
       if (!notes.length) {
-        $("#notesEditor").dialog("close");
+        closeEditorDialog("#notesEditor");
         return;
       }
 
@@ -205,7 +220,7 @@ function editNotes(id, name) {
   }
 
   function removeEditor() {
-    if (window.tinymce) tinymce.remove();
+    if (tinymce) tinymce.remove();
   }
 }
 

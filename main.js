@@ -3,6 +3,9 @@
 // https://github.com/Azgaar/Fantasy-Map-Generator
 
 // ES Module imports
+import * as d3 from "d3";
+import Delaunator from "delaunator";
+import polylabel from "polylabel";
 import {byId} from "./utils/shorthands.js";
 import {rn, minmax, normalize} from "./utils/numberUtils.js";
 import {gauss, rand, P} from "./utils/probabilityUtils.js";
@@ -10,6 +13,7 @@ import {debounce} from "./utils/commonUtils.js";
 import {getPackPolygon} from "./utils/graphUtils.js";
 import {createTypedArray} from "./utils/arrayUtils.js";
 import {parseError} from "./utils/commonUtils.js";
+import {alertDialog} from "./utils/dialog.js";
 import {applyStoredOptions} from "./modules/ui/options.js";
 import {locked} from "./modules/ui/general.js";
 import {calculateVoronoi, generateGrid, shouldRegenerateGrid} from "./utils/graphUtils.js";
@@ -41,10 +45,11 @@ import {createDefaultRuler, Rulers} from "./modules/ui/measurers.js";
 import {ThreeD} from "./modules/ui/3d.js";
 import {editWorld} from "./modules/ui/world-configurator.js";
 import {uploadMap, loadMapFromURL, showUploadErrorMessage} from "./modules/io/load.js";
-import {ldb} from "./libs/indexedDB.js";
+import {ldb} from "./utils/indexedDB.js";
 import {editUnits} from "./modules/ui/units-editor.js";
 import {unfog} from "./modules/ui/editors.js";
-import {aleaPRNG, generateSeed} from "./libs/alea.min.js";
+import {aleaPRNG} from "./utils/aleaWrapper.js";
+import {generateSeed} from "./utils/probabilityUtils.js";
 import {randomizeOptions} from "./modules/ui/options.js";
 import {renderGroupCOAs} from "./modules/renderers/draw-emblems.js";
 
@@ -269,8 +274,8 @@ let scale = 1;
 let viewX = 0;
 let viewY = 0;
 
-const onZoom = debounce(function () {
-  const {k, x, y} = d3.event.transform;
+const onZoom = debounce(function (event) {
+  const {k, x, y} = event.transform;
 
   const isScaleChanged = Boolean(scale - k);
   const isPositionChanged = Boolean(viewX - x || viewY - y);
@@ -417,7 +422,6 @@ async function generateMapOnLoad() {
   drawLayers();
   fitMapToScreen();
   focusOn(); // based on searchParams focus on point, cell or burg from MFCG
-  toggleAssistant();
 }
 
 // focus on coordinates, cell or burg provided in searchParams
@@ -467,30 +471,6 @@ function focusOn() {
   }
 }
 
-let isAssistantLoaded = false;
-function toggleAssistant() {
-  const assistantContainer = byId("chat-widget-container");
-  const showAssistant = byId("azgaarAssistant").value === "show";
-
-  if (showAssistant) {
-    if (isAssistantLoaded) {
-      assistantContainer.style.display = "block";
-    } else {
-      import("./libs/openwidget.min.js").then(() => {
-        isAssistantLoaded = true;
-        setTimeout(() => {
-          const bubble = byId("chat-widget-minimized");
-          if (bubble) {
-            bubble.dataset.tip = "Click to open the Assistant";
-            bubble.on("mouseover", showDataTip);
-          }
-        }, 5000);
-      });
-    }
-  } else if (isAssistantLoaded) {
-    assistantContainer.style.display = "none";
-  }
-}
 
 // find burg for MFCG and focus on it
 function findBurgForMFCG(params) {
@@ -687,17 +667,9 @@ void (function addDragToUpload() {
     const file = e.dataTransfer.items[0].getAsFile();
 
     if (!file.name.endsWith(".map") && !file.name.endsWith(".gz")) {
-      alertMessage.innerHTML =
-        "Please upload a map file (<i>.map</i> or <i>.gz</i> formats) you have previously downloaded";
-      $("#alert").dialog({
-        resizable: false,
-        title: "Invalid file format",
-        position: {my: "center", at: "center", of: "svg"},
-        buttons: {
-          Close: function () {
-            $(this).dialog("close");
-          }
-        }
+      alertDialog({
+        message: "Please upload a map file (<i>.map</i> or <i>.gz</i> formats) you have previously downloaded",
+        title: "Invalid file format"
       });
       return;
     }
@@ -776,23 +748,21 @@ async function generate(options) {
     const parsedError = parseError(error);
     clearMainTip();
 
-    alertMessage.innerHTML = /* html */ `An error has occurred on map generation. Please retry. <br />If error is critical, clear the stored data and try again.
-      <p id="errorBox">${parsedError}</p>`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: /* html */ `An error has occurred on map generation. Please retry. <br />If error is critical, clear the stored data and try again.
+        <p id="errorBox">${parsedError}</p>`,
       title: "Generation error",
       width: "32em",
       buttons: {
         "Clear cache": () => cleanupData(),
         Regenerate: function () {
           regenerateMap("generation error");
-          $(this).dialog("close");
+          this.close();
         },
         Ignore: function () {
-          $(this).dialog("close");
+          this.close();
         }
-      },
-      position: {my: "center", at: "center", of: "svg"}
+      }
     });
   }
 }
@@ -1347,7 +1317,7 @@ const regenerateMap = debounce(async function (options) {
   await generate(options);
   drawLayers();
   if (ThreeD.options.isOn) ThreeD.redraw();
-  if ($("#worldConfigurator").is(":visible")) editWorld();
+  if (document.getElementById("worldConfigurator")?.open) editWorld();
 
   fitMapToScreen();
   shouldShowLoading && hideLoading();
@@ -1486,12 +1456,15 @@ export {
   focusOn,
   checkLoadParameters,
   generateMapOnLoad,
-  toggleAssistant,
   findBurgForMFCG
 };
 
 // Backward compatibility - expose to window for non-module scripts
 if (typeof window !== "undefined") {
+  // Libraries (for tests and backward compatibility)
+  window.d3 = d3;
+  window.Delaunator = Delaunator;
+  window.polylabel = polylabel;
   // Constants
   window.PRODUCTION = PRODUCTION;
   window.DEBUG = DEBUG;
@@ -1560,6 +1533,5 @@ if (typeof window !== "undefined") {
   window.focusOn = focusOn;
   window.checkLoadParameters = checkLoadParameters;
   window.generateMapOnLoad = generateMapOnLoad;
-  window.toggleAssistant = toggleAssistant;
   window.findBurgForMFCG = findBurgForMFCG;
 }

@@ -1,4 +1,6 @@
 // module to prompt PWA installation
+import {alertDialog} from "../../utils/dialog.js";
+
 let installButton = null;
 let deferredPrompt = null;
 
@@ -33,41 +35,38 @@ function createButton() {
 }
 
 function openDialog() {
-  alertMessage.innerHTML = /* html */ `You can install the tool so that it will look and feel like desktop application:
-    have its own icon on your home screen and work offline with some limitations
-  `;
-  $("#alert").dialog({
-    resizable: false,
-    title: "Install the Application",
-    width: "38em",
-    buttons: {
-      Install: function () {
-        $(this).dialog("close");
-        deferredPrompt.prompt();
-      },
-      Cancel: function () {
-        $(this).dialog("close");
-      }
-    },
-    open: function () {
-      const checkbox =
-        '<span><input id="dontAsk" class="checkbox" type="checkbox"><label for="dontAsk" class="checkbox-label dontAsk"><i>do not ask again</i></label><span>';
-      const pane = this.parentElement.querySelector(".ui-dialog-buttonpane");
-      pane.insertAdjacentHTML("afterbegin", checkbox);
-    },
-    close: function () {
-      const box = this.parentElement.querySelector(".checkbox");
-      if (box?.checked) {
-        localStorage.setItem("installationDontAsk", true);
-        cleanup();
-      }
-      $(this).dialog("destroy");
-    }
-  });
-
   function cleanup() {
     installButton.remove();
     installButton = null;
     deferredPrompt = null;
   }
+
+  const dialog = alertDialog({
+    message: /* html */ `You can install the tool so that it will look and feel like desktop application:
+      have its own icon on your home screen and work offline with some limitations
+    `,
+    title: "Install the Application",
+    width: "38em",
+    buttons: {
+      Install: function () {
+        this.close();
+        deferredPrompt.prompt();
+      },
+      Cancel: function () {
+        this.close();
+      }
+    },
+    open: function (buttonContainer) {
+      const checkbox =
+        '<span style="margin-right: auto"><input id="dontAsk" class="checkbox" type="checkbox"><label for="dontAsk" class="checkbox-label dontAsk"><i>do not ask again</i></label></span>';
+      buttonContainer.insertAdjacentHTML("afterbegin", checkbox);
+    },
+    close: function () {
+      const box = this.querySelector("#dontAsk");
+      if (box?.checked) {
+        localStorage.setItem("installationDontAsk", true);
+        cleanup();
+      }
+    }
+  });
 }

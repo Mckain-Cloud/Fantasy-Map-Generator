@@ -1,3 +1,6 @@
+import * as d3 from "d3";
+import {openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../../utils/dialog.js";
+
 const entitiesMap = {
   states: {
     label: "State",
@@ -216,7 +219,7 @@ export function open() {
   if (!charts.length) addChart();
   else charts.forEach(chart => renderChart(chart));
 
-  $("#chartsOverview").dialog({
+  openEditorDialog("#chartsOverview", {
     title: "Data Charts",
     position: {my: "center", at: "center", of: "svg"},
     close: handleClose
@@ -618,13 +621,13 @@ function changeViewColumns() {
 }
 
 function updateDialogPosition() {
-  $("#chartsOverview").dialog({position: {my: "center", at: "center", of: "svg"}});
+  updateEditorDialog("#chartsOverview", {position: {my: "center", at: "center", of: "svg"}});
 }
 
 function handleClose() {
   const $chartContainer = byId("chartsOverview__charts");
   $chartContainer.innerHTML = "";
-  $("#chartsOverview").dialog("destroy");
+  closeEditorDialog("#chartsOverview");
 }
 
 // config

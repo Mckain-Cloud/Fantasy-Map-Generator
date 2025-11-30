@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 
 export function drawScaleBar(scaleBar, scaleLevel) {

@@ -1,25 +1,27 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {lerp} from "../../utils/numberUtils.js";
 import {ra} from "../../utils/probabilityUtils.js";
+import {alertDialog, openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../utils/dialog.js";
 
 function editIce() {
   if (customization) return;
   closeDialogs(".stable");
   if (!layerIsOn("toggleIce")) toggleIce();
 
-  elSelected = d3.select(d3.event.target);
+  elSelected = d3.select(event.target);
   const type = elSelected.attr("type") ? "Glacier" : "Iceberg";
   document.getElementById("iceRandomize").style.display = type === "Glacier" ? "none" : "inline-block";
   document.getElementById("iceSize").style.display = type === "Glacier" ? "none" : "inline-block";
   if (type === "Iceberg") document.getElementById("iceSize").value = +elSelected.attr("size");
   ice.selectAll("*").classed("draggable", true).call(d3.drag().on("drag", dragElement));
 
-  $("#iceEditor").dialog({
+  openEditorDialog("#iceEditor", {
     title: "Edit " + type,
     resizable: false,
-    position: {my: "center top+60", at: "top", of: d3.event, collision: "fit"},
+    position: {my: "center top+60", at: "top", of: event, collision: "fit"},
     close: closeEditor
   });
 
@@ -69,8 +71,8 @@ function editIce() {
     }
   }
 
-  function addIcebergOnClick() {
-    const [x, y] = d3.mouse(this);
+  function addIcebergOnClick(event) {
+    const [x, y] = d3.pointer(event, this);
     const i = findGridCell(x, y, grid);
     const [cx, cy] = grid.points[i];
     const size = +document.getElementById("iceSize")?.value || 1;
@@ -78,36 +80,35 @@ function editIce() {
     const points = getGridPolygon(i).map(([x, y]) => [rn(lerp(cx, x, size), 2), rn(lerp(cy, y, size), 2)]);
     const iceberg = ice.append("polygon").attr("points", points).attr("cell", i).attr("size", size);
     iceberg.call(d3.drag().on("drag", dragElement));
-    if (d3.event.shiftKey === false) toggleAdd();
+    if (event.shiftKey === false) toggleAdd();
   }
 
   function removeIce() {
     const type = elSelected.attr("type") ? "Glacier" : "Iceberg";
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove the ${type}?`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: /* html */ `Are you sure you want to remove the ${type}?`,
       title: "Remove " + type,
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
           elSelected.remove();
-          $("#iceEditor").dialog("close");
+          closeEditorDialog("#iceEditor");
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
   }
 
-  function dragElement() {
+  function dragElement(event) {
     const tr = parseTransform(this.getAttribute("transform"));
-    const dx = +tr[0] - d3.event.x,
-      dy = +tr[1] - d3.event.y;
+    const dx = +tr[0] - event.x,
+      dy = +tr[1] - event.y;
 
-    d3.event.on("drag", function () {
-      const x = d3.event.x,
-        y = d3.event.y;
+    event.on("drag", function (event) {
+      const x = event.x,
+        y = event.y;
       this.setAttribute("transform", `translate(${dx + x},${dy + y})`);
     });
   }

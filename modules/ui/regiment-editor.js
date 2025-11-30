@@ -1,8 +1,10 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {last} from "../../utils/arrayUtils.js";
+import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function editRegiment(selector) {
   if (customization) return;
@@ -11,14 +13,14 @@ function editRegiment(selector) {
 
   armies.selectAll(":scope > g").classed("draggable", true);
   armies.selectAll(":scope > g > g").call(d3.drag().on("drag", dragRegiment));
-  elSelected = selector ? document.querySelector(selector) : d3.event.target.parentElement; // select g element
+  elSelected = selector ? document.querySelector(selector) : event.target.parentElement; // select g element
   if (!pack.states[elSelected.dataset.state]) return;
   if (!getRegiment()) return;
   updateRegimentData(getRegiment());
   drawBase();
   drawRotationControl();
 
-  $("#regimentEditor").dialog({
+  openEditorDialog("#regimentEditor", {
     title: "Edit Regiment",
     resizable: false,
     close: closeEditor,
@@ -117,11 +119,11 @@ function editRegiment(selector) {
       .call(d3.drag().on("start", rotateRegiment));
   }
 
-  function rotateRegiment() {
+  function rotateRegiment(event) {
     const reg = getRegiment();
 
-    d3.event.on("drag", function () {
-      const {x, y} = d3.event;
+    event.on("drag", function (event) {
+      const {x, y} = event;
       const angle = rn(Math.atan2(y - reg.y, x - reg.x) * (180 / Math.PI), 2);
       elSelected.setAttribute("transform", `rotate(${angle})`);
       this.setAttribute("transform", `rotate(${angle})`);
@@ -241,8 +243,8 @@ function editRegiment(selector) {
     }
   }
 
-  function addRegimentOnClick() {
-    const point = d3.mouse(this);
+  function addRegimentOnClick(event) {
+    const point = d3.pointer(event, this);
     const cell = findCell(point[0], point[1]);
     const [x, y] = pack.cells.p[cell];
     const state = +elSelected.dataset.state,
@@ -271,8 +273,8 @@ function editRegiment(selector) {
     }
   }
 
-  function attackRegimentOnClick() {
-    const target = d3.event.target,
+  function attackRegimentOnClick(event) {
+    const target = event.target,
       regSelected = target.parentElement,
       army = regSelected.parentElement;
     const oldState = +elSelected.dataset.state,
@@ -328,7 +330,7 @@ function editRegiment(selector) {
       .remove();
 
     clearMainTip();
-    $("#regimentEditor").dialog("close");
+    closeEditorDialog("#regimentEditor");
   }
 
   function toggleAttach() {
@@ -344,8 +346,8 @@ function editRegiment(selector) {
     }
   }
 
-  function attachRegimentOnClick() {
-    const target = d3.event.target,
+  function attachRegimentOnClick(event) {
+    const target = event.target,
       regSelected = target.parentElement,
       army = regSelected.parentElement;
     const oldState = +elSelected.dataset.state,
@@ -378,7 +380,7 @@ function editRegiment(selector) {
     elSelected.remove();
 
     if (regimentsOverviewRefresh.offsetParent) regimentsOverviewRefresh.click();
-    $("#regimentEditor").dialog("close");
+    closeEditorDialog("#regimentEditor");
     editRegiment("#" + regSelected.id);
   }
 
@@ -395,13 +397,12 @@ function editRegiment(selector) {
   }
 
   function removeRegiment() {
-    alertMessage.innerHTML = "Are you sure you want to remove the regiment?";
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: "Are you sure you want to remove the regiment?",
       title: "Remove regiment",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
           const military = pack.states[elSelected.dataset.state].military;
           const regIndex = military.indexOf(getRegiment());
           if (regIndex === -1) return;
@@ -413,16 +414,16 @@ function editRegiment(selector) {
 
           if (militaryOverviewRefresh.offsetParent) militaryOverviewRefresh.click();
           if (regimentsOverviewRefresh.offsetParent) regimentsOverviewRefresh.click();
-          $("#regimentEditor").dialog("close");
+          closeEditorDialog("#regimentEditor");
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
   }
 
-  function dragRegiment() {
+  function dragRegiment(event) {
     d3.select(this).raise();
     d3.select(this.parentNode).raise();
 
@@ -441,8 +442,8 @@ function editRegiment(selector) {
     const baseLine = viewbox.select("g#regimentBase > line");
     const rotationControl = debug.select("#rotationControl");
 
-    d3.event.on("drag", function () {
-      const {x, y} = d3.event;
+    event.on("drag", function (event) {
+      const {x, y} = event;
       reg.x = x;
       reg.y = y;
       const x1 = rn(x - w / 2, 2);
@@ -469,19 +470,19 @@ function editRegiment(selector) {
     });
   }
 
-  function dragBase() {
+  function dragBase(event) {
     const baseLine = viewbox.select("g#regimentBase > line");
     const reg = getRegiment();
 
-    d3.event.on("drag", function () {
-      this.setAttribute("cx", d3.event.x);
-      this.setAttribute("cy", d3.event.y);
-      baseLine.attr("x1", d3.event.x).attr("y1", d3.event.y);
+    event.on("drag", function (event) {
+      this.setAttribute("cx", event.x);
+      this.setAttribute("cy", event.y);
+      baseLine.attr("x1", event.x).attr("y1", event.y);
     });
 
-    d3.event.on("end", function () {
-      reg.bx = d3.event.x;
-      reg.by = d3.event.y;
+    event.on("end", function (event) {
+      reg.bx = event.x;
+      reg.by = event.y;
     });
   }
 

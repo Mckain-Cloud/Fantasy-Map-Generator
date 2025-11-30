@@ -1,7 +1,9 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function createRiver() {
   if (customization) return;
@@ -18,7 +20,7 @@ function createRiver() {
   createRiver.cells = [];
   const body = document.getElementById("riverCreatorBody");
 
-  $("#riverCreator").dialog({
+  openEditorDialog("#riverCreator", {
     title: "Create River",
     resizable: false,
     position: {my: "left top", at: "left+10 top+10", of: "#map"},
@@ -30,7 +32,7 @@ function createRiver() {
 
   // add listeners
   document.getElementById("riverCreatorComplete").addEventListener("click", addRiver);
-  document.getElementById("riverCreatorCancel").addEventListener("click", () => $("#riverCreator").dialog("close"));
+  document.getElementById("riverCreatorCancel").addEventListener("click", () => closeEditorDialog("#riverCreator"));
   body.addEventListener("click", function (ev) {
     const el = ev.target;
     const cl = el.classList;
@@ -39,8 +41,8 @@ function createRiver() {
     else if (cl.contains("icon-trash-empty")) removeCell(cell);
   });
 
-  function onCellClick() {
-    const cell = findCell(...d3.mouse(this));
+  function onCellClick(event) {
+    const cell = findCell(...d3.pointer(event, this));
 
     if (createRiver.cells.includes(cell)) removeCell(cell);
     else addCell(cell);

@@ -2,6 +2,7 @@
 "use strict";
 
 import {minmax} from "../../utils/numberUtils.js";
+import {openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 const systemPresets = [
   "default",
@@ -149,7 +150,7 @@ function applyStyleWithUiRefresh(style) {
 }
 
 function addStylePreset() {
-  $("#styleSaver").dialog({title: "Style Saver", width: "26em", position: {my: "center", at: "center", of: "svg"}});
+  openEditorDialog("#styleSaver", {title: "Style Saver", width: "26em", position: {my: "center", at: "center", of: "svg"}});
 
   const styleName = stylePreset.value.replace(customPresetPrefix, "");
   document.getElementById("styleSaverName").value = styleName;
@@ -405,7 +406,7 @@ function addStylePreset() {
 
     applyStyleWithUiRefresh(JSON.parse(styleJSON));
     tip("Style preset is saved and applied", false, "success", 4000);
-    $("#styleSaver").dialog("close");
+    closeEditorDialog("#styleSaver");
   }
 
   function styleDownload() {

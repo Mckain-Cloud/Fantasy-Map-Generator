@@ -1,6 +1,7 @@
 // UI module to control the options (preferences)
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {gauss, P, rand, rw} from "../../utils/probabilityUtils.js";
 import {byId} from "../../utils/shorthands.js";
@@ -8,10 +9,14 @@ import {last} from "../../utils/arrayUtils.js";
 import {heightmapTemplates} from "../../config/heightmap-templates.js";
 import {precreatedHeightmaps} from "../../config/precreated-heightmaps.js";
 import {stored, clearMainTip, locked, lock, unlock} from "./general.js";
+import {makeDraggable, alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
-$("#optionsContainer").draggable({handle: ".drag-trigger", snap: "svg", snapMode: "both"});
-$("#exitCustomization").draggable({handle: "div"});
-$("#mapLayers").disableSelection();
+// Make panels draggable using native implementation
+makeDraggable(document.getElementById("optionsContainer"), ".drag-trigger");
+makeDraggable(document.getElementById("exitCustomization"), "div");
+
+// Disable text selection on map layers (replaces jQuery UI disableSelection)
+document.getElementById("mapLayers").style.userSelect = "none";
 
 // remove glow if tip is aknowledged
 if (stored("disable_click_arrow_tooltip")) {
@@ -94,13 +99,12 @@ async function showSupporters() {
   const list = supporters.split("\n").sort();
   const columns = window.innerWidth < 800 ? 2 : 5;
 
-  alertMessage.innerHTML =
+  const message =
     `<ul style='column-count: ${columns}; column-gap: 2em'>` + list.map(n => `<li>${n}</li>`).join("") + "</ul>";
-  $("#alert").dialog({
-    resizable: false,
+  alertDialog({
+    message,
     title: "Patreon Supporters",
-    width: "min-width",
-    position: {my: "center", at: "center", of: "svg"}
+    width: "min-width"
   });
 }
 
@@ -156,7 +160,6 @@ optionsContent.addEventListener("change", event => {
   else if (id === "yearInput") changeYear();
   else if (id === "eraInput") changeEra();
   else if (id === "stateLabelsModeInput") options.stateLabelsMode = value;
-  else if (id === "azgaarAssistant") toggleAssistant();
 });
 
 optionsContent.addEventListener("click", event => {
@@ -284,14 +287,13 @@ function showSeedHistoryDialog() {
     const button = `<i data-tip="Click to generate a map with this seed" onclick="restoreSeed(${i})" class="icon-history optionsSeedRestore"></i>`;
     return `<li>Seed: ${h.seed} ${button}. Size: ${h.width}x${h.height}. Template: ${h.template}. Created: ${created}</li>`;
   });
-  alertMessage.innerHTML = /* html */ `<ol style="margin: 0; padding-left: 1.5em">
+  const message = /* html */ `<ol style="margin: 0; padding-left: 1.5em">
     ${lines.join("")}
   </ol>`;
 
-  $("#alert").dialog({
-    resizable: false,
-    title: "Seed history",
-    position: {my: "center", at: "center", of: "svg"}
+  alertDialog({
+    message,
+    title: "Seed history"
   });
 }
 
@@ -725,14 +727,13 @@ function regeneratePrompt(options) {
   const workingTime = (Date.now() - last(mapHistory).created) / 60000; // minutes
   if (workingTime < 5) return regenerateMap(options);
 
-  alertMessage.innerHTML = /* html */ `Are you sure you want to generate a new map?<br />
-    All unsaved changes made to the current map will be lost`;
-  $("#alert").dialog({
-    resizable: false,
+  alertDialog({
+    message: /* html */ `Are you sure you want to generate a new map?<br />
+    All unsaved changes made to the current map will be lost`,
     title: "Generate new map",
     buttons: {
       Cancel: function () {
-        $(this).dialog("close");
+        this.close();
       },
       Generate: function () {
         closeDialogs();
@@ -746,14 +747,14 @@ function showSavePane() {
   const sharableLinkContainer = byId("sharableLinkContainer");
   sharableLinkContainer.style.display = "none";
 
-  $("#saveMapData").dialog({
+  openEditorDialog("#saveMapData", {
     title: "Save map",
     resizable: false,
     width: "25em",
     position: {my: "center", at: "center", of: "svg"},
     buttons: {
       Close: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#saveMapData");
       }
     }
   });
@@ -768,14 +769,14 @@ function copyLinkToClickboard() {
 function showExportPane() {
   byId("showLabels").checked = !hideLabels.checked;
 
-  $("#exportMapData").dialog({
+  openEditorDialog("#exportMapData", {
     title: "Export map data",
     resizable: false,
     width: "26em",
     position: {my: "center", at: "center", of: "svg"},
     buttons: {
       Close: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#exportMapData");
       }
     }
   });
@@ -787,14 +788,14 @@ async function exportToJson(type) {
 }
 
 async function showLoadPane() {
-  $("#loadMapData").dialog({
+  openEditorDialog("#loadMapData", {
     title: "Load map",
     resizable: false,
     width: "auto",
     position: {my: "center", at: "center", of: "svg"},
     buttons: {
       Close: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#loadMapData");
       }
     }
   });
@@ -841,12 +842,11 @@ async function connectToDropbox() {
 
 function loadURL() {
   const pattern = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
-  const inner = `Provide URL to map file:
+  const message = `Provide URL to map file:
     <input id="mapURL" type="url" style="width: 24em" placeholder="https://e-cloud.com/test.map">
     <br><i>Please note server should allow CORS for file to be loaded. If CORS is not allowed, save file to Dropbox and provide a direct link</i>`;
-  alertMessage.innerHTML = inner;
-  $("#alert").dialog({
-    resizable: false,
+  alertDialog({
+    message,
     title: "Load map from URL",
     width: "27em",
     buttons: {
@@ -857,10 +857,10 @@ function loadURL() {
           return;
         }
         loadMapFromURL(value);
-        $(this).dialog("close");
+        this.close();
       },
       Cancel: function () {
-        $(this).dialog("close");
+        this.close();
       }
     }
   });
@@ -882,14 +882,14 @@ function openExportToPngTiles() {
   const inputs = byId("exportToPngTilesScreen").querySelectorAll("input");
   inputs.forEach(input => input.addEventListener("input", updateTilesOptions));
 
-  $("#exportToPngTilesScreen").dialog({
+  openEditorDialog("#exportToPngTilesScreen", {
     resizable: false,
     title: "Download tiles",
     width: "23em",
     buttons: {
       Download: () => exportToPngTiles(),
       Cancel: function () {
-        $(this).dialog("close");
+        closeEditorDialog("#exportToPngTilesScreen");
       }
     },
     close: () => {
@@ -970,8 +970,8 @@ function enterStandardView() {
   if (!byId("canvas3d")) return;
   ThreeD.stop();
   byId("canvas3d").remove();
-  if (options3dUpdate.offsetParent) $("#options3d").dialog("close");
-  if (preview3d.offsetParent) $("#preview3d").dialog("close");
+  if (options3dUpdate.offsetParent) closeEditorDialog("#options3d");
+  if (preview3d.offsetParent) closeEditorDialog("#preview3d");
 }
 
 async function enter3dView(type) {
@@ -1003,7 +1003,7 @@ async function enter3dView(type) {
 
   if (type === "heightmap3DView") {
     byId("preview3d").appendChild(canvas);
-    $("#preview3d").dialog({
+    openEditorDialog("#preview3d", {
       title: "3D Preview",
       resizable: true,
       position: {my: "left bottom", at: "left+10 bottom-20", of: "svg"},
@@ -1024,10 +1024,10 @@ function resize3d() {
 
 function toggle3dOptions() {
   if (options3dUpdate.offsetParent) {
-    $("#options3d").dialog("close");
+    closeEditorDialog("#options3d");
     return;
   }
-  $("#options3d").dialog({
+  openEditorDialog("#options3d", {
     title: "3D mode settings",
     resizable: false,
     width: fitContent(),

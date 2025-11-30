@@ -1,8 +1,10 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog} from "../../utils/dialog.js";
 
 function overviewRoutes() {
   if (customization) return;
@@ -11,12 +13,12 @@ function overviewRoutes() {
 
   const body = byId("routesBody");
   routesOverviewAddLines();
-  $("#routesOverview").dialog();
+  openEditorDialog("#routesOverview");
 
   if (modules.overviewRoutes) return;
   modules.overviewRoutes = true;
 
-  $("#routesOverview").dialog({
+  openEditorDialog("#routesOverview", {
     title: "Routes Overview",
     resizable: false,
     width: fitContent(),
@@ -163,9 +165,8 @@ function overviewRoutes() {
   }
 
   function triggerAllRoutesRemove() {
-    alertMessage.innerHTML = /* html */ `Are you sure you want to remove all routes? This action can't be undone`;
-    $("#alert").dialog({
-      resizable: false,
+    alertDialog({
+      message: "Are you sure you want to remove all routes? This action can't be undone",
       title: "Remove all routes",
       buttons: {
         Remove: function () {
@@ -174,10 +175,10 @@ function overviewRoutes() {
           routes.selectAll("path").remove();
 
           routesOverviewAddLines();
-          $(this).dialog("close");
+          this.close();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

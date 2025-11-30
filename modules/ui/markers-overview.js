@@ -3,6 +3,7 @@
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {openEditorDialog} from "../../utils/dialog.js";
 
 function overviewMarkers() {
   if (customization) return;
@@ -24,7 +25,7 @@ function overviewMarkers() {
 
   addLines();
 
-  $("#markersOverview").dialog({
+  openEditorDialog("#markersOverview", {
     title: "Markers Overview",
     resizable: false,
     width: fitContent(),

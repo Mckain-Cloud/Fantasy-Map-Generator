@@ -1,21 +1,23 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si} from "../../utils/unitUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
-function editBurg(id) {
+function editBurg(id, event) {
   if (customization) return;
   closeDialogs(".stable");
   if (!layerIsOn("toggleBurgIcons")) toggleBurgIcons();
   if (!layerIsOn("toggleLabels")) toggleLabels();
 
-  const burg = id || d3.event.target.dataset.id;
+  const burg = id || event?.target?.dataset?.id;
   elSelected = burgLabels.select("[data-id='" + burg + "']");
   burgLabels.selectAll("text").call(d3.drag().on("start", dragBurgLabel)).classed("draggable", true);
   updateBurgValues();
 
-  $("#burgEditor").dialog({
+  openEditorDialog("#burgEditor", {
     title: "Edit Burg",
     resizable: false,
     close: closeBurgEditor,
@@ -125,14 +127,14 @@ function editBurg(id) {
     }
   }
 
-  function dragBurgLabel() {
+  function dragBurgLabel(event) {
     const tr = parseTransform(this.getAttribute("transform"));
-    const dx = +tr[0] - d3.event.x,
-      dy = +tr[1] - d3.event.y;
+    const dx = +tr[0] - event.x,
+      dy = +tr[1] - event.y;
 
-    d3.event.on("drag", function () {
-      const x = d3.event.x,
-        y = d3.event.y;
+    event.on("drag", function (event) {
+      const x = event.x,
+        y = event.y;
       this.setAttribute("transform", `translate(${dx + x},${dy + y})`);
       tip('Use dragging for fine-tuning only, to actually move burg use "Relocate" button', false, "warning");
     });
@@ -244,7 +246,7 @@ function editBurg(id) {
       }. This action cannot be reverted`,
       confirm: "Remove",
       onConfirm: () => {
-        $("#burgEditor").dialog("close");
+        closeEditorDialog("#burgEditor");
         hideGroupSection();
         burgsToRemove.forEach(b => removeBurg(b));
 
@@ -432,9 +434,9 @@ function editBurg(id) {
     }
   }
 
-  function relocateBurgOnClick() {
+  function relocateBurgOnClick(event) {
     const cells = pack.cells;
-    const point = d3.mouse(this);
+    const point = d3.pointer(event, this);
     const cell = findCell(point[0], point[1]);
     const id = +elSelected.attr("data-id");
     const burg = pack.burgs[id];
@@ -487,7 +489,7 @@ function editBurg(id) {
     burg.y = y;
     if (burg.capital) pack.states[newState].center = burg.cell;
 
-    if (d3.event.shiftKey === false) toggleRelocateBurg();
+    if (event.shiftKey === false) toggleRelocateBurg();
   }
 
   function editBurgLegend() {
@@ -504,14 +506,13 @@ function editBurg(id) {
   function removeSelectedBurg() {
     const id = +elSelected.attr("data-id");
     if (pack.burgs[id].capital) {
-      alertMessage.innerHTML = /* html */ `You cannot remove the burg as it is a state capital.<br /><br />
-        You can change the capital using Burgs Editor (shift + T)`;
-      $("#alert").dialog({
-        resizable: false,
+      alertDialog({
+        message: /* html */ `You cannot remove the burg as it is a state capital.<br /><br />
+        You can change the capital using Burgs Editor (shift + T)`,
         title: "Remove burg",
         buttons: {
           Ok: function () {
-            $(this).dialog("close");
+            this.close();
           }
         }
       });
@@ -522,7 +523,7 @@ function editBurg(id) {
         confirm: "Remove",
         onConfirm: () => {
           removeBurg(id); // see Editors module
-          $("#burgEditor").dialog("close");
+          closeEditorDialog("#burgEditor");
         }
       });
     }

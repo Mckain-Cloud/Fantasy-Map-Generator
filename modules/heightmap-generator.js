@@ -1,5 +1,6 @@
 "use strict";
 
+import * as d3 from "d3";
 import {minmax} from "../utils/numberUtils.js";
 import {P, rand} from "../utils/probabilityUtils.js";
 import {findGridCell} from "../utils/graphUtils.js";

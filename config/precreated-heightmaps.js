@@ -25,3 +25,9 @@ const precreatedHeightmaps = {
   world: {id: 21, name: "World"},
   "world-from-pacific": {id: 22, name: "World from Pacific"}
 };
+
+export {precreatedHeightmaps};
+
+if (typeof window !== "undefined") {
+  window.precreatedHeightmaps = precreatedHeightmaps;
+}

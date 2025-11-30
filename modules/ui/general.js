@@ -1,12 +1,14 @@
 "use strict";
 // Module to store generic UI functions
 
+import * as d3 from "d3";
 import {rn} from "../../utils/numberUtils.js";
 import {si, convertTemperature} from "../../utils/unitUtils.js";
 import {getComposedPath} from "../../utils/nodeUtils.js";
 import {findCell, findGridCell} from "../../utils/graphUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {link, debounce} from "../../utils/commonUtils.js";
+import {alertDialog} from "../../utils/dialog.js";
 
 window.addEventListener("resize", function (e) {
   if (stored("mapWidth") && stored("mapHeight")) return;
@@ -81,15 +83,15 @@ function showElementLockTip(event) {
 }
 
 const onMouseMove = debounce(handleMouseMove, 100);
-function handleMouseMove() {
-  const point = d3.mouse(this);
+function handleMouseMove(event) {
+  const point = d3.pointer(event, this);
   const i = findCell(point[0], point[1]); // pack cell id
   if (i === undefined) return;
 
-  showNotes(d3.event);
+  showNotes(event);
   const gridCell = findGridCell(point[0], point[1], grid);
   if (tooltip.dataset.main) showMainTip();
-  else showMapTooltip(point, d3.event, i, gridCell);
+  else showMapTooltip(point, event, i, gridCell);
   if (cellInfo?.offsetParent) updateCellInfo(point, i, gridCell);
 }
 
@@ -540,7 +542,8 @@ function showInfo() {
   const QAA = link("https://github.com/Azgaar/Fantasy-Map-Generator/wiki/Q&A", "Q&A page");
   const VideoTutorial = link("https://youtube.com/playlist?list=PLtgiuDC8iVR2gIG8zMTRn7T_L0arl9h1C", "Video tutorial");
 
-  alertMessage.innerHTML = /* html */ `<b>Fantasy Map Generator</b> (FMG) is a free open-source application. It means that you own all created maps and can use them as
+  alertDialog({
+    message: /* html */ `<b>Fantasy Map Generator</b> (FMG) is a free open-source application. It means that you own all created maps and can use them as
     you wish.
 
     <p>
@@ -561,26 +564,22 @@ function showInfo() {
       <li>${link("https://trello.com/b/7x832DG4/fantasy-map-generator", "Devboard")}</li>
       <li><a href="mailto:azgaar.fmg@yandex.by" target="_blank">Contact Azgaar</a></li>
     </ul>
-    
+
     <p>Check out our other projects:
       <ul>
         <li>${Armoria}: a tool for creating heraldic coats of arms</li>
         <li>${Deorum}: a vast gallery of customizable fantasy characters</li>
       </ul>
     </p>
-    
-    <p>Chinese localization: <a href="https://www.8desk.top" target="_blank">8desk.top</a></p>`;
 
-  $("#alert").dialog({
-    resizable: false,
+    <p>Chinese localization: <a href="https://www.8desk.top" target="_blank">8desk.top</a></p>`,
     title: document.title,
     width: "28em",
     buttons: {
       OK: function () {
-        $(this).dialog("close");
+        this.close();
       }
-    },
-    position: {my: "center", at: "center", of: "svg"}
+    }
   });
 }
 

@@ -1,6 +1,7 @@
 // UI module stub to control map layers
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax, normalize, lerp} from "../../utils/numberUtils.js";
 import {round} from "../../utils/stringUtils.js";
 import {P, rand} from "../../utils/probabilityUtils.js";
@@ -9,6 +10,29 @@ import {getIsolines, getVertexPath} from "../../utils/pathUtils.js";
 import {byId} from "../../utils/shorthands.js";
 import {clipPoly} from "../../utils/commonUtils.js";
 import {TIME} from "../../src/core/state.js";
+import {makeSortable} from "../../utils/dialog.js";
+
+// Native fade animation helpers
+function fadeIn(selector, duration = 400) {
+  const el = typeof selector === "string" ? document.querySelector(selector) : selector;
+  if (!el) return;
+  el.style.opacity = "0";
+  el.style.display = "block";
+  el.style.transition = `opacity ${duration}ms ease`;
+  requestAnimationFrame(() => {
+    el.style.opacity = "1";
+  });
+}
+
+function fadeOut(selector, duration = 400) {
+  const el = typeof selector === "string" ? document.querySelector(selector) : selector;
+  if (!el) return;
+  el.style.transition = `opacity ${duration}ms ease`;
+  el.style.opacity = "0";
+  setTimeout(() => {
+    el.style.display = "none";
+  }, duration);
+}
 
 let presets = {}; // global object
 restoreCustomPresets(); // run on-load
@@ -416,12 +440,12 @@ function drawCells() {
 function toggleIce(event) {
   if (!layerIsOn("toggleIce")) {
     turnButtonOn("toggleIce");
-    $("#ice").fadeIn();
+    fadeIn("#ice");
     if (!ice.selectAll("*").size()) drawIce();
     if (event && isCtrlClick(event)) editStyle("ice");
   } else {
     if (event && isCtrlClick(event)) return editStyle("ice");
-    $("#ice").fadeOut();
+    fadeOut("#ice");
     turnButtonOff("toggleIce");
   }
 }
@@ -739,11 +763,11 @@ function drawCoordinates() {
 function toggleCompass(event) {
   if (!layerIsOn("toggleCompass")) {
     turnButtonOn("toggleCompass");
-    $("#compass").fadeIn();
+    fadeIn("#compass");
     if (event && isCtrlClick(event)) editStyle("compass");
   } else {
     if (event && isCtrlClick(event)) return editStyle("compass");
-    $("#compass").fadeOut();
+    fadeOut("#compass");
     turnButtonOff("toggleCompass");
   }
 }
@@ -752,11 +776,11 @@ function toggleRelief(event) {
   if (!layerIsOn("toggleRelief")) {
     turnButtonOn("toggleRelief");
     if (!terrain.selectAll("*").size()) drawReliefIcons();
-    $("#terrain").fadeIn();
+    fadeIn("#terrain");
     if (event && isCtrlClick(event)) editStyle("terrain");
   } else {
     if (event && isCtrlClick(event)) return editStyle("terrain");
-    $("#terrain").fadeOut();
+    fadeOut("#terrain");
     turnButtonOff("toggleRelief");
   }
 }
@@ -881,14 +905,14 @@ function toggleMarkers(event) {
 function toggleLabels(event) {
   if (!layerIsOn("toggleLabels")) {
     turnButtonOn("toggleLabels");
-    $("#labels").fadeIn();
+    fadeIn("#labels");
     // don't redraw labels as they are not stored in data yet
     if (labels.selectAll("text").size() === 0) drawLabels();
     if (event && isCtrlClick(event)) editStyle("labels");
   } else {
     if (event && isCtrlClick(event)) return editStyle("labels");
     turnButtonOff("toggleLabels");
-    $("#labels").fadeOut();
+    fadeOut("#labels");
   }
 }
 
@@ -927,11 +951,11 @@ function toggleRulers(event) {
 function toggleScaleBar(event) {
   if (!layerIsOn("toggleScaleBar")) {
     turnButtonOn("toggleScaleBar");
-    $("#scaleBar").fadeIn();
+    fadeIn("#scaleBar");
     if (event && isCtrlClick(event)) editStyle("scaleBar");
   } else {
     if (event && isCtrlClick(event)) return editStyle("scaleBar");
-    $("#scaleBar").fadeOut();
+    fadeOut("#scaleBar");
     turnButtonOff("toggleScaleBar");
   }
 }
@@ -966,12 +990,12 @@ function toggleEmblems(event) {
   if (!layerIsOn("toggleEmblems")) {
     turnButtonOn("toggleEmblems");
     if (!emblems.selectAll("use").size()) drawEmblems();
-    $("#emblems").fadeIn();
+    fadeIn("#emblems");
     invokeActiveZooming();
     if (event && isCtrlClick(event)) editStyle("emblems");
   } else {
     if (event && isCtrlClick(event)) return editStyle("emblems");
-    $("#emblems").fadeOut();
+    fadeOut("#emblems");
     turnButtonOff("toggleEmblems");
   }
 }
@@ -979,11 +1003,11 @@ function toggleEmblems(event) {
 function toggleVignette(event) {
   if (!layerIsOn("toggleVignette")) {
     turnButtonOn("toggleVignette");
-    $("#vignette").fadeIn();
+    fadeIn("#vignette");
     if (event && isCtrlClick(event)) editStyle("vignette");
   } else {
     if (event && isCtrlClick(event)) return editStyle("vignette");
-    $("#vignette").fadeOut();
+    fadeOut("#vignette");
     turnButtonOff("toggleVignette");
   }
 }
@@ -1010,43 +1034,61 @@ function turnButtonOn(el) {
   getCurrentPreset();
 }
 
-// move layers on mapLayers dragging (jquery sortable)
-$("#mapLayers").sortable({items: "li:not(.solid)", containment: "parent", cancel: ".solid", update: moveLayer});
-function moveLayer(event, ui) {
-  const el = getLayer(ui.item.attr("id"));
+// move layers on mapLayers dragging (native sortable)
+makeSortable(document.getElementById("mapLayers"), {
+  items: "li:not(.solid)",
+  cancel: ".solid",
+  update: moveLayer
+});
+
+function moveLayer(item) {
+  const el = getLayer(item.id);
   if (!el) return;
-  const prev = getLayer(ui.item.prev().attr("id"));
-  const next = getLayer(ui.item.next().attr("id"));
-  if (prev) el.insertAfter(prev);
-  else if (next) el.insertBefore(next);
+
+  const prevItem = item.previousElementSibling;
+  const nextItem = item.nextElementSibling;
+
+  // Skip .solid items when finding neighbors
+  const prev = prevItem && !prevItem.classList.contains("solid") ? getLayer(prevItem.id) : null;
+  const next = nextItem && !nextItem.classList.contains("solid") ? getLayer(nextItem.id) : null;
+
+  if (prev) {
+    prev.parentNode.insertBefore(el, prev.nextSibling);
+  } else if (next) {
+    next.parentNode.insertBefore(el, next);
+  }
 }
 
 // define connection between option layer buttons and actual svg groups to move the element
 function getLayer(id) {
-  if (id === "toggleHeight") return $("#terrs");
-  if (id === "toggleBiomes") return $("#biomes");
-  if (id === "toggleCells") return $("#cells");
-  if (id === "toggleGrid") return $("#gridOverlay");
-  if (id === "toggleCoordinates") return $("#coordinates");
-  if (id === "toggleCompass") return $("#compass");
-  if (id === "toggleRivers") return $("#rivers");
-  if (id === "toggleRelief") return $("#terrain");
-  if (id === "toggleReligions") return $("#relig");
-  if (id === "toggleCultures") return $("#cults");
-  if (id === "toggleStates") return $("#regions");
-  if (id === "toggleProvinces") return $("#provs");
-  if (id === "toggleBorders") return $("#borders");
-  if (id === "toggleRoutes") return $("#routes");
-  if (id === "toggleTemperature") return $("#temperature");
-  if (id === "togglePrecipitation") return $("#prec");
-  if (id === "togglePopulation") return $("#population");
-  if (id === "toggleIce") return $("#ice");
-  if (id === "toggleTexture") return $("#texture");
-  if (id === "toggleEmblems") return $("#emblems");
-  if (id === "toggleLabels") return $("#labels");
-  if (id === "toggleBurgIcons") return $("#icons");
-  if (id === "toggleMarkers") return $("#markers");
-  if (id === "toggleRulers") return $("#ruler");
+  const layerMap = {
+    toggleHeight: "terrs",
+    toggleBiomes: "biomes",
+    toggleCells: "cells",
+    toggleGrid: "gridOverlay",
+    toggleCoordinates: "coordinates",
+    toggleCompass: "compass",
+    toggleRivers: "rivers",
+    toggleRelief: "terrain",
+    toggleReligions: "relig",
+    toggleCultures: "cults",
+    toggleStates: "regions",
+    toggleProvinces: "provs",
+    toggleBorders: "borders",
+    toggleRoutes: "routes",
+    toggleTemperature: "temperature",
+    togglePrecipitation: "prec",
+    togglePopulation: "population",
+    toggleIce: "ice",
+    toggleTexture: "texture",
+    toggleEmblems: "emblems",
+    toggleLabels: "labels",
+    toggleBurgIcons: "icons",
+    toggleMarkers: "markers",
+    toggleRulers: "ruler"
+  };
+  const elementId = layerMap[id];
+  return elementId ? document.getElementById(elementId) : null;
 }
 
 // ES Module exports

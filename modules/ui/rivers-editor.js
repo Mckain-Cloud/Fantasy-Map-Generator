@@ -1,7 +1,9 @@
 "use strict";
 
+import * as d3 from "d3";
 import {rn, minmax} from "../../utils/numberUtils.js";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
 function editRiver(id) {
   if (customization) return;
@@ -29,7 +31,7 @@ function editRiver(id) {
   drawControlPoints(riverPoints);
   drawCells(cells);
 
-  $("#riverEditor").dialog({
+  openEditorDialog("#riverEditor", {
     title: "Edit River",
     resizable: false,
     position: {my: "left top", at: "left+10 top+10", of: "#map"},
@@ -128,17 +130,17 @@ function editRiver(id) {
       .attr("points", d => getPackPolygon(d));
   }
 
-  function dragControlPoint() {
+  function dragControlPoint(event) {
     const {r, fl} = pack.cells;
     const river = getRiver();
 
-    const {x: x0, y: y0} = d3.event;
+    const {x: x0, y: y0} = event;
     const initCell = findCell(x0, y0);
 
     let movedToCell = null;
 
-    d3.event.on("drag", function () {
-      const {x, y} = d3.event;
+    event.on("drag", function (event) {
+      const {x, y} = event;
       const currentCell = findCell(x, y);
 
       movedToCell = initCell !== currentCell ? currentCell : null;
@@ -150,7 +152,7 @@ function editRiver(id) {
       drawCells(river.cells);
     });
 
-    d3.event.on("end", () => {
+    event.on("end", () => {
       if (movedToCell && !r[movedToCell]) {
         // swap river data
         r[initCell] = 0;
@@ -177,8 +179,8 @@ function editRiver(id) {
     if (byId("elevationProfile").offsetParent) showRiverElevationProfile();
   }
 
-  function addControlPoint() {
-    const [x, y] = d3.mouse(this);
+  function addControlPoint(event) {
+    const [x, y] = d3.pointer(event, this);
     const point = [rn(x, 1), rn(y, 1)];
 
     const river = getRiver();
@@ -254,21 +256,20 @@ function editRiver(id) {
   }
 
   function removeRiver() {
-    alertMessage.innerHTML = "Are you sure you want to remove the river and all its tributaries";
-    $("#alert").dialog({
-      resizable: false,
-      width: "22em",
+    alertDialog({
+      message: "Are you sure you want to remove the river and all its tributaries",
       title: "Remove river and tributaries",
+      width: "22em",
       buttons: {
         Remove: function () {
-          $(this).dialog("close");
+          this.close();
           const river = +elSelected.attr("id").slice(5);
           Rivers.remove(river);
           elSelected.remove();
-          $("#riverEditor").dialog("close");
+          closeEditorDialog("#riverEditor");
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });

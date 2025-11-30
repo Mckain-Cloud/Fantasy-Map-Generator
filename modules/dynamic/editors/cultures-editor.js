@@ -1,3 +1,6 @@
+import * as d3 from "d3";
+import {alertDialog, openEditorDialog, closeEditorDialog, updateEditorDialog} from "../../../utils/dialog.js";
+
 const $body = insertEditorHtml();
 addListeners();
 
@@ -13,7 +16,7 @@ export function open() {
 
   refreshCulturesEditor();
 
-  $("#culturesEditor").dialog({
+  openEditorDialog("#culturesEditor", {
     title: "Cultures Editor",
     resizable: false,
     close: closeCulturesEditor,
@@ -254,7 +257,7 @@ function culturesEditorAddLines() {
     togglePercentageMode();
   }
   applySorting($culturesHeader);
-  $("#culturesEditor").dialog({width: fitContent()});
+  updateEditorDialog("#culturesEditor", {width: fitContent()});
 }
 
 function getTypeOptions(type) {
@@ -426,7 +429,7 @@ function changePopulation() {
   const format = n => Number(n).toLocaleString();
   const burgs = pack.burgs.filter(b => !b.removed && b.culture === cultureId);
 
-  alertMessage.innerHTML = /* html */ `<div>
+  const message = `<div>
     <i>Change population of all cells assigned to the culture</i>
     <div style="margin: 0.5em 0">
       Rural: <input type="number" min="0" step="1" id="ruralPop" value=${rural} style="width:6em" />
@@ -438,30 +441,30 @@ function changePopulation() {
     </div>
   </div>`;
 
-  const update = function () {
-    const totalNew = ruralPop.valueAsNumber + urbanPop.valueAsNumber;
-    if (isNaN(totalNew)) return;
-    totalPop.innerHTML = l(totalNew);
-    totalPopPerc.innerHTML = rn((totalNew / total) * 100);
-  };
-
-  ruralPop.oninput = () => update();
-  urbanPop.oninput = () => update();
-
-  $("#alert").dialog({
-    resizable: false,
+  const dialog = alertDialog({
+    message,
     title: "Change culture population",
     width: "24em",
     buttons: {
       Apply: function () {
         applyPopulationChange(rural, urban, ruralPop.value, urbanPop.value, cultureId);
-        $(this).dialog("close");
+        this.close();
       },
       Cancel: function () {
-        $(this).dialog("close");
+        this.close();
       }
     },
-    position: {my: "center", at: "center", of: "svg"}
+    open: function() {
+      const update = function () {
+        const totalNew = ruralPop.valueAsNumber + urbanPop.valueAsNumber;
+        if (isNaN(totalNew)) return;
+        totalPop.innerHTML = format(totalNew);
+        totalPopPerc.innerHTML = rn((totalNew / total) * 100);
+      };
+
+      ruralPop.oninput = () => update();
+      urbanPop.oninput = () => update();
+    }
   });
 }
 
@@ -579,14 +582,14 @@ function drawCultureCenters() {
     .call(d3.drag().on("start", cultureCenterDrag));
 }
 
-function cultureCenterDrag() {
+function cultureCenterDrag(event) {
   const cultureId = +this.id.slice(13);
   const tr = parseTransform(this.getAttribute("transform"));
-  const x0 = +tr[0] - d3.event.x;
-  const y0 = +tr[1] - d3.event.y;
+  const x0 = +tr[0] - event.x;
+  const y0 = +tr[1] - event.y;
 
-  function handleDrag() {
-    const {x, y} = d3.event;
+  function handleDrag(event) {
+    const {x, y} = event;
     this.setAttribute("transform", `translate(${x0 + x},${y0 + y})`);
     const cell = findCell(x, y);
     if (pack.cells.h[cell] < 20) return; // ignore dragging on water
@@ -596,7 +599,7 @@ function cultureCenterDrag() {
   }
 
   const dragDebounced = debounce(handleDrag, 50);
-  d3.event.on("drag", dragDebounced);
+  event.on("drag", dragDebounced);
 }
 
 function toggleLegend() {
@@ -680,7 +683,7 @@ function enterCultureManualAssignent() {
   culturesEditor.querySelectorAll(".hide").forEach(el => el.classList.add("hidden"));
   culturesFooter.style.display = "none";
   $body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "none"));
-  $("#culturesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg"}});
+  updateEditorDialog("#culturesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg"}});
 
   tip("Click on culture to select, drag the circle to change culture", true);
   viewbox
@@ -698,8 +701,8 @@ function selectCultureOnLineClick(i) {
   this.classList.add("selected");
 }
 
-function selectCultureOnMapClick() {
-  const point = d3.mouse(this);
+function selectCultureOnMapClick(event) {
+  const point = d3.pointer(event, this);
   const i = findCell(point[0], point[1]);
   if (pack.cells.h[i] < 20) return;
 
@@ -710,12 +713,12 @@ function selectCultureOnMapClick() {
   $body.querySelector("div[data-id='" + culture + "']").classList.add("selected");
 }
 
-function dragCultureBrush() {
+function dragCultureBrush(event) {
   const radius = +culturesBrush.value;
 
-  d3.event.on("drag", () => {
-    if (!d3.event.dx && !d3.event.dy) return;
-    const p = d3.mouse(this);
+  event.on("drag", (event) => {
+    if (!event.dx && !event.dy) return;
+    const p = d3.pointer(event, this);
     moveCircle(p[0], p[1], radius);
 
     const found = radius > 5 ? findAll(p[0], p[1], radius) : [findCell(p[0], p[1], radius)];
@@ -749,9 +752,9 @@ function changeCultureForSelection(selection) {
   });
 }
 
-function moveCultureBrush() {
+function moveCultureBrush(event) {
   showMainTip();
-  const point = d3.mouse(this);
+  const point = d3.pointer(event, this);
   const radius = +culturesBrush.value;
   moveCircle(point[0], point[1], radius);
 }
@@ -782,7 +785,7 @@ function exitCulturesManualAssignment(close) {
   culturesEditor.querySelectorAll(".hide").forEach(el => el.classList.remove("hidden"));
   culturesFooter.style.display = "block";
   $body.querySelectorAll("div > input, select, span, svg").forEach(e => (e.style.pointerEvents = "all"));
-  if (!close) $("#culturesEditor").dialog({position: {my: "right top", at: "right-10 top+10", of: "svg"}});
+  if (!close) updateEditorDialog("#culturesEditor", {position: {my: "right top", at: "right-10 top+10", of: "svg"}});
 
   debug.select("#cultureCenters").style("display", null);
   restoreDefaultEvents();
@@ -809,8 +812,8 @@ function exitAddCultureMode() {
   if (culturesAdd.classList.contains("pressed")) culturesAdd.classList.remove("pressed");
 }
 
-function addCulture() {
-  const point = d3.mouse(this);
+function addCulture(event) {
+  const point = d3.pointer(event, this);
   const center = findCell(point[0], point[1]);
 
   if (pack.cells.h[center] < 20)
@@ -819,7 +822,7 @@ function addCulture() {
   const occupied = pack.cultures.some(c => !c.removed && c.center === center);
   if (occupied) return tip("This cell is already a culture center. Please select a different cell", false, "error");
 
-  if (d3.event.shiftKey === false) exitAddCultureMode();
+  if (event.shiftKey === false) exitAddCultureMode();
   Cultures.add(center);
 
   drawCultureCenters();

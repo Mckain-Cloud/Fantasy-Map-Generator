@@ -140,12 +140,7 @@
 
     <link rel="preload" href="index.css?v=1.108.6" as="style" onload="this.onload=null; this.rel='stylesheet'" />
     <link rel="preload" href="icons.css" as="style" onload="this.onload=null; this.rel='stylesheet'" />
-    <link
-      rel="preload"
-      href="libs/jquery-ui-1.14.1.min.css"
-      as="style"
-      onload="this.onload=null; this.rel='stylesheet'"
-    />
+    <!-- jQuery UI CSS removed - using native HTML5 dialog elements instead -->
   </head>
   <body>
     <svg
@@ -1834,17 +1829,6 @@
                 </select>
               </td>
               <td></td>
-            </tr>
-
-            <tr data-tip="Toggle Azgaar Assistant (help bubble on the bottom right corner)">
-              <td></td>
-              <td>Azgaar assistant</td>
-              <td>
-                <select id="azgaarAssistant" data-stored="azgaarAssistant">
-                  <option value="show" selected>Show</option>
-                  <option value="hide">Hide</option>
-                </select>
-              </td>
             </tr>
 
             <tr data-tip="Select speech synthesis voice to pronounce generated names">
@@ -8061,26 +8045,13 @@
       </defs>
     </svg>
 
-    <!-- Non-module libs load first (jQuery, D3, RGBQuant need to stay as non-module) -->
-    <script src="libs/jquery-3.7.1.min.js"></script>
-    <!-- jQuery Migrate can be enabled for debugging deprecated API usage -->
-    <!-- <script src="libs/jquery-migrate-3.5.2.min.js"></script> -->
-    <script src="libs/jquery-ui-1.14.1.min.js"></script>
-    <script src="libs/jquery.ui.touch-punch.js"></script>
-    <script src="libs/d3.min.js"></script>
-    <script src="libs/rgbquant.min.js"></script>
+    <!-- jQuery completely removed - all functionality now uses native JavaScript -->
 
     <!-- Polyfills must load as regular script for browser compatibility -->
     <script src="utils/polyfills.js?v=1.99.00"></script>
 
-    <!-- ES Module libs (converted from UMD) -->
-    <script type="module" src="libs/flatqueue.js"></script>
-    <script type="module" src="libs/delaunator.min.js"></script>
-    <script type="module" src="libs/alea.min.js?v1.105.0"></script>
-    <script type="module" src="libs/polylabel.min.js?v1.105.0"></script>
-    <script type="module" src="libs/lineclip.min.js?v1.105.0"></script>
-    <script type="module" src="libs/simplify.js?v1.105.6"></script>
-    <script type="module" src="libs/indexedDB.js?v=1.99.00"></script>
+    <!-- ES Module utils -->
+    <script type="module" src="utils/indexedDB.js?v=1.99.00"></script>
 
     <!-- ES Modules - components -->
     <script type="module" src="components/fill-box.js"></script>
@@ -8103,6 +8074,7 @@
     <script type="module" src="utils/unitUtils.js?v=1.99.00"></script>
     <script type="module" src="utils/pathUtils.js?v=1.106.0"></script>
     <script type="module" src="utils/debugUtils.js?v=1.106.0"></script>
+    <script type="module" src="utils/dialog.js"></script>
 
     <script type="module" src="modules/voronoi.js"></script>
     <script type="module" src="config/heightmap-templates.js"></script>

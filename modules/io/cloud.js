@@ -51,10 +51,10 @@ const getToken = prov => localStorage.getItem(lSKey(prov));
     },
 
     async connect(token) {
-      await import("../../libs/dropbox-sdk.min.js");
-      const auth = new Dropbox.DropboxAuth({clientId: this.clientId});
+      const {Dropbox, DropboxAuth} = await import("dropbox");
+      const auth = new DropboxAuth({clientId: this.clientId});
       auth.setAccessToken(token);
-      this.api = new Dropbox.Dropbox({auth});
+      this.api = new Dropbox({auth});
     },
 
     async save(fileName, contents) {

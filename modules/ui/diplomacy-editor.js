@@ -1,6 +1,8 @@
 "use strict";
 
+import * as d3 from "d3";
 import {byId} from "../../utils/shorthands.js";
+import {alertDialog, openEditorDialog} from "../../utils/dialog.js";
 
 function editDiplomacy() {
   if (customization) return;
@@ -63,7 +65,7 @@ function editDiplomacy() {
   if (modules.editDiplomacy) return;
   modules.editDiplomacy = true;
 
-  $("#diplomacyEditor").dialog({
+  openEditorDialog("#diplomacyEditor", {
     title: "Diplomacy Editor",
     resizable: false,
     width: fitContent(),
@@ -146,7 +148,7 @@ function editDiplomacy() {
     body.querySelectorAll("div.states").forEach(el => el.addEventListener("mouseleave", ev => stateHighlightOff(ev)));
 
     applySorting(diplomacyHeader);
-    $("#diplomacyEditor").dialog();
+    openEditorDialog("#diplomacyEditor");
   }
 
   function stateHighlightOn(event) {
@@ -201,8 +203,8 @@ function editDiplomacy() {
     });
   }
 
-  function selectStateOnMapClick() {
-    const point = d3.mouse(this);
+  function selectStateOnMapClick(event) {
+    const point = d3.pointer(event, this);
     const i = findCell(point[0], point[1]);
     const state = pack.cells.state[i];
     if (!state) return;
@@ -251,7 +253,7 @@ function editDiplomacy() {
       )
       .join("");
 
-    alertMessage.innerHTML = /* html */ `
+    const relationsFormContent = /* html */ `
       <form id='relationsForm' style="overflow: hidden; display: flex; flex-direction: column; gap: .3em; padding: 0.1em 0;">
         <header>
           <svg class="coaIcon" viewBox="0 0 200 200">
@@ -267,7 +269,8 @@ function editDiplomacy() {
       </form>
     `;
 
-    $("#alert").dialog({
+    alertDialog({
+      message: relationsFormContent,
       width: fitContent(),
       title: `Change relations`,
       buttons: {
@@ -279,10 +282,10 @@ function editDiplomacy() {
           for (const objectId of objectIds) {
             changeRelation(subjectId, objectId, currentRelation, newRelation);
           }
-          $(this).dialog("close");
+          this.close();
         },
         Cancel: function () {
-          $(this).dialog("close");
+          this.close();
         }
       }
     });
@@ -383,29 +386,28 @@ function editDiplomacy() {
       message += /* html */ `<div><div contenteditable="true" data-id="0-0">No historical records</div>&#8205;</div>`;
     }
 
-    alertMessage.innerHTML =
-      message +
-      `</div><div class="info-line">Type to edit. Press Enter to add a new line, empty the element to remove it</div>`;
-    alertMessage
-      .querySelectorAll("div[contenteditable='true']")
-      .forEach(el => el.addEventListener("input", changeReliationsHistory));
+    message += `</div><div class="info-line">Type to edit. Press Enter to add a new line, empty the element to remove it</div>`;
 
-    $("#alert").dialog({
+    alertDialog({
+      message,
       title: "Relations history",
-      position: {my: "center", at: "center", of: "svg"},
       buttons: {
         Save: function () {
-          const data = this.querySelector("div").innerText.split("\n").join("\r\n");
+          const data = this.querySelector(".dialog-message").innerText.split("\n").join("\r\n");
           const name = getFileName("Relations history") + ".txt";
           downloadFile(data, name);
         },
         Clear: function () {
           pack.states[0].diplomacy = [];
-          $(this).dialog("close");
+          this.close();
         },
         Close: function () {
-          $(this).dialog("close");
+          this.close();
         }
+      },
+      open: function () {
+        this.querySelectorAll("div[contenteditable='true']")
+          .forEach(el => el.addEventListener("input", changeReliationsHistory));
       }
     });
   }
@@ -462,7 +464,7 @@ function editDiplomacy() {
       selectRelation(subjectId, objectId, currentRelation);
     });
 
-    $("#diplomacyMatrix").dialog({
+    openEditorDialog("#diplomacyMatrix", {
       title: "Relations matrix",
       position: {my: "center", at: "center", of: "svg"},
       buttons: {}

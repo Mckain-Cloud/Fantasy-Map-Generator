@@ -1,6 +1,8 @@
 "use strict";
 // FMG utils related to graph
 
+import * as d3 from "d3";
+import Delaunator from "delaunator";
 import {rn} from "./numberUtils.js";
 import {createTypedArray} from "./arrayUtils.js";
 import {TIME} from "../src/core/state.js";

@@ -661,51 +661,56 @@ const ThreeD = (function () {
     controls.update();
   }
 
-  function loadTHREE() {
-    if (window.THREE) return Promise.resolve(true);
+  async function loadTHREE() {
+    if (window.THREE) return true;
 
-    return new Promise(resolve => {
-      const script = document.createElement("script");
-      script.src = "libs/three.min.js";
-      document.head.append(script);
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-    });
+    try {
+      const threeModule = await import("three");
+      window.THREE = threeModule;
+      return true;
+    } catch (error) {
+      console.error("Failed to load three.js:", error);
+      return false;
+    }
   }
 
-  function loadLoopSubdivision() {
-    if (window.loopSubdivision) return Promise.resolve(true);
+  async function loadLoopSubdivision() {
+    if (window.loopSubdivision) return true;
 
-    return new Promise(resolve => {
-      const script = document.createElement("script");
-      script.src = "libs/loopsubdivison.min.js";
-      document.head.append(script);
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-    });
+    try {
+      const {LoopSubdivision} = await import("three-subdivide");
+      window.loopSubdivision = LoopSubdivision;
+      return true;
+    } catch (error) {
+      console.error("Failed to load LoopSubdivision:", error);
+      return false;
+    }
   }
-  function OrbitControls(camera, domElement) {
+
+  async function OrbitControls(camera, domElement) {
     if (THREE.OrbitControls) return new THREE.OrbitControls(camera, domElement);
 
-    return new Promise(resolve => {
-      const script = document.createElement("script");
-      script.src = "libs/orbitControls.min.js";
-      document.head.append(script);
-      script.onload = () => resolve(new THREE.OrbitControls(camera, domElement));
-      script.onerror = () => resolve(false);
-    });
+    try {
+      const {OrbitControls: OrbitControlsClass} = await import("three/addons/controls/OrbitControls.js");
+      THREE.OrbitControls = OrbitControlsClass;
+      return new OrbitControlsClass(camera, domElement);
+    } catch (error) {
+      console.error("Failed to load OrbitControls:", error);
+      return false;
+    }
   }
 
-  function OBJExporter() {
+  async function OBJExporter() {
     if (THREE.OBJExporter) return new THREE.OBJExporter();
 
-    return new Promise(resolve => {
-      const script = document.createElement("script");
-      script.src = "libs/objexporter.min.js?v=1.89.35";
-      document.head.append(script);
-      script.onload = () => resolve(new THREE.OBJExporter());
-      script.onerror = () => resolve(false);
-    });
+    try {
+      const {OBJExporter: OBJExporterClass} = await import("three/addons/exporters/OBJExporter.js");
+      THREE.OBJExporter = OBJExporterClass;
+      return new OBJExporterClass();
+    } catch (error) {
+      console.error("Failed to load OBJExporter:", error);
+      return false;
+    }
   }
 
   return {
