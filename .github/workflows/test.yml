@@ -1,0 +1,137 @@
+name: Automated Tests
+
+on:
+  push:
+    branches: [ master, develop, feature/** ]
+  pull_request:
+    branches: [ master, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test Suite (Microsoft Edge)
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps msedge
+
+      - name: Run all tests
+        run: npm test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 30
+
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request' && always()
+        uses: daun/playwright-report-comment@v3
+        with:
+          report-path: test-results/results.json
+
+  test-unit:
+    name: Unit Tests Only (Fast)
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npx playwright install --with-deps msedge
+      - run: npm run test:unit
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: test-results/
+          retention-days: 7
+
+  test-e2e:
+    name: E2E Tests (Slow)
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npx playwright install --with-deps msedge
+      - run: npm run test:e2e
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: |
+            playwright-report/
+            test-results/
+            screenshots/
+          retention-days: 30
+
+  coverage:
+    name: Coverage Report
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npx playwright install --with-deps msedge
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-fmg
+
+      - name: Check coverage threshold
+        run: |
+          node -e "const coverage = require('./coverage/coverage-summary.json'); const total = coverage.total; const percent = total.lines.pct; if (percent < 90) { console.error('Coverage ' + percent + '% is below 90% threshold'); process.exit(1); } else { console.log('Coverage ' + percent + '% meets 90% threshold'); }"
