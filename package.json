@@ -11,6 +11,8 @@
     "server": "node server/index.js",
     "test": "playwright test",
     "test:unit": "playwright test tests/unit",
+    "test:unit:ai": "vitest run modules/ai",
+    "test:unit:ai:watch": "vitest modules/ai",
     "test:integration": "playwright test tests/integration",
     "test:e2e": "playwright test tests/e2e",
     "test:performance": "playwright test tests/performance",
@@ -27,7 +29,8 @@
     "c8": "^10.1.2",
     "chai": "^5.1.1",
     "http-server": "^14.1.1",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "vitest": "^3.2.2"
   },
   "keywords": [
     "fantasy",
