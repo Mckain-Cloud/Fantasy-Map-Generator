@@ -19,9 +19,7 @@ function editBiomes() {
   const animate = d3.transition().duration(2000).ease(d3.easeSinIn);
   refreshBiomesEditor();
 
-  if (modules.editBiomes) return;
-  modules.editBiomes = true;
-
+  // open (or re-open) the dialog on every call; one-time setup follows the module guard
   openEditorDialog("#biomesEditor", {
     title: "Biomes Editor",
     resizable: false,
@@ -29,6 +27,9 @@ function editBiomes() {
     close: closeBiomesEditor,
     position: {my: "right top", at: "right-10 top+10", of: "svg"}
   });
+
+  if (modules.editBiomes) return;
+  modules.editBiomes = true;
 
   // add listeners
   document.getElementById("biomesEditorRefresh").addEventListener("click", refreshBiomesEditor);

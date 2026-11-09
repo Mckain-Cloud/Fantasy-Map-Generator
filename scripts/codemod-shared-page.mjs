@@ -4,6 +4,7 @@
  *
  *   node scripts/codemod-shared-page.mjs tests/unit            # rewrite in place
  *   node scripts/codemod-shared-page.mjs tests/unit --dry      # report only
+ *   node scripts/codemod-shared-page.mjs tests/e2e/layers.spec.js tests/e2e/toolbar.spec.js
  *
  * Handles the three shapes found in this repo:
  *   A) test.beforeEach(({page}) => { startCoverage; page.goto; waitForAppReady })
@@ -16,8 +17,10 @@
 import fs from "fs";
 import path from "path";
 
-const [, , root = "tests/unit", flag] = process.argv;
-const dry = flag === "--dry";
+const args = process.argv.slice(2);
+const dry = args.includes("--dry");
+const targets = args.filter(a => !a.startsWith("--"));
+if (!targets.length) targets.push("tests/unit");
 
 const NAV_LINE = /^\s*(await\s+)?(startCoverage\(|stopCoverage\(|flushCoverage\(|page\.goto\(|gotoApp\(|waitForAppReady\(|page\??\.close\(\)|page = await browser\.newPage\(|page = await context\.newPage\()/;
 const HELPER_NAMES = ["startCoverage", "stopCoverage", "flushCoverage", "waitForAppReady", "gotoApp"];
@@ -105,8 +108,15 @@ function convert(src) {
   return {src: out, changed: out !== src, note: ""};
 }
 
+function* files() {
+  for (const t of targets) {
+    if (fs.statSync(t).isDirectory()) yield* walk(t);
+    else yield t;
+  }
+}
+
 let changed = 0;
-for (const file of walk(root)) {
+for (const file of files()) {
   const depthFromTests = path.relative("tests", file).split(path.sep).length - 1;
   const src = fs.readFileSync(file, "utf8");
   const result = convert(src);

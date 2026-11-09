@@ -1,16 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, gotoApp, stopCoverage, flushCoverage } from '../setup/helpers.js';
+import {test, expect} from "../setup/shared-test.js";
+
 
 test.describe('Notes Editor & TinyMCE Tests', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('Notes Editor Dialog', () => {
     test('can open notes editor', async ({ page }) => {

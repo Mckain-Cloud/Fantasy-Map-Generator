@@ -7,19 +7,11 @@
  * Run with: npx playwright test tests/e2e/ai-data-layer.spec.js
  */
 
-import {test, expect} from "@playwright/test";
-import {waitForAppReady, gotoApp, stopCoverage, flushCoverage} from "../setup/helpers.js";
+import {test, expect} from "../setup/shared-test.js";
+
 
 test.describe("AI Data Layer E2E", () => {
-  test.beforeEach(async ({page}) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({page}) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe("Module Loading", () => {
     test("DataLayer module loads correctly", async ({page}) => {

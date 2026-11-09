@@ -1,16 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, gotoApp, stopCoverage, flushCoverage } from '../setup/helpers.js';
+import {test, expect} from "../setup/shared-test.js";
+
 
 test.describe('Editor Workflow Tests', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('States Editor Workflow', () => {
     test('can open states editor and view states list', async ({ page }) => {

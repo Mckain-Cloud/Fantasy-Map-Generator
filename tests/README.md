@@ -112,6 +112,10 @@ test("rn rounds", async ({page}) => {              // page = shared app page
 test.beforeAll(async ({appPage}) => { /* worker-scoped handle when a describe keeps its own `page` */ });
 ```
 
+The read-only e2e specs (layers, toolbar, dialogs, ai-data-layer, notesEditor, editorWorkflows)
+use the same fixture. The specs that regenerate or load maps (mapGeneration, coreWorkflows,
+userJourneys, integration, performance) keep a page per test on purpose.
+
 ### Share one page per file (e2e specs with heavier state)
 
 Loading the app is the expensive part (5-15 s). Use `useSharedAppPage` so a whole describe

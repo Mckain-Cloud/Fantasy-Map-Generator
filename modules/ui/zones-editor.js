@@ -15,15 +15,16 @@ function editZones() {
   updateFilters();
   zonesEditorAddLines();
 
-  if (modules.editZones) return;
-  modules.editZones = true;
-
+  // open (or re-open) the dialog on every call; one-time setup follows the module guard
   openEditorDialog("#zonesEditor", {
     title: "Zones Editor",
     resizable: false,
     close: () => exitZonesManualAssignment("close"),
     position: {my: "right top", at: "right-10 top+10", of: "svg", collision: "fit"}
   });
+
+  if (modules.editZones) return;
+  modules.editZones = true;
 
   // add listeners
   byId("zonesFilterType").on("click", updateFilters);
