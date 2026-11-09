@@ -1,6 +1,7 @@
 "use strict";
 
 import {byId} from "../../utils/shorthands.js";
+import {fetchAiModels} from "../ai/ai-models-client.js";
 import {WorldSpecApplicator} from "../ai/world-spec-applicator.js";
 
 const API_BASE = "/api/ai";
@@ -19,7 +20,7 @@ async function initAIWorldSpecGenerator() {
 
   // Load available models for world-spec
   try {
-    const response = await fetch(`${API_BASE}/models`);
+    const response = await fetchAiModels();
     if (response.ok) {
       const data = await response.json();
       models = data["world-spec"] || [];

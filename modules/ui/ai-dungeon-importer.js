@@ -1,6 +1,7 @@
 "use strict";
 
 import {byId} from "../../utils/shorthands.js";
+import {fetchAiModels} from "../ai/ai-models-client.js";
 import {DataLayer} from "../ai/data-layer.js";
 
 const API_BASE = "/api/ai";
@@ -28,7 +29,7 @@ async function initAIDungeonImporter() {
 
   // Load available models
   try {
-    const response = await fetch(`${API_BASE}/models`);
+    const response = await fetchAiModels();
     if (response.ok) {
       const data = await response.json();
       models = data.models;
