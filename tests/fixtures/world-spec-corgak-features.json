@@ -1,0 +1,529 @@
+{
+  "worldAnalysis": {
+    "summary": "A temperate, mountainous frontier where the dragon-hunting Corgak ork clan migrates west from a burned mountain valley to settle around a wizard's tower in a waterfall-fed valley, uneasily bordering the human Northrealm downstream.",
+    "setting": "Fantasy frontier",
+    "climate": "Temperate, cold highlands in the east",
+    "themes": [
+      "migration",
+      "dragons",
+      "frontier"
+    ],
+    "conflictType": "mobile_threat",
+    "worldName": "The Blackwater Frontier"
+  },
+  "terrain": {
+    "base": "ocean",
+    "template": "continents",
+    "features": [
+      {
+        "id": "mainland",
+        "type": "landmass",
+        "points": [
+          [
+            0.04,
+            0.2
+          ],
+          [
+            0.55,
+            0.06
+          ],
+          [
+            0.96,
+            0.06
+          ],
+          [
+            0.97,
+            0.9
+          ],
+          [
+            0.5,
+            0.95
+          ],
+          [
+            0.05,
+            0.8
+          ]
+        ],
+        "radius": 0,
+        "height": 30,
+        "width": 0,
+        "depth": 0
+      },
+      {
+        "id": "western_gulf",
+        "type": "gulf",
+        "points": [
+          [
+            0.0,
+            0.3
+          ],
+          [
+            0.12,
+            0.35
+          ],
+          [
+            0.14,
+            0.5
+          ],
+          [
+            0.0,
+            0.55
+          ]
+        ],
+        "radius": 0,
+        "height": 0,
+        "width": 0,
+        "depth": 0
+      },
+      {
+        "id": "stone_teeth",
+        "type": "mountains",
+        "points": [
+          [
+            0.72,
+            0.08
+          ],
+          [
+            0.76,
+            0.2
+          ],
+          [
+            0.82,
+            0.32
+          ],
+          [
+            0.9,
+            0.48
+          ]
+        ],
+        "radius": 0,
+        "height": 88,
+        "width": 0.05,
+        "depth": 0
+      },
+      {
+        "id": "north_pass_hills",
+        "type": "hills",
+        "points": [
+          [
+            0.6,
+            0.28
+          ],
+          [
+            0.7,
+            0.36
+          ]
+        ],
+        "radius": 0,
+        "height": 50,
+        "width": 0.05,
+        "depth": 0
+      },
+      {
+        "id": "blackwater_valley",
+        "type": "valley",
+        "points": [
+          [
+            0.58,
+            0.4
+          ],
+          [
+            0.5,
+            0.55
+          ],
+          [
+            0.4,
+            0.62
+          ],
+          [
+            0.3,
+            0.5
+          ],
+          [
+            0.15,
+            0.42
+          ]
+        ],
+        "radius": 0,
+        "height": 0,
+        "width": 0.03,
+        "depth": 12
+      },
+      {
+        "id": "headwaters",
+        "type": "lake",
+        "points": [
+          [
+            0.58,
+            0.42
+          ]
+        ],
+        "radius": 0.025,
+        "height": 0,
+        "width": 0,
+        "depth": 0
+      },
+      {
+        "id": "wetfang_lowlands",
+        "type": "lowlands",
+        "points": [
+          [
+            0.4,
+            0.62
+          ]
+        ],
+        "radius": 0.09,
+        "height": 22,
+        "width": 0,
+        "depth": 0
+      }
+    ],
+    "heightmapCommands": [],
+    "climateSettings": {
+      "temperatureEquator": 26,
+      "temperatureNorthPole": -4,
+      "precipitation": "high",
+      "zone": "temperate",
+      "hemisphere": "north",
+      "latitude": {
+        "north": 62,
+        "south": 38
+      },
+      "prevailingWind": "west"
+    }
+  },
+  "locations": [
+    {
+      "id": "corgak_valley_camp",
+      "name": "Corgak Valley Camp",
+      "type": "village",
+      "kind": "settlement",
+      "terrain": "mountain",
+      "x": 0.78,
+      "y": 0.22,
+      "owner": "state_corgak_clan",
+      "isCapital": false,
+      "description": "The clan's abandoned mountain camp."
+    },
+    {
+      "id": "old_stronghold",
+      "name": "Old Corgak Stronghold Ruins",
+      "type": "ruins",
+      "kind": "landmark",
+      "terrain": "mountain",
+      "x": 0.75,
+      "y": 0.15,
+      "owner": "none",
+      "isCapital": false,
+      "description": "Burned ruins of the old stronghold."
+    },
+    {
+      "id": "blackstone_spire",
+      "name": "Blackstone Spire",
+      "type": "landmark",
+      "kind": "landmark",
+      "terrain": "mountain",
+      "x": 0.74,
+      "y": 0.18,
+      "owner": "none",
+      "isCapital": false,
+      "description": "Obsidian pinnacle, former lair of Iediss the Dark."
+    },
+    {
+      "id": "dragons_fall",
+      "name": "Dragon's Fall Ridge",
+      "type": "landmark",
+      "kind": "landmark",
+      "terrain": "mountain",
+      "x": 0.76,
+      "y": 0.2,
+      "owner": "state_corgak_clan",
+      "isCapital": false,
+      "description": "Where Iediss was slain."
+    },
+    {
+      "id": "headwaters_lake",
+      "name": "Blackwater Headwaters",
+      "type": "lake",
+      "kind": "landmark",
+      "terrain": "lake",
+      "x": 0.58,
+      "y": 0.42,
+      "owner": "state_corgak_clan",
+      "isCapital": false,
+      "description": "Lake feeding the Blackwater."
+    },
+    {
+      "id": "cameron_tower",
+      "name": "Cameron's Tower",
+      "type": "fortress",
+      "kind": "settlement",
+      "terrain": "valley",
+      "x": 0.555,
+      "y": 0.445,
+      "owner": "state_corgak_clan",
+      "isCapital": true,
+      "description": "The wizard's tower above the waterfall."
+    },
+    {
+      "id": "new_corgak_hold",
+      "name": "New Corgak Hold",
+      "type": "town",
+      "kind": "settlement",
+      "terrain": "plain",
+      "x": 0.6,
+      "y": 0.47,
+      "owner": "state_corgak_clan",
+      "isCapital": false,
+      "description": "The clan's new settlement."
+    },
+    {
+      "id": "corgak_quarry",
+      "name": "Corgak Quarry",
+      "type": "quarry",
+      "kind": "landmark",
+      "terrain": "hill",
+      "x": 0.65,
+      "y": 0.34,
+      "owner": "state_corgak_clan",
+      "isCapital": false,
+      "description": "Stone quarry in the pass hills."
+    },
+    {
+      "id": "huntwoods",
+      "name": "Corgak Huntwoods",
+      "type": "forest",
+      "kind": "landmark",
+      "terrain": "plain",
+      "x": 0.55,
+      "y": 0.52,
+      "owner": "state_corgak_clan",
+      "isCapital": false,
+      "description": "Hunting forest."
+    },
+    {
+      "id": "ford_camp",
+      "name": "Blackwater Ford Camp",
+      "type": "camp",
+      "kind": "settlement",
+      "terrain": "valley",
+      "x": 0.5,
+      "y": 0.55,
+      "owner": "state_corgak_clan",
+      "isCapital": false,
+      "description": "Camp at the ford."
+    },
+    {
+      "id": "wetfang_bogs",
+      "name": "Wetfang Bogs",
+      "type": "swamp",
+      "kind": "landmark",
+      "terrain": "plain",
+      "x": 0.4,
+      "y": 0.62,
+      "owner": "none",
+      "isCapital": false,
+      "description": "Plague-ridden mires."
+    },
+    {
+      "id": "north_pass",
+      "name": "North Pass Hills",
+      "type": "landmark",
+      "kind": "landmark",
+      "terrain": "hill",
+      "x": 0.65,
+      "y": 0.32,
+      "owner": "none",
+      "isCapital": false,
+      "description": "Hills north of the valley."
+    },
+    {
+      "id": "ford_town",
+      "name": "Blackwater Ford Town",
+      "type": "town",
+      "kind": "settlement",
+      "terrain": "valley",
+      "x": 0.3,
+      "y": 0.5,
+      "owner": "state_northrealm",
+      "isCapital": false,
+      "description": "Northrealm river town."
+    },
+    {
+      "id": "northrealm_capital",
+      "name": "Northrealm Capital",
+      "type": "city",
+      "kind": "settlement",
+      "terrain": "coast",
+      "x": 0.14,
+      "y": 0.42,
+      "owner": "state_northrealm",
+      "isCapital": true,
+      "description": "Capital on the western gulf.",
+      "burgType": "Naval"
+    },
+    {
+      "id": "iediss_pass",
+      "name": "Iediss Pass",
+      "type": "pass",
+      "kind": "landmark",
+      "terrain": "mountain",
+      "x": 0.79,
+      "y": 0.26,
+      "owner": "none",
+      "isCapital": false,
+      "description": "Pass through the Stone Teeth."
+    }
+  ],
+  "states": [
+    {
+      "id": "state_corgak_clan",
+      "name": "Corgak Clan",
+      "form": "Chiefdom",
+      "capital": "cameron_tower",
+      "culture": "culture_corgak",
+      "expansionism": 1.2,
+      "color": "#8a4b2d",
+      "locations": [
+        "corgak_valley_camp",
+        "dragons_fall",
+        "headwaters_lake",
+        "cameron_tower",
+        "new_corgak_hold",
+        "corgak_quarry",
+        "huntwoods",
+        "ford_camp"
+      ],
+      "description": "Dragon-hunting ork clan.",
+      "relations": [
+        {
+          "state": "state_northrealm",
+          "relation": "Suspicion"
+        }
+      ]
+    },
+    {
+      "id": "state_northrealm",
+      "name": "Northrealm",
+      "form": "Kingdom",
+      "capital": "northrealm_capital",
+      "culture": "culture_northrealm",
+      "expansionism": 1.0,
+      "color": "#3b6ea5",
+      "locations": [
+        "ford_town",
+        "northrealm_capital"
+      ],
+      "description": "Human kingdom downstream."
+    }
+  ],
+  "cultures": [
+    {
+      "id": "culture_corgak",
+      "name": "Corgak Orks",
+      "type": "Highland",
+      "base": "nordic",
+      "description": "Mountain orks."
+    },
+    {
+      "id": "culture_northrealm",
+      "name": "Northrealm Humans",
+      "type": "River",
+      "base": "english",
+      "description": "River-valley humans."
+    }
+  ],
+  "religions": [
+    {
+      "id": "rel_stone",
+      "name": "Stone and Skull Paths",
+      "type": "Folk",
+      "form": "Animism",
+      "culture": "culture_corgak",
+      "description": "Ork ancestor cult."
+    },
+    {
+      "id": "rel_river",
+      "name": "Church of the River Crown",
+      "type": "Organized",
+      "form": "Monotheism",
+      "culture": "culture_northrealm",
+      "description": "Northrealm state church."
+    }
+  ],
+  "zones": [
+    {
+      "name": "Scorched High Pass",
+      "type": "Disaster",
+      "center": {
+        "x": 0.8,
+        "y": 0.18
+      },
+      "radius": 0.05,
+      "description": "Dragonfire-scarred pass."
+    },
+    {
+      "name": "Wetfang Plague Mires",
+      "type": "Disease",
+      "center": {
+        "x": 0.4,
+        "y": 0.62
+      },
+      "radius": 0.06,
+      "description": "Plague zone."
+    }
+  ],
+  "borders": [
+    {
+      "between": [
+        "state_corgak_clan",
+        "state_northrealm"
+      ],
+      "type": "undefined",
+      "name": "Blackwater Frontier",
+      "hint": "Vague frontier between the ford towns"
+    }
+  ],
+  "provinces": [
+    {
+      "id": "prov_valley",
+      "name": "Blackwater Hold",
+      "state": "state_corgak_clan",
+      "formName": "Hold",
+      "center": {
+        "x": 0.56,
+        "y": 0.46
+      }
+    },
+    {
+      "id": "prov_teeth",
+      "name": "Stone Teeth",
+      "state": "state_corgak_clan",
+      "formName": "March",
+      "center": {
+        "x": 0.78,
+        "y": 0.22
+      }
+    },
+    {
+      "id": "prov_ford",
+      "name": "Ford Shire",
+      "state": "state_northrealm",
+      "formName": "Shire",
+      "center": {
+        "x": 0.3,
+        "y": 0.5
+      }
+    },
+    {
+      "id": "prov_coast",
+      "name": "Gulf Coast",
+      "state": "state_northrealm",
+      "formName": "Shire",
+      "center": {
+        "x": 0.14,
+        "y": 0.42
+      }
+    }
+  ]
+}

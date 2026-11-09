@@ -67,13 +67,46 @@ const setGraph = graph => {
     });
   };
 
+  // Custom height providers registered at runtime (e.g. the AI world-spec
+  // terrain painter). A provider receives the graph and returns heights.
+  const customProviders = {};
+  const registerCustom = (id, provider) => {
+    customProviders[id] = provider;
+  };
+  const unregisterCustom = id => {
+    delete customProviders[id];
+  };
+  const hasCustom = id => id in customProviders;
+
+  const fromCustom = (graph, id) => {
+    setGraph(graph);
+    const result = customProviders[id](graph);
+    heights = result instanceof Uint8Array ? result : Uint8Array.from(result);
+    return heights;
+  };
+
   const generate = async function (graph) {
     TIME && console.time("defineHeightmap");
-    const id = byId("templateInput").value;
+    let id = byId("templateInput").value;
 
     Math.random = aleaPRNG(seed);
     const isTemplate = id in heightmapTemplates;
-    const heights = isTemplate ? fromTemplate(graph, id) : await fromPrecreated(graph, id);
+    const isCustom = id in customProviders;
+    const isPrecreated = typeof precreatedHeightmaps === "object" && id in precreatedHeightmaps;
+
+    if (!isTemplate && !isCustom && !isPrecreated) {
+      // A stale custom id (e.g. persisted by a locked option) would otherwise
+      // try to load a non-existent image and never resolve
+      ERROR && console.error(`Heightmap template "${id}" not found, falling back to "continents"`);
+      id = "continents";
+      byId("templateInput").value = id;
+    }
+
+    const heights = isCustom
+      ? fromCustom(graph, id)
+      : id in heightmapTemplates
+      ? fromTemplate(graph, id)
+      : await fromPrecreated(graph, id);
     TIME && console.timeEnd("defineHeightmap");
 
     clearData();
@@ -534,6 +567,9 @@ export const HeightmapGenerator = {
   setGraph,
   getHeights,
   generate,
+  registerCustom,
+  unregisterCustom,
+  hasCustom,
   fromTemplate,
   fromPrecreated,
   addHill,

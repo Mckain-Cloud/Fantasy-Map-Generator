@@ -479,6 +479,7 @@ export {
 
 if (typeof window !== "undefined") {
   window.applyStyleOnLoad = applyStyleOnLoad;
+  window.changeStyle = changeStyle; // used by the world-spec applicator (spec.map.style)
   window.requestStylePresetChange = requestStylePresetChange;
   window.addStylePreset = addStylePreset;
   window.requestRemoveStylePreset = requestRemoveStylePreset;
