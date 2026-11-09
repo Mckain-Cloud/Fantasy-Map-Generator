@@ -61,7 +61,9 @@ function findHookBlocks(src, hook) {
 
 function rewriteHook(block, hook) {
   const lines = block.body.split("\n");
-  const kept = lines.filter(l => l.trim() && !NAV_LINE.test(l) && !/^\s*\/\/\s*(Wait for|Clean|Start|Stop|Navigate)/i.test(l));
+  const kept = lines.filter(
+    l => l.trim() && !NAV_LINE.test(l) && !/^\s*\/\/.*(wait for|clean|start|stop|navigat|coverage|goto|app ready|map generation to complete)/i.test(l)
+  );
   const indent = block.header.match(/^[ \t]*/)[0];
 
   if (hook === "beforeAll" && /page = await (browser|context)\.newPage/.test(block.body)) {
@@ -85,7 +87,8 @@ function convert(src) {
   for (const hook of ["afterAll", "beforeAll", "afterEach", "beforeEach"]) {
     const blocks = findHookBlocks(out, hook).reverse();
     for (const b of blocks) {
-      if (!NAV_LINE.test(b.body) && !/startCoverage|stopCoverage|flushCoverage/.test(b.body)) continue;
+      const navigates = b.body.split("\n").some(l => NAV_LINE.test(l));
+      if (!navigates && !/startCoverage|stopCoverage|flushCoverage/.test(b.body)) continue;
       out = out.slice(0, b.start) + rewriteHook(b, hook) + out.slice(b.end);
     }
   }

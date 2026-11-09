@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, gotoApp, stopCoverage, flushCoverage } from '../setup/helpers.js';
+import {test, expect} from "../setup/shared-test.js";
+
 
 /**
  * User Journey Tests
@@ -8,15 +8,7 @@ import { waitForAppReady, gotoApp, stopCoverage, flushCoverage } from '../setup/
  */
 
 test.describe('User Journey: Map Creation and Customization', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test('Complete map creation workflow', async ({ page }) => {
     // Step 1: Verify the map has loaded
@@ -139,15 +131,7 @@ test.describe('User Journey: Map Creation and Customization', () => {
 });
 
 test.describe('User Journey: Entity Editing', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test('Open States editor and view state list', async ({ page }) => {
     // Step 1: Find and click the States editor button in tools
@@ -313,15 +297,7 @@ test.describe('User Journey: Entity Editing', () => {
 });
 
 test.describe('User Journey: Military Operations', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test('Open Military overview and view regiments', async ({ page }) => {
     // Step 1: Click Military overview button
@@ -415,15 +391,7 @@ test.describe('User Journey: Military Operations', () => {
 });
 
 test.describe('User Journey: Save and Export Operations', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test('Open Save dialog', async ({ page }) => {
     // Step 1: Find and click Save button
@@ -501,15 +469,7 @@ test.describe('User Journey: Save and Export Operations', () => {
 });
 
 test.describe('User Journey: Navigation and Zooming', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test('Zoom in and out using mouse wheel', async ({ page }) => {
     // Step 1: Get the map element
@@ -591,15 +551,7 @@ test.describe('User Journey: Navigation and Zooming', () => {
 });
 
 test.describe('User Journey: Complete Session Workflow', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
 
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test('Full user session: explore map, view editors, toggle layers', async ({ page }) => {
     // This is a comprehensive test simulating a full user session

@@ -112,9 +112,10 @@ test("rn rounds", async ({page}) => {              // page = shared app page
 test.beforeAll(async ({appPage}) => { /* worker-scoped handle when a describe keeps its own `page` */ });
 ```
 
-The read-only e2e specs (layers, toolbar, dialogs, ai-data-layer, notesEditor, editorWorkflows)
-use the same fixture. The specs that regenerate or load maps (mapGeneration, coreWorkflows,
-userJourneys, integration, performance) keep a page per test on purpose.
+Every e2e and integration spec uses the same fixture too. Tests may generate maps with their own
+seeds: before the next test the fixture restores the baseline map by regenerating with the fixed
+seed (~2 s) and reloads the app only if a test navigated away. Only `performance/benchmarks.spec.js`
+keeps a page per test, because it measures page load itself.
 
 ### Share one page per file (e2e specs with heavier state)
 

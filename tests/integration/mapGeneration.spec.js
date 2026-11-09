@@ -1,22 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, gotoApp, stopCoverage, flushCoverage } from '../setup/helpers.js';
+import {test, expect} from "../setup/shared-test.js";
 
 test.describe('Map Generation Integration', () => {
-  test.beforeEach(async ({ page }) => {
-    // gotoApp automatically starts coverage
-    await gotoApp(page);
-    // Wait for full map generation to complete
-    await waitForAppReady(page);
-  });
-
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('Basic map generation', () => {
     test('should generate a map successfully', async ({ page }) => {
-      // waitForAppReady() in beforeEach already ensures the app is loaded
+      // the shared page fixture guarantees a fully generated map here
       // Just verify the global variables are accessible
       const result = await page.evaluate(() => {
         return {

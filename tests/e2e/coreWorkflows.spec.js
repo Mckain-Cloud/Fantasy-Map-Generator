@@ -1,18 +1,6 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, gotoApp, stopCoverage, flushCoverage } from '../setup/helpers.js';
+import {test, expect} from "../setup/shared-test.js";
 
 test.describe('Core User Workflows', () => {
-  test.beforeEach(async ({ page }) => {
-    // gotoApp automatically starts coverage
-    await gotoApp(page);
-    // Wait for app to be fully ready
-    await waitForAppReady(page);
-  });
-
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('Application loading', () => {
     test('should load the application', async ({ page }) => {

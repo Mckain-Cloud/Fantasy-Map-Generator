@@ -15,8 +15,9 @@
  *   - do not navigate; the app is already loaded and ready
  *   - leave the page as you found it (close dialogs you open); a light reset
  *     closes stray <dialog> elements before each test anyway
- *   - if a test must regenerate the map, say so in its name and expect later
- *     tests in the same worker to see the new map
+ *   - tests may generate maps with their own seed; the fixture restores the
+ *     baseline map (fixed seed) before the next test, and reloads the app
+ *     only if a test navigated away
  *
  * playwright.config.js sets fullyParallel: false so a file's tests run in one
  * worker, in order; files still run in parallel across workers.
@@ -41,6 +42,7 @@ export const test = base.extend({
       const page = await appContext.newPage();
       await gotoApp(page, {seed: SHARED_PAGE_SEED}); // deterministic on-load map
       await waitForAppReady(page);
+      await markSharedPage(page);
       await use(page);
       await stopCoverage(page);
       await flushCoverage();
@@ -55,28 +57,52 @@ export const test = base.extend({
   }
 });
 
+/**
+ * Per-test isolation on a shared page, cheapest remedy first:
+ *  - navigated away (marker gone / app not ready): reload the app   (~10 s, rare)
+ *  - different map (a test generated with its own seed) or degraded: regenerate
+ *    the baseline map with the fixed seed                            (~2 s)
+ *  - otherwise just close stray dialogs and reset the view           (~ms)
+ */
 async function resetPageState(page) {
+  let status;
   try {
-    const degraded = await page.evaluate(() => {
+    status = await page.evaluate(seed => {
+      if (!window.__fmgSharedPage || typeof window.generate !== "function") return "navigated";
       document.querySelectorAll("dialog[open]").forEach(d => {
         try {
           d.close();
         } catch {}
       });
-      // A previous test may have replaced or emptied the map (mock packs, failed loads)
       const p = window.pack;
-      return !p?.cells?.i?.length || !p.states || p.states.length <= 1 || !p.burgs || p.burgs.length <= 1;
-    });
-    if (degraded) {
-      console.warn("[shared-test] map state was degraded by an earlier test; regenerating");
-      await page.evaluate(async () => {
-        await window.generate();
-        if (typeof window.drawLayers === "function") window.drawLayers();
-      });
-    }
+      const degraded = !p?.cells?.i?.length || !p.states || p.states.length <= 1 || !p.burgs || p.burgs.length <= 1;
+      if (degraded || window.seed !== seed) return "regenerate";
+      return "ok";
+    }, SHARED_PAGE_SEED);
   } catch {
-    // page may be mid-navigation after a test that reloaded; nothing to reset
+    status = "navigated";
   }
+
+  if (status === "navigated") {
+    await gotoApp(page, {seed: SHARED_PAGE_SEED});
+    await waitForAppReady(page);
+    await markSharedPage(page);
+    return;
+  }
+
+  if (status === "regenerate") {
+    await page.evaluate(async seed => {
+      await window.generate({seed});
+      if (typeof window.drawLayers === "function") window.drawLayers();
+      if (typeof window.resetZoom === "function") window.resetZoom(0);
+    }, SHARED_PAGE_SEED);
+  }
+}
+
+async function markSharedPage(page) {
+  await page.evaluate(() => {
+    window.__fmgSharedPage = true;
+  });
 }
 
 export {expect};
