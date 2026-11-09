@@ -19,8 +19,10 @@ export const APP_URL = 'http://localhost:8080/';
  */
 export async function gotoApp(page, options = {}) {
   await startCoverage(page);
+  const { seed, ...gotoOptions } = options;
   const defaultOptions = { waitUntil: 'domcontentloaded' };
-  return page.goto(APP_URL, { ...defaultOptions, ...options });
+  const url = seed ? `${APP_URL}?seed=${encodeURIComponent(seed)}` : APP_URL;
+  return page.goto(url, { ...defaultOptions, ...gotoOptions });
 }
 
 /**
@@ -460,10 +462,15 @@ export const FAST_APP_INIT = `
     localStorage.setItem("points", "1");            // 1000 cells
     localStorage.setItem("mapWidth", "800");
     localStorage.setItem("mapHeight", "600");
+    localStorage.setItem("template", "continents"); // locked: random "atoll"/"volcano" maps can have a single state
+    localStorage.setItem("regions", "15");
     localStorage.setItem("onloadBehavior", "random");
     localStorage.setItem("disable_click_arrow_tooltip", "true");
   } catch (e) {}
 `;
+
+/** Fixed seed for shared pages so every worker gets the same on-load map. */
+export const SHARED_PAGE_SEED = "fmg-shared-page-1";
 
 /**
  * Create ONE page for a whole describe block instead of one per test.

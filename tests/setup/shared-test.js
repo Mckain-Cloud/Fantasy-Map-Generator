@@ -23,7 +23,7 @@
  */
 
 import {test as base, expect} from "@playwright/test";
-import {FAST_APP_INIT, gotoApp, waitForAppReady, stopCoverage, flushCoverage} from "./helpers.js";
+import {FAST_APP_INIT, SHARED_PAGE_SEED, gotoApp, waitForAppReady, stopCoverage, flushCoverage} from "./helpers.js";
 
 export const test = base.extend({
   appContext: [
@@ -39,7 +39,7 @@ export const test = base.extend({
   appPage: [
     async ({appContext}, use) => {
       const page = await appContext.newPage();
-      await gotoApp(page);
+      await gotoApp(page, {seed: SHARED_PAGE_SEED}); // deterministic on-load map
       await waitForAppReady(page);
       await use(page);
       await stopCoverage(page);
@@ -57,13 +57,23 @@ export const test = base.extend({
 
 async function resetPageState(page) {
   try {
-    await page.evaluate(() => {
+    const degraded = await page.evaluate(() => {
       document.querySelectorAll("dialog[open]").forEach(d => {
         try {
           d.close();
         } catch {}
       });
+      // A previous test may have replaced or emptied the map (mock packs, failed loads)
+      const p = window.pack;
+      return !p?.cells?.i?.length || !p.states || p.states.length <= 1 || !p.burgs || p.burgs.length <= 1;
     });
+    if (degraded) {
+      console.warn("[shared-test] map state was degraded by an earlier test; regenerating");
+      await page.evaluate(async () => {
+        await window.generate();
+        if (typeof window.drawLayers === "function") window.drawLayers();
+      });
+    }
   } catch {
     // page may be mid-navigation after a test that reloaded; nothing to reset
   }

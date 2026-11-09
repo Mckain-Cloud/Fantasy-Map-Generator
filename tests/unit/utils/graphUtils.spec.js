@@ -332,6 +332,7 @@ test.describe('graphUtils.js', () => {
     test('isLand and isWater should be opposites for same height', async () => {
       const result = await page.evaluate(() => {
         // Create mock pack data
+        const __realPack = window.pack;
         window.pack = {
           cells: {
             h: [10, 15, 19, 20, 25, 50, 100]
@@ -346,6 +347,7 @@ test.describe('graphUtils.js', () => {
             water: isWater(i)
           });
         }
+        window.pack = __realPack;
         return results;
       });
 
@@ -362,7 +364,9 @@ test.describe('graphUtils.js', () => {
 
     test('should classify height 20 as land', async () => {
       const result = await page.evaluate(() => {
+        const __realPack = window.pack;
         window.pack = { cells: { h: [20] } };
+        window.pack = __realPack;
         return { land: isLand(0), water: isWater(0) };
       });
       expect(result.land).toBe(true);
@@ -371,7 +375,9 @@ test.describe('graphUtils.js', () => {
 
     test('should classify height 19 as water', async () => {
       const result = await page.evaluate(() => {
+        const __realPack = window.pack;
         window.pack = { cells: { h: [19] } };
+        window.pack = __realPack;
         return { land: isLand(0), water: isWater(0) };
       });
       expect(result.land).toBe(false);
