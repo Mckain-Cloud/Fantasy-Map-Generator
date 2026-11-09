@@ -32,12 +32,11 @@
     "test:sweep": "playwright test tests/e2e/world-spec-model-sweep.spec.js"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.0",
-    "c8": "^10.1.2",
-    "chai": "^5.1.1",
+    "@playwright/test": "^1.65.0",
+    "chai": "^6.3.0",
     "http-server": "^14.1.1",
-    "vite": "^7.2.4",
-    "vitest": "^3.2.2"
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   },
   "keywords": [
     "fantasy",
@@ -55,24 +54,24 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
-    "@openrouter/sdk": "^1.5.69",
+    "@openrouter/sdk": "^1.5.70",
     "alea": "^1.0.1",
-    "compression": "^1.8.1",
-    "d3": "^7.9.0",
-    "delaunator": "^5.0.1",
-    "dotenv": "^17.2.3",
-    "dropbox": "^10.34.0",
-    "express": "^5.1.0",
-    "flatqueue": "^3.0.0",
-    "jszip": "^3.10.1",
+    "compression": "^1.8.2",
+    "d3": "^7.9.2",
+    "delaunator": "^5.1.0",
+    "dotenv": "^18.0.10",
+    "dropbox": "^10.66.0",
+    "express": "^5.3.0",
+    "flatqueue": "^3.1.0",
+    "jszip": "^3.10.2",
     "lineclip": "^2.0.0",
     "openai": "^7.53.0",
-    "polylabel": "^2.0.1",
+    "polylabel": "^2.1.0",
     "rgbquant": "^1.1.2",
     "simplify-js": "^1.2.4",
-    "three": "^0.181.2",
+    "three": "^0.187.0",
     "three-subdivide": "^1.1.5",
-    "tinymce": "^8.2.2",
-    "vite-plugin-static-copy": "^3.1.4"
+    "tinymce": "^8.10.1",
+    "vite-plugin-static-copy": "^4.1.1"
   }
 }
