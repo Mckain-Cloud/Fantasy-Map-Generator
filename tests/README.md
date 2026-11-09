@@ -93,7 +93,26 @@ Modules meant for this layer must not touch `window`, `document`, or FMG globals
 
 ## Writing browser (Playwright) tests
 
-### Share one page per file
+### Share one page per worker (default for unit specs)
+
+All `tests/unit/**` specs import `test`/`expect` from `tests/setup/shared-test.js` instead of
+`@playwright/test`. That fixture replaces `page` with one app page per worker, loaded once with a
+small map and reused by every test the worker runs. Together with `fullyParallel: false` in
+`playwright.config.js` (a file's tests run in order in one worker), page load happens ~16 times
+per run instead of ~1400. Rules: never navigate, close what you open, and if a test regenerates
+the map say so in its name. `scripts/codemod-shared-page.mjs` converts a page-per-test file.
+
+```javascript
+import {test, expect} from "../../setup/shared-test.js";
+
+test("rn rounds", async ({page}) => {              // page = shared app page
+  expect(await page.evaluate(() => rn(3.14159, 2))).toBe(3.14);
+});
+
+test.beforeAll(async ({appPage}) => { /* worker-scoped handle when a describe keeps its own `page` */ });
+```
+
+### Share one page per file (e2e specs with heavier state)
 
 Loading the app is the expensive part (5-15 s). Use `useSharedAppPage` so a whole describe
 block shares one page, loaded once with a tiny map:

@@ -1,17 +1,6 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, startCoverage, stopCoverage, flushCoverage } from '../../setup/helpers.js';
+import {test, expect} from "../../setup/shared-test.js";
 
 test.describe('nodeUtils.js', () => {
-  test.beforeEach(async ({ page }) => {
-    await startCoverage(page);
-    await page.goto('/', { waitUntil: 'networkidle' });
-    await waitForAppReady(page);
-  });
-
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('getComposedPath() - Get event path polyfill', () => {
     test('should return path with single node', async ({ page }) => {

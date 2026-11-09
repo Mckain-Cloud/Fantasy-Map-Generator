@@ -1,17 +1,6 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, startCoverage, stopCoverage, flushCoverage } from '../../setup/helpers.js';
+import {test, expect} from "../../setup/shared-test.js";
 
 test.describe('Cultures module', () => {
-  test.beforeEach(async ({ page }) => {
-    await startCoverage(page);
-    await page.goto('/', { waitUntil: 'networkidle' });
-    await waitForAppReady(page);
-  });
-
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('Cultures object availability', () => {
     test('should have Cultures object on window', async ({ page }) => {

@@ -1,23 +1,14 @@
-import { test, expect } from '@playwright/test';
-import { startCoverage, stopCoverage, flushCoverage } from '../../setup/coverageHelpers.js';
+import {test, expect} from "../../setup/shared-test.js";
 
 test.describe('pathUtils.js', () => {
   let page;
 
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-    await startCoverage(page);
-    await page.goto('/');
+  test.beforeAll(async ({appPage}) => {
+    page = appPage;
     await page.waitForFunction(
       () => typeof window.getFillPath === 'function',
       { timeout: 30000 }
     );
-  });
-
-  test.afterAll(async () => {
-    await stopCoverage(page);
-    await flushCoverage();
-    await page.close();
   });
 
   test.describe('getFillPath() - Generate SVG fill path', () => {

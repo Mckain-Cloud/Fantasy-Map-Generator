@@ -1,17 +1,6 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, startCoverage, stopCoverage, flushCoverage } from '../../setup/helpers.js';
+import {test, expect} from "../../setup/shared-test.js";
 
 test.describe('UI Units Editor module', () => {
-  test.beforeEach(async ({ page }) => {
-    await startCoverage(page);
-    await page.goto('/', { waitUntil: 'networkidle' });
-    await waitForAppReady(page);
-  });
-
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('Units Editor dialog', () => {
     test('should have unitsEditor element', async ({ page }) => {

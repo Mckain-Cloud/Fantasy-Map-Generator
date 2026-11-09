@@ -1,18 +1,6 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, startCoverage, stopCoverage, flushCoverage } from '../../setup/helpers.js';
+import {test, expect} from "../../setup/shared-test.js";
 
 test.describe('Biomes module', () => {
-  test.beforeEach(async ({ page }) => {
-    await startCoverage(page);
-    await page.goto('/', { waitUntil: 'networkidle' });
-    // Wait for full app initialization including biomesData
-    await waitForAppReady(page);
-  });
-
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('getId() - Get biome ID from conditions', () => {
     test('should return marine biome (0) for water', async ({ page }) => {

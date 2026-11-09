@@ -8,8 +8,10 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
 
-  // Run tests in parallel
-  fullyParallel: true,
+  // Files run in parallel across workers, but a file's tests run in order in
+  // one worker. Shared-page specs (tests/setup/shared-test.js) depend on this:
+  // with fullyParallel the page would be loaded once per worker *per file*.
+  fullyParallel: false,
 
   // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,

@@ -1,13 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { startCoverage, stopCoverage, flushCoverage } from '../../setup/coverageHelpers.js';
+import {test, expect} from "../../setup/shared-test.js";
 
 test.describe('shorthands.js', () => {
   let page;
 
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-    await startCoverage(page);
-    await page.goto('/');
+  test.beforeAll(async ({appPage}) => {
+    page = appPage;
     await page.waitForFunction(() => {
       try {
         const div = document.createElement('div');
@@ -16,12 +13,6 @@ test.describe('shorthands.js', () => {
                typeof div.off === 'function';
       } catch { return false; }
     }, { timeout: 30000 });
-  });
-
-  test.afterAll(async () => {
-    await stopCoverage(page);
-    await flushCoverage();
-    await page.close();
   });
 
   test.describe('byId() - Get element by ID', () => {

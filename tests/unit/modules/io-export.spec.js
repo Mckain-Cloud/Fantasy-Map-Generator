@@ -1,20 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { waitForAppReady, startCoverage, stopCoverage, flushCoverage } from '../../setup/helpers.js';
+import {test, expect} from "../../setup/shared-test.js";
 
 test.describe('IO Export module', () => {
   // Increase timeout for this module as export tests can be resource-intensive
   test.setTimeout(90000);
-
-  test.beforeEach(async ({ page }) => {
-    await startCoverage(page);
-    await page.goto('/', { waitUntil: 'networkidle', timeout: 90000 });
-    await waitForAppReady(page);
-  });
-
-  test.afterEach(async ({ page }) => {
-    await stopCoverage(page);
-    await flushCoverage();
-  });
 
   test.describe('Export functions availability', () => {
     test('should have exportToSvg function', async ({ page }) => {

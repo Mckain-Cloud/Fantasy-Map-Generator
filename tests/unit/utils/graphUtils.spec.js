@@ -1,13 +1,10 @@
-import { test, expect } from '@playwright/test';
-import { startCoverage, stopCoverage, flushCoverage } from '../../setup/coverageHelpers.js';
+import {test, expect} from "../../setup/shared-test.js";
 
 test.describe('graphUtils.js', () => {
   let page;
 
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-    await startCoverage(page);
-    await page.goto('/');
+  test.beforeAll(async ({appPage}) => {
+    page = appPage;
     await page.waitForFunction(() => {
       try {
         return typeof findGridCell === 'function' &&
@@ -16,12 +13,6 @@ test.describe('graphUtils.js', () => {
                rn(1.234, 2) === 1.23;
       } catch { return false; }
     }, { timeout: 30000 });
-  });
-
-  test.afterAll(async () => {
-    await stopCoverage(page);
-    await flushCoverage();
-    await page.close();
   });
 
   test.describe('findGridCell() - Find cell on regular grid', () => {

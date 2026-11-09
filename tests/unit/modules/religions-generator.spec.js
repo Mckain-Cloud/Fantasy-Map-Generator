@@ -1,6 +1,5 @@
 // @ts-check
-import {test, expect} from "@playwright/test";
-import {gotoApp, waitForAppReady} from "../../setup/helpers.js";
+import {test, expect} from "../../setup/shared-test.js";
 
 /**
  * Religions Generator Tests
@@ -10,14 +9,8 @@ import {gotoApp, waitForAppReady} from "../../setup/helpers.js";
 test.describe("Religions Generator", () => {
   let page;
 
-  test.beforeAll(async ({browser}) => {
-    page = await browser.newPage();
-    await gotoApp(page);
-    await waitForAppReady(page);
-  });
-
-  test.afterAll(async () => {
-    await page?.close();
+  test.beforeAll(async ({appPage}) => {
+    page = appPage;
   });
 
   test.describe("Religions API availability", () => {
