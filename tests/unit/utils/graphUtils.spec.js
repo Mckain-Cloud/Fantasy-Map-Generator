@@ -366,8 +366,9 @@ test.describe('graphUtils.js', () => {
       const result = await page.evaluate(() => {
         const __realPack = window.pack;
         window.pack = { cells: { h: [20] } };
+        const result = { land: isLand(0), water: isWater(0) };
         window.pack = __realPack;
-        return { land: isLand(0), water: isWater(0) };
+        return result;
       });
       expect(result.land).toBe(true);
       expect(result.water).toBe(false);
@@ -377,8 +378,9 @@ test.describe('graphUtils.js', () => {
       const result = await page.evaluate(() => {
         const __realPack = window.pack;
         window.pack = { cells: { h: [19] } };
+        const result = { land: isLand(0), water: isWater(0) };
         window.pack = __realPack;
-        return { land: isLand(0), water: isWater(0) };
+        return result;
       });
       expect(result.land).toBe(false);
       expect(result.water).toBe(true);
