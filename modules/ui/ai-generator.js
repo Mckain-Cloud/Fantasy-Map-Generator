@@ -18,24 +18,24 @@ const PROVIDERS = {
   }
 };
 
-const DEFAULT_MODEL = "gpt-4o-mini";
+const DEFAULT_MODEL = "claude-opus-5-5";
 
+// Current generation per vendor (checked 2026-11-08). These calls go straight
+// from the browser to the vendor with the user's own key.
 const MODELS = {
-  "gpt-4o-mini": "openai",
-  "chatgpt-4o-latest": "openai",
-  "gpt-4o": "openai",
-  "gpt-4-turbo": "openai",
-  o3: "openai",
-  "o3-mini": "openai",
-  "o3-pro": "openai",
-  "o4-mini": "openai",
-  "claude-opus-4-20250514": "anthropic",
-  "claude-sonnet-4-20250514": "anthropic",
-  "claude-3-5-haiku-latest": "anthropic",
-  "claude-3-5-sonnet-latest": "anthropic",
-  "claude-3-opus-latest": "anthropic",
+  "claude-opus-5-5": "anthropic",
+  "claude-sonnet-5-5": "anthropic",
+  "claude-haiku-5-5": "anthropic",
+  "claude-fable-5-1": "anthropic",
+  "gpt-6-astra": "openai",
+  "gpt-6.1-sol": "openai",
+  "gpt-6.1-terra": "openai",
+  "gpt-6-luna": "openai",
   "ollama (local models)": "ollama"
 };
+
+// Claude 5.x and 4.7+ reject sampling parameters (temperature/top_p/top_k)
+const ANTHROPIC_NO_SAMPLING = /^claude-(fable|mythos|opus-5|sonnet-5|haiku-5|opus-4-[78])/;
 
 const SYSTEM_MESSAGE = "I'm working on my fantasy map.";
 
@@ -77,7 +77,14 @@ async function generateWithAnthropic({key, model, prompt, temperature, onContent
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers,
-    body: JSON.stringify({model, system: SYSTEM_MESSAGE, messages, temperature, max_tokens: 4096, stream: true})
+    body: JSON.stringify({
+      model,
+      system: SYSTEM_MESSAGE,
+      messages,
+      ...(ANTHROPIC_NO_SAMPLING.test(model) ? {} : {temperature}),
+      max_tokens: 4096,
+      stream: true
+    })
   });
 
   const getContent = json => {

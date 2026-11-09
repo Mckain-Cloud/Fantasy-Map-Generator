@@ -22,7 +22,14 @@
     "test:coverage": "COLLECT_COVERAGE=true playwright test",
     "test:report": "playwright show-report",
     "serve": "python -m http.server 8080",
-    "test:watch": "playwright test --ui"
+    "test:watch": "playwright test --ui",
+    "test:fast": "vitest run",
+    "test:fast:watch": "vitest",
+    "test:e2e:fast": "playwright test tests/e2e",
+    "test:world-spec": "playwright test tests/e2e/world-spec-applicator.spec.js tests/e2e/world-spec-fidelity.spec.js",
+    "test:audit": "playwright test tests/e2e/world-spec-fidelity-audit.spec.js",
+    "ai:sweep": "node scripts/world-spec-model-sweep.mjs",
+    "test:sweep": "playwright test tests/e2e/world-spec-model-sweep.spec.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",
@@ -47,15 +54,19 @@
     "url": "https://github.com/Azgaar/Fantasy-Map-Generator.git"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "@openrouter/sdk": "^1.5.69",
     "alea": "^1.0.1",
     "compression": "^1.8.1",
     "d3": "^7.9.0",
     "delaunator": "^5.0.1",
+    "dotenv": "^17.2.3",
     "dropbox": "^10.34.0",
     "express": "^5.1.0",
     "flatqueue": "^3.0.0",
     "jszip": "^3.10.1",
     "lineclip": "^2.0.0",
+    "openai": "^7.53.0",
     "polylabel": "^2.0.1",
     "rgbquant": "^1.1.2",
     "simplify-js": "^1.2.4",
