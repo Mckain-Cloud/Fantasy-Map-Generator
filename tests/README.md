@@ -1,262 +1,173 @@
 # Fantasy Map Generator - Test Suite
 
-**Framework:** Playwright with Microsoft Edge
-**Coverage Target:** 90%
-**Status:** Infrastructure complete, 165 tests created (116 passing)
+Two layers, picked by speed:
+
+| Layer | Runner | What it covers | Time |
+|-------|--------|----------------|------|
+| **Fast** | Vitest (Node, no browser) | pure logic: AI data layer, dungeon preprocessor, prompts, terrain painter, fidelity checker, validators | ~2 s for 650+ tests |
+| **Browser** | Playwright (Edge or bundled Chromium) | anything that needs FMG's globals, the DOM, SVG, or a generated map | ~25 s for the world-spec specs, ~15 min for everything |
+
+Rule of thumb: if the code under test can be written as a pure function over plain data, put it
+in a module with no DOM/global access and test it with Vitest. Only reach for Playwright when
+the behaviour genuinely depends on the running app.
 
 ---
 
-## Quick Start
+## Quick start
 
 ```bash
-# Install dependencies
 npm install
+npx playwright install msedge        # or set PW_BROWSER=chromium to use the bundled browser
 
-# Install Microsoft Edge for Playwright (if needed)
-npx playwright install msedge
+npm run test:fast                    # Vitest, all pure-logic tests (seconds)
+npm run test:fast:watch              # Vitest in watch mode while developing
 
-# Run all tests
-npm test
+npm run test:world-spec              # Playwright: applicator + fidelity contract (~25 s incl. build)
+npm run test:audit                   # Playwright: spec-vs-map audit report for a real AI output
+npm run ai:sweep                     # live: ask every registry model for a world spec (costs money, needs API keys)
+npm run test:sweep                   # Playwright: map + score every spec from the latest sweep folder
+npm run test:e2e                     # all Playwright e2e specs
+npm test                             # full Playwright suite
+npm run test:report                  # open the HTML report
+```
 
-# Run specific test suites
-npm run test:unit          # Unit tests only
-npm run test:integration   # Integration tests
-npm run test:e2e          # E2E tests
-npm run test:performance  # Performance benchmarks
+Useful environment variables for Playwright runs:
 
-# Run with UI (interactive)
-npm run test:ui
+| Variable | Effect |
+|----------|--------|
+| `PW_SKIP_BUILD=1` | serve the existing `dist/` instead of rebuilding (saves ~15 s; only when sources are unchanged) |
+| `PW_BROWSER=chromium` | use Playwright's bundled Chromium instead of the Edge channel |
+| `WORLD_SPEC_FILE=path.json` | spec file for `npm run test:audit` |
+| `AUDIT_REPORT=path.json` | where the audit writes its report (+ PNG screenshot) |
+| `SWEEP_DIR=world-spec-outputs/sweep-…` | sweep folder for `npm run test:sweep` (default: newest) |
+| `COLLECT_COVERAGE=true` | collect V8 coverage during Playwright runs |
 
-# Run with coverage
-npm run test:coverage
+---
 
-# View test report
-npm run test:report
+## Layout
+
+```
+vitest.config.js            # fast layer: modules/ai/**/*.test.js, tests/node/**/*.test.js
+playwright.config.js        # browser layer
+
+modules/ai/*.test.js        # Vitest tests live next to the module they test
+tests/node/                 # Node-only helpers (synthetic grid for terrain tests)
+tests/fixtures/             # JSON fixtures (e.g. world-spec-corgak-features.json)
+
+tests/setup/
+  helpers.js                # gotoApp, waitForAppReady, useSharedAppPage, loadWorldSpecApplicator, ...
+  fixtures.js               # map seeds
+  mocks.js                  # AI/storage mocks
+  coverageHelpers.js        # V8 coverage plumbing
+
+tests/unit/                 # Playwright unit-style tests against app globals (utils, modules, core)
+tests/integration/          # map generation pipeline
+tests/e2e/                  # workflows, editors, layers, AI features
+  world-spec-applicator.spec.js      # API, validation, placement, generation (shared page)
+  world-spec-fidelity.spec.js        # the contract: spec geography == map geography
+  world-spec-fidelity-audit.spec.js  # report generator for any spec file
+tests/performance/          # benchmarks
 ```
 
 ---
 
-## Test Organization
-
-```
-tests/
-├── setup/
-│   ├── fixtures.js      # Test maps, mock data
-│   ├── mocks.js         # AI/storage/random mocks
-│   ├── helpers.js       # Test utilities (30+ functions)
-│   └── assertions.js    # Custom assertions (12+ helpers)
-│
-├── unit/
-│   └── utils/           # 16 util files (165 tests created)
-│       ├── numberUtils.spec.js    ✅ (34 tests passing)
-│       ├── stringUtils.spec.js    ✅ (20 tests, 19 passing)
-│       ├── arrayUtils.spec.js     ✅ (23 tests passing)
-│       ├── colorUtils.spec.js     ✅ (20 tests passing)
-│       ├── commonUtils.spec.js    ✅ (11 tests passing)
-│       ├── shorthands.spec.js     ✅ (8 tests, fixed)
-│       ├── probabilityUtils.spec.js ✅ (29 tests)
-│       └── unitUtils.spec.js      ✅ (20 tests)
-│
-├── integration/         # Module interaction tests
-├── e2e/                 # End-to-end workflows
-└── performance/         # Benchmarks
-```
-
----
-
-## Writing Tests
-
-### Test Pattern Template
+## Writing fast (Vitest) tests
 
 ```javascript
-import { test, expect } from '@playwright/test';
+import {describe, test, expect} from "vitest";
+import {paintTerrain} from "./terrain-painter.js";
+import {createSyntheticGrid, cellAt} from "../../tests/node/synthetic-grid.js";
 
-test.describe('myModule.js', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' });
-    await page.waitForFunction(() => typeof window.myFunction === 'function',
-      { timeout: 60000 });
+const grid = createSyntheticGrid({width: 800, height: 600, cells: 4000});
+
+test("island lands where asked", () => {
+  const h = paintTerrain({features: [{type: "island", points: [[0.3, 0.5]], radius: 0.12}]}, grid, {width: 800, height: 600, seed: "t"});
+  expect(h[cellAt(grid, 0.3, 0.5)]).toBeGreaterThanOrEqual(20);
+});
+```
+
+Modules meant for this layer must not touch `window`, `document`, or FMG globals at import time
+(exposing themselves on `window` behind a `typeof window !== "undefined"` guard is fine).
+
+---
+
+## Writing browser (Playwright) tests
+
+### Share one page per file
+
+Loading the app is the expensive part (5-15 s). Use `useSharedAppPage` so a whole describe
+block shares one page, loaded once with a tiny map:
+
+```javascript
+import {test, expect} from "@playwright/test";
+import {useSharedAppPage, loadWorldSpecApplicator} from "../setup/helpers.js";
+
+test.describe("My feature", () => {
+  const shared = useSharedAppPage(test);          // serial mode, one page, fast init
+
+  test.beforeAll(async () => {
+    await loadWorldSpecApplicator(shared.page);  // if you need the AI modules
   });
 
-  test.describe('myFunction() - Description', () => {
-    test('should do something', async ({ page }) => {
-      const result = await page.evaluate(() => myFunction(input));
-      expect(result).toBe(expected);
-    });
+  test("does a thing", async () => {
+    const result = await shared.page.evaluate(() => window.pack.cells.i.length);
+    expect(result).toBeGreaterThan(0);
   });
 });
 ```
 
-### Using Test Helpers
+Tests in a shared-page block run serially and must not depend on each other's map state
+(or must regenerate it themselves).
+
+### Per-test pages
+
+When isolation matters more than speed, keep the classic pattern:
 
 ```javascript
-import { generateMap, getMapStats, checkReferentialIntegrity } from '../setup/helpers.js';
-import { TEST_MAPS } from '../setup/fixtures.js';
-
-test('should generate valid map', async ({ page }) => {
-  await generateMap(page, TEST_MAPS.medium.seed);
-
-  const stats = await getMapStats(page);
-  expect(stats.states).toBeGreaterThan(0);
-
-  const integrity = await checkReferentialIntegrity(page);
-  expect(integrity.valid).toBe(true);
+test.beforeEach(async ({page}) => {
+  await gotoApp(page);
+  await waitForAppReady(page);
 });
 ```
 
-### Using Mocks
+### Things to know about FMG internals
 
-```javascript
-import { MockAI, MockStorage } from '../setup/mocks.js';
-
-test('should handle AI response', async ({ page }) => {
-  await MockAI.install(page);
-  await MockAI.addResponse(page, 'worldbuild', mockResponse);
-
-  // Test AI functionality
-});
-```
+- `pack` drops deep-ocean cells. To measure land/water share or probe open sea, use `window.grid` (`grid.cells.h`, `grid.points`, `grid.cellsX`, `grid.spacing`).
+- `pack.cells.q.find(x, y)` returns `[x, y, cellId]`, so the id is `found[2]`.
+- The loading overlay fades for 3 s after the initial map; hide `#loading` before screenshots.
+- `localStorage` persists options between loads. The fast init script sets `points=1` (1000 cells) and an 800x600 map so the on-load map is cheap.
 
 ---
 
-## Test Coverage
+## The world-spec fidelity contract
 
-### Current Coverage:
+`tests/e2e/world-spec-fidelity.spec.js` generates a map from
+`tests/fixtures/world-spec-corgak-features.json` and asserts:
 
-| Category | Files | Tests Created | Tests Passing | Coverage |
-|----------|-------|---------------|---------------|----------|
-| **Utils** | 15/16 | ~280 | TBD | ~95% |
-| **Modules** | 2/20 | ~55 | TBD | ~10% |
-| **Core** | 1/3 | ~35 | TBD | ~30% |
-| **Integration** | 1/2 | ~19 | TBD | ~50% |
-| **E2E** | 1/2 | ~11 | TBD | ~50% |
-| **Performance** | 1/1 | ~11 | TBD | 100% |
-| **Total** | **21/44** | **~411** | **TBD** | **~48%** |
+- every terrain feature passes the fidelity check (land is land, mountains are high, lakes are water);
+- every location's `terrain` hint is satisfied at its coordinates;
+- settlements become burgs and landmarks become markers, all named as in the spec;
+- no location moved more than two cells from its spec coordinates;
+- states, capitals, ownership, cultures and religions match the spec;
+- the SVG actually contains the burgs, markers and state labels.
 
-### Target Coverage:
-
-- Utils: 95%
-- Generators: 90%
-- Integration: 85%
-- E2E: Critical paths
-- Performance: Benchmarks
-- **Overall: 90%**
+If you change the painter, the applicator, or FMG's generation pipeline, this is the spec that
+tells you whether AI-directed geography still ends up on the map. See `WORLD-SPEC-TERRAIN.md`
+for the terrain format and the audit workflow.
 
 ---
 
-## Common Issues & Solutions
+## CI
 
-### Issue: Tests timing out
-**Solution:** Increase timeout in playwright.config.js or test file
-```javascript
-test('slow test', async ({ page }) => {
-  test.setTimeout(180000); // 3 minutes
-  // ...
-});
-```
-
-### Issue: Page load too slow
-**Solution:** Use 'domcontentloaded' for early-loaded scripts
-```javascript
-await page.goto('/', { waitUntil: 'domcontentloaded' });
-```
-
-### Issue: Function not available
-**Solution:** Wait for specific function or element
-```javascript
-await page.waitForFunction(() => typeof window.myFunc === 'function');
-// OR
-await page.waitForSelector('#elementId');
-```
-
-### Issue: Need to test map generation
-**Solution:** Use test fixtures with known seeds
-```javascript
-import { TEST_MAPS } from '../setup/fixtures.js';
-await generateMap(page, TEST_MAPS.snapshot.seed);
-// Snapshot seed produces deterministic output
-```
+`.github/workflows` runs the fast layer first (fails in seconds if pure logic breaks), then the
+Playwright jobs. Playwright artifacts (HTML report, screenshots, videos, audit JSON) are
+uploaded on every run.
 
 ---
 
-## CI/CD Pipeline
+## Troubleshooting
 
-Tests run automatically on:
-- Push to master/develop
-- Pull requests
-- Manual workflow dispatch
-
-**Jobs:**
-1. **test** - Full test suite
-2. **test-unit** - Fast unit tests only
-3. **test-e2e** - E2E tests
-4. **coverage** - Coverage report with 90% threshold
-
-**Artifacts:**
-- Test results (HTML report)
-- Screenshots (on failure)
-- Videos (on failure)
-- Coverage reports
-
----
-
-## Performance
-
-**Test Execution Times:**
-- Single test: 2-6 seconds (after page load)
-- Page load: ~40-50 seconds (first time)
-- Full utils suite (125 tests): ~10-15 minutes
-- Full suite (360+ tests): ~30-45 minutes (estimated)
-
-**Optimization:**
-- Tests run in parallel (2-16 workers)
-- Page context reused where possible
-- Network idle wait for stability
-
----
-
-## Next Steps
-
-### Immediate (Fixing Failures):
-1. Run tests again with fixes applied
-2. Verify all 125 utils tests pass
-3. Move to next test category
-
-### Short Term (Complete Utils):
-1. Create remaining 8 utils test files
-2. Achieve 95% utils coverage
-3. Run full utils suite
-
-### Medium Term (Generators):
-1. Create all 10 generator test files
-2. Test generation pipeline
-3. Snapshot testing for determinism
-
-### Long Term (Full Coverage):
-1. Integration tests
-2. E2E workflows
-3. Visual regression
-4. Performance benchmarks
-5. Verify 90% coverage
-
----
-
-## Resources
-
-- **Playwright Docs:** https://playwright.dev
-- **Project Wiki:** https://github.com/Azgaar/Fantasy-Map-Generator/wiki
-- **Test Specifications:** See `COMPLETE-TEST-SPECIFICATION.md`
-- **Progress Tracker:** See `TEST-PROGRESS.md`
-
----
-
-## Contact
-
-For test implementation questions, refer to:
-- Established test files in `tests/unit/utils/`
-- Helper functions in `tests/setup/helpers.js`
-- Mock examples in `tests/setup/mocks.js`
-
----
-
-**Foundation is complete. Tests are working. Continue systematically to 90% coverage.**
+- **"Failed to fetch dynamically imported module"**: the built app bundles `modules/ai/*` into the main chunk; use the `window.*` exports (`WorldSpecApplicator`, `TerrainPainter`, `TerrainFidelity`) instead of importing by URL.
+- **Edge not found**: `npx playwright install msedge`, or run with `PW_BROWSER=chromium`.
+- **Build failing in webServer**: run `npm run build` directly to see the esbuild error; template-literal prompts must escape backticks as `` \` ``.
+- **Slow run**: check you are not loading a page per test; convert the file to `useSharedAppPage`.

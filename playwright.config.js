@@ -54,10 +54,11 @@ export default defineConfig({
   // Configure projects for browsers
   projects: [
     {
-      name: 'Microsoft Edge',
+      // Set PW_BROWSER=chromium to use Playwright's bundled Chromium instead of Edge
+      name: process.env.PW_BROWSER === 'chromium' ? 'Chromium' : 'Microsoft Edge',
       use: {
         ...devices['Desktop Edge'],
-        channel: 'msedge',
+        channel: process.env.PW_BROWSER === 'chromium' ? undefined : 'msedge',
         // Ensure sufficient memory for large maps
         launchOptions: {
           headless: true,
@@ -70,7 +71,10 @@ export default defineConfig({
   // Run local dev server before starting tests
   // Serve from dist folder (build output)
   webServer: {
-    command: 'npm run build && npx http-server dist -p 8080 -c-1 --silent',
+    // Set PW_SKIP_BUILD=1 to serve the existing dist/ without rebuilding (saves ~15s per run)
+    command: process.env.PW_SKIP_BUILD
+      ? 'npx http-server dist -p 8080 -c-1 --silent'
+      : 'npm run build && npx http-server dist -p 8080 -c-1 --silent',
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 120000 // Allow time for build

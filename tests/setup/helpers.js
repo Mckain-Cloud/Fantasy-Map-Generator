@@ -445,3 +445,77 @@ export async function waitForIdle(page, timeout = 1000) {
   await page.waitForTimeout(timeout);
   await page.waitForLoadState('networkidle');
 }
+
+// ============================================================================
+// Fast browser-test helpers
+// ============================================================================
+
+/**
+ * Init script that makes the initial on-load map tiny so the page becomes
+ * interactive in a few seconds instead of generating a full-size map first.
+ * Must be registered before navigation (page.addInitScript / context option).
+ */
+export const FAST_APP_INIT = `
+  try {
+    localStorage.setItem("points", "1");            // 1000 cells
+    localStorage.setItem("mapWidth", "800");
+    localStorage.setItem("mapHeight", "600");
+    localStorage.setItem("onloadBehavior", "random");
+    localStorage.setItem("disable_click_arrow_tooltip", "true");
+  } catch (e) {}
+`;
+
+/**
+ * Create ONE page for a whole describe block instead of one per test.
+ * Page load (~5-15s) dominates test time, so this turns a 20-test file from
+ * minutes into seconds. Tests in the block must not depend on each other's
+ * map state, or must reset it themselves.
+ *
+ * Usage:
+ *   const shared = useSharedAppPage(test);
+ *   test("x", async () => { const page = shared.page; ... });
+ */
+export function useSharedAppPage(test, {fast = true, ready = waitForAppReady} = {}) {
+  const shared = {page: null, context: null};
+
+  test.describe.configure({mode: "serial"});
+
+  test.beforeAll(async ({browser}) => {
+    shared.context = await browser.newContext();
+    if (fast) await shared.context.addInitScript(FAST_APP_INIT);
+    shared.page = await shared.context.newPage();
+    await gotoApp(shared.page);
+    await ready(shared.page);
+  });
+
+  test.afterAll(async () => {
+    if (shared.page) await stopCoverage(shared.page);
+    await flushCoverage();
+    await shared.context?.close();
+  });
+
+  return shared;
+}
+
+/**
+ * Import an AI module into the page and expose it on window (works in both
+ * dev and built environments, where ES modules are not auto-exposed).
+ */
+export async function loadWorldSpecApplicator(page, timeout = 30000) {
+  await page.evaluate(async () => {
+    // In the built app these modules are bundled and expose themselves on
+    // window; the dynamic import is only a fallback for the dev server.
+    if (typeof window.WorldSpecApplicator !== "object") {
+      try {
+        const module = await import("/modules/ai/world-spec-applicator.js");
+        window.WorldSpecApplicator = module.WorldSpecApplicator;
+      } catch (error) {
+        console.error("Failed to import WorldSpecApplicator:", error);
+      }
+    }
+  });
+  await page.waitForFunction(
+    () => typeof window.WorldSpecApplicator?.generateFromSpec === "function",
+    {timeout}
+  );
+}
