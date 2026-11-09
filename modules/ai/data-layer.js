@@ -714,6 +714,15 @@ function decodeResponse(aiResponse) {
     }
   }
 
+  // Handle null, undefined, or non-object inputs
+  if (aiResponse == null || typeof aiResponse !== "object") {
+    return {
+      create: {},
+      update: {},
+      delete: {}
+    };
+  }
+
   return {
     create: aiResponse.create || {},
     update: aiResponse.update || {},

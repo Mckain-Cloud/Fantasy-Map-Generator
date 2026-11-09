@@ -13,7 +13,9 @@ function editBurg(id, event) {
   if (!layerIsOn("toggleLabels")) toggleLabels();
 
   const burg = id || event?.target?.dataset?.id;
+  if (!burg) return;
   elSelected = burgLabels.select("[data-id='" + burg + "']");
+  if (elSelected.empty()) return;
   burgLabels.selectAll("text").call(d3.drag().on("start", dragBurgLabel)).classed("draggable", true);
   updateBurgValues();
 

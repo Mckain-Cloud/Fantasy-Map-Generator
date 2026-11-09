@@ -20,7 +20,9 @@ export default defineConfig({
         {src: "images", dest: "."},
         {src: "charges", dest: "."},
         {src: "components", dest: "."},
-        {src: "saved-maps", dest: "."}
+        {src: "saved-maps", dest: "."},
+        // AI modules (for E2E testing)
+        {src: "modules/ai", dest: "modules"}
       ]
     })
   ],

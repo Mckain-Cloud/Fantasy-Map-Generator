@@ -362,6 +362,17 @@ function hideLoading() {
   d3.select("#loading").transition().duration(3000).style("opacity", 0);
   d3.select("#optionsContainer").transition().duration(2000).style("opacity", 1);
   d3.select("#tooltip").transition().duration(3000).style("opacity", 1);
+
+  // Show AI Button Bar (contains all AI feature buttons)
+  const aiButtonBar = document.getElementById("aiButtonBar");
+  if (aiButtonBar) aiButtonBar.style.display = "flex";
+
+  // Initialize all AI features
+  if (typeof initAIMapEditor === "function") initAIMapEditor();
+  if (typeof initStoryTranslator === "function") initStoryTranslator();
+  if (typeof initAIWorldBuilder === "function") initAIWorldBuilder();
+  if (typeof initAIDungeonImporter === "function") initAIDungeonImporter();
+  if (typeof initAIWorldSpecGenerator === "function") initAIWorldSpecGenerator();
 }
 
 function showLoading() {
@@ -688,7 +699,13 @@ void (function addDragToUpload() {
 async function generate(options) {
   try {
     const timeStart = performance.now();
-    const {seed: precreatedSeed, graph: precreatedGraph} = options || {};
+    const {seed: precreatedSeed, graph: precreatedGraph, specOnly} = options || {};
+
+    // If specOnly mode, use terrain-only generation
+    if (specOnly) {
+      await generateTerrainOnly(options);
+      return;
+    }
 
     invokeActiveZooming();
     setSeed(precreatedSeed);
@@ -765,6 +782,125 @@ async function generate(options) {
       }
     });
   }
+}
+
+/**
+ * Generate terrain-only map for spec-only mode
+ * This skips all civilization generation (cultures, states, burgs, religions)
+ * and allows manual population from a world spec
+ */
+async function generateTerrainOnly(options) {
+  const timeStart = performance.now();
+  const {seed: precreatedSeed, graph: precreatedGraph, mapWidth, mapHeight, cellCount} = options || {};
+
+  INFO && console.group("Generated Terrain-Only Map " + (precreatedSeed || seed));
+
+  invokeActiveZooming();
+  setSeed(precreatedSeed);
+
+  // Apply custom map size if provided
+  if (mapWidth && mapHeight) {
+    byId("mapWidthInput").value = mapWidth;
+    byId("mapHeightInput").value = mapHeight;
+    INFO && console.log(`[TerrainOnly] Set map size to ${mapWidth}x${mapHeight}`);
+  }
+
+  // Apply custom cell count if provided (fewer cells = faster, simpler map)
+  if (cellCount) {
+    byId("pointsInput").dataset.cells = cellCount;
+    INFO && console.log(`[TerrainOnly] Set cell count to ${cellCount}`);
+  }
+
+  applyGraphSize();
+  // Don't randomize options in spec-only mode - we want deterministic generation
+  // randomizeOptions();
+
+  if (shouldRegenerateGrid(grid, precreatedSeed)) grid = precreatedGraph || generateGrid();
+  else delete grid.cells.h;
+  grid.cells.h = await HeightmapGenerator.generate(grid);
+  pack = {}; // reset pack
+
+  // Feature detection on grid
+  Features.markupGrid();
+  addLakesInDeepDepressions();
+  openNearSeaLakes();
+
+  // Ocean and map positioning
+  OceanLayers();
+  defineMapSize();
+  calculateMapCoordinates();
+  calculateTemperatures();
+  generatePrecipitation();
+
+  // Create packed voronoi
+  reGraph();
+  Features.markupPack();
+  createDefaultRuler();
+
+  // Natural terrain features
+  Rivers.generate();
+  Biomes.define();
+  rankCells();
+
+  // Initialize empty civilization data structures
+  initializeEmptyCivilization();
+
+  // Finalize natural features
+  Rivers.specify();
+  Features.specify();
+
+  drawScaleBar(scaleBar, scale);
+
+  WARN && console.warn(`[TerrainOnly] TOTAL: ${rn((performance.now() - timeStart) / 1000, 2)}s`);
+  INFO && console.groupEnd("Generated Terrain-Only Map " + seed);
+}
+
+/**
+ * Initialize empty civilization data structures for spec-only mode
+ * This sets up the minimum required arrays without generating random content
+ */
+function initializeEmptyCivilization() {
+  const cells = pack.cells;
+  const n = cells.i.length;
+
+  // Initialize cell arrays for civilization data
+  cells.culture = new Uint16Array(n);  // All cells start with culture 0 (Wildlands)
+  cells.state = new Uint16Array(n);    // All cells start with state 0 (Neutrals)
+  cells.religion = new Uint8Array(n);  // All cells start with religion 0 (No religion)
+  cells.burg = new Uint16Array(n);     // No burgs initially
+  cells.province = new Uint16Array(n); // No provinces initially
+  cells.pop = new Float32Array(n);     // Initialize population
+
+  // Set default population based on suitability
+  for (let i = 0; i < n; i++) {
+    if (cells.s[i] > 0) {
+      cells.pop[i] = cells.s[i] * 0.1; // Very sparse population
+    }
+  }
+
+  // Initialize empty entity arrays
+  pack.burgs = [0]; // Index 0 is reserved/null
+  pack.states = [
+    {i: 0, name: "Neutrals", removed: false, color: "#ffffff", diplomacy: [], provinces: [], neighbors: [], military: []}
+  ];
+  pack.cultures = [
+    {i: 0, name: "Wildlands", removed: false, color: "#808080", type: "Wildlands", base: 0}
+  ];
+  pack.religions = [
+    {i: 0, name: "No religion", removed: false, color: "#ffffff", type: "No religion"}
+  ];
+  pack.provinces = [0]; // Index 0 reserved
+  pack.routes = [];
+  pack.markers = [];
+  pack.zones = [];
+
+  INFO && console.log("[TerrainOnly] Initialized empty civilization structures", {
+    cells: n,
+    burgs: pack.burgs.length,
+    states: pack.states.length,
+    cultures: pack.cultures.length,
+    religions: pack.religions.length
+  });
 }
 
 // set map seed (string!)

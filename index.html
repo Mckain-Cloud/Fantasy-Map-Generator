@@ -389,6 +389,56 @@
       </div>
     </div>
 
+    <!-- AI Button Bar - All AI feature buttons in horizontal row on right side -->
+    <div id="aiButtonBar" style="position: fixed; top: 10px; right: 10px; z-index: 1000; display: none; flex-direction: row; gap: 8px;">
+      <!-- Buttons ordered left-to-right: World Spec, Dungeon Import, World Builder, Story Translator, AI Editor -->
+      <button
+        id="aiWorldSpecBtn"
+        class="ai-bar-btn"
+        data-tip="Generate World Specification from Adventure"
+        onclick="openAIWorldSpecGenerator()"
+        style="padding: 8px 12px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"
+      >
+        World Spec
+      </button>
+      <button
+        id="aiDungeonImporterBtn"
+        class="ai-bar-btn"
+        data-tip="Import AI Dungeon Adventure"
+        onclick="openAIDungeonImporter()"
+        style="padding: 8px 12px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"
+      >
+        Dungeon Import
+      </button>
+      <button
+        id="aiWorldBuilderBtn"
+        class="ai-bar-btn"
+        data-tip="Open AI World Builder"
+        onclick="openAIWorldBuilder()"
+        style="padding: 8px 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"
+      >
+        World Builder
+      </button>
+      <button
+        id="storyTranslatorBtn"
+        class="ai-bar-btn"
+        data-tip="Open Story Translator"
+        onclick="toggleStoryTranslator()"
+        style="padding: 8px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"
+      >
+        Story Translator
+      </button>
+      <button
+        id="aiMapEditorBtn"
+        class="ai-bar-btn"
+        data-tip="Open AI Map Editor"
+        onclick="toggleAIMapEditor()"
+        style="padding: 8px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.2);"
+      >
+        AI Editor
+      </button>
+    </div>
+
     <div id="optionsContainer" style="opacity: 0">
       <div id="collapsible">
         <button
@@ -4980,6 +5030,612 @@
         </div>
       </div>
 
+      <!-- AI Map Editor Panel -->
+      <div id="aiMapEditorPanel" class="ai-map-editor-panel" style="display: none">
+        <div class="ai-panel-header">
+          <span class="ai-panel-title">AI Map Editor</span>
+          <div class="ai-panel-controls">
+            <button id="aiMapEditorMinimize" class="ai-panel-btn" data-tip="Minimize panel">_</button>
+            <button id="aiMapEditorClose" class="ai-panel-btn" data-tip="Close panel">X</button>
+          </div>
+        </div>
+        <div id="aiMapEditorBody" class="ai-panel-body">
+          <div class="ai-panel-row">
+            <label for="aiMapEditorModel">Model:</label>
+            <select id="aiMapEditorModel" data-tip="Select AI model to use"></select>
+          </div>
+          <textarea
+            id="aiMapEditorPrompt"
+            placeholder="Describe what you want to change on the map...&#10;&#10;Examples:&#10;- Rename the kingdom of Westland to 'Eastern Empire'&#10;- Make states 1 and 3 go to war&#10;- Add a marker at the capital of state 2"
+            rows="4"
+          ></textarea>
+          <div class="ai-panel-actions">
+            <button id="aiMapEditorSend" data-tip="Send request to AI (Ctrl+Enter)">Send</button>
+            <span id="aiMapEditorStatus" class="ai-status">Initializing...</span>
+          </div>
+          <textarea
+            id="aiMapEditorResponse"
+            placeholder="AI response will appear here..."
+            rows="8"
+            readonly
+          ></textarea>
+          <div class="ai-panel-actions">
+            <button id="aiMapEditorApply" disabled data-tip="Apply changes to the map">Apply Changes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Story Translator Panel -->
+      <div id="storyTranslatorPanel" class="ai-map-editor-panel story-translator-panel" style="display: none">
+        <div class="ai-panel-header">
+          <span class="ai-panel-title">Story Translator</span>
+          <div class="ai-panel-controls">
+            <button id="storyTranslatorMinimize" class="ai-panel-btn" data-tip="Minimize panel">_</button>
+            <button id="storyTranslatorClose" class="ai-panel-btn" data-tip="Close panel">X</button>
+          </div>
+        </div>
+        <div id="storyTranslatorBody" class="ai-panel-body">
+          <div class="ai-panel-row">
+            <label for="storyTranslatorModel">Model:</label>
+            <select id="storyTranslatorModel" data-tip="Select AI model to use"></select>
+            <span id="storyTranslatorStatus" class="ai-status">Initializing...</span>
+          </div>
+          <div class="ai-panel-section-label">Narrative Event:</div>
+          <textarea
+            id="storyTranslatorNarrative"
+            placeholder="Describe what happened in your world...&#10;&#10;Examples:&#10;- The kingdom of Hizuna fell to the undead&#10;- A great plague swept through the coastal cities&#10;- The dwarven clans forged an alliance against the dragon"
+            rows="4"
+          ></textarea>
+          <div class="ai-panel-actions">
+            <button id="storyTranslatorTranslate" data-tip="Translate narrative to map changes (Ctrl+Enter)">Translate</button>
+          </div>
+          <div class="ai-panel-section-header">
+            <span class="ai-panel-section-label">Proposed Changes:</span>
+            <div class="ai-panel-section-controls">
+              <button id="storyTranslatorSelectAll" class="ai-panel-btn-sm" data-tip="Select all changes">All</button>
+              <button id="storyTranslatorSelectNone" class="ai-panel-btn-sm" data-tip="Deselect all changes">None</button>
+            </div>
+          </div>
+          <div id="storyTranslatorChanges" class="story-translator-changes">
+            <div class="no-changes">Enter a narrative event and click Translate</div>
+          </div>
+          <div class="ai-panel-actions">
+            <button id="storyTranslatorApply" disabled data-tip="Apply selected changes to the map">Apply Selected</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI World Builder Dialog -->
+      <dialog id="aiWorldBuilderDialog" class="ai-world-builder-dialog">
+        <div class="wizard-header">
+          <h2>AI World Builder</h2>
+          <button id="aiWorldBuilderClose" class="wizard-close-btn" data-tip="Close wizard">&times;</button>
+        </div>
+        <div class="wizard-progress">
+          <div class="wizard-step active" data-step="1"><span>1</span> Theme</div>
+          <div class="wizard-step" data-step="2"><span>2</span> Analysis</div>
+          <div class="wizard-step" data-step="3"><span>3</span> Review</div>
+          <div class="wizard-step" data-step="4"><span>4</span> Apply</div>
+        </div>
+        <div class="wizard-content">
+          <!-- Step 1: Theme Input -->
+          <div id="wizardStep1" class="wizard-step-content active">
+            <div class="wizard-section">
+              <label for="aiWorldBuilderModel">AI Model:</label>
+              <select id="aiWorldBuilderModel" data-tip="Select AI model to use"></select>
+            </div>
+            <div class="wizard-section">
+              <label for="worldConcept">World Concept:</label>
+              <textarea
+                id="worldConcept"
+                rows="4"
+                placeholder="Describe your world vision...&#10;&#10;Examples:&#10;- A realm recovering from a magical cataclysm&#10;- A world where dragons rule as god-kings&#10;- An archipelago of trading nations"
+              ></textarea>
+            </div>
+            <div class="wizard-row">
+              <div class="wizard-section">
+                <label for="worldTheme">Theme:</label>
+                <select id="worldTheme">
+                  <option value="classic">Classic Fantasy</option>
+                  <option value="darkFantasy">Dark Fantasy</option>
+                  <option value="highFantasy">High Fantasy</option>
+                  <option value="lowFantasy">Low Fantasy</option>
+                  <option value="postApocalyptic">Post-Apocalyptic</option>
+                  <option value="ancientWorld">Ancient World</option>
+                  <option value="steampunk">Steampunk</option>
+                </select>
+              </div>
+              <div class="wizard-section">
+                <label for="worldTone">Tone:</label>
+                <select id="worldTone">
+                  <option value="heroic">Heroic</option>
+                  <option value="grim">Grim</option>
+                  <option value="mysterious">Mysterious</option>
+                  <option value="political">Political</option>
+                  <option value="whimsical">Whimsical</option>
+                </select>
+              </div>
+            </div>
+            <div class="wizard-row">
+              <div class="wizard-section">
+                <label for="worldTech">Technology:</label>
+                <select id="worldTech">
+                  <option value="primitive">Primitive</option>
+                  <option value="ancient">Ancient</option>
+                  <option value="medieval" selected>Medieval</option>
+                  <option value="renaissance">Renaissance</option>
+                  <option value="industrial">Industrial</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </div>
+              <div class="wizard-section">
+                <label for="worldMagic">Magic Level:</label>
+                <select id="worldMagic">
+                  <option value="none">None</option>
+                  <option value="rare">Rare</option>
+                  <option value="uncommon">Uncommon</option>
+                  <option value="common" selected>Common</option>
+                  <option value="pervasive">Pervasive</option>
+                </select>
+              </div>
+            </div>
+            <div class="wizard-stats">
+              <div class="stat-item"><span id="statStates">0</span> States</div>
+              <div class="stat-item"><span id="statBurgs">0</span> Burgs</div>
+              <div class="stat-item"><span id="statCultures">0</span> Cultures</div>
+            </div>
+          </div>
+          <!-- Step 2: Geographic Analysis -->
+          <div id="wizardStep2" class="wizard-step-content">
+            <div id="analysisLoading" class="analysis-loading">
+              <div class="spinner"></div>
+              <p>Analyzing your world...</p>
+              <p class="analysis-hint">This may take a minute for complex maps.</p>
+            </div>
+            <div id="analysisResult" class="analysis-result" style="display: none;">
+              <h3>Geographic Analysis</h3>
+              <div id="analysisSummary" class="analysis-summary"></div>
+              <div class="analysis-sections">
+                <div class="analysis-section">
+                  <h4>Major Features</h4>
+                  <ul id="analysisMajorFeatures"></ul>
+                </div>
+                <div class="analysis-section">
+                  <h4>Strategic Locations</h4>
+                  <ul id="analysisStrategicLocations"></ul>
+                </div>
+              </div>
+              <div class="analysis-changes-summary">
+                <h4>Proposed Changes</h4>
+                <div class="changes-summary-grid">
+                  <div class="change-count"><span id="countStates">0</span> State Changes</div>
+                  <div class="change-count"><span id="countCultures">0</span> Culture Changes</div>
+                  <div class="change-count"><span id="countDiplomacy">0</span> Diplomacy Changes</div>
+                  <div class="change-count"><span id="countMarkers">0</span> New Markers</div>
+                  <div class="change-count"><span id="countNotes">0</span> New Notes</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Step 3: Review Changes (Tabbed) -->
+          <div id="wizardStep3" class="wizard-step-content">
+            <div class="review-tabs">
+              <button class="review-tab active" data-tab="states">States</button>
+              <button class="review-tab" data-tab="cultures">Cultures</button>
+              <button class="review-tab" data-tab="diplomacy">Diplomacy</button>
+              <button class="review-tab" data-tab="markers">Markers</button>
+              <button class="review-tab" data-tab="notes">Notes</button>
+            </div>
+            <div class="review-tab-actions">
+              <button id="reviewSelectAll" class="ai-panel-btn-sm">Select All</button>
+              <button id="reviewSelectNone" class="ai-panel-btn-sm">Select None</button>
+            </div>
+            <div id="reviewTabContent" class="review-tab-content">
+              <!-- Tab content rendered dynamically -->
+            </div>
+          </div>
+          <!-- Step 4: Apply -->
+          <div id="wizardStep4" class="wizard-step-content">
+            <div id="applyPreview" class="apply-preview">
+              <h3>Ready to Apply</h3>
+              <div class="apply-summary">
+                <p>The following changes will be applied to your map:</p>
+                <ul id="applySummaryList"></ul>
+              </div>
+            </div>
+            <div id="applyComplete" class="apply-complete" style="display: none;">
+              <div class="success-icon">&#10003;</div>
+              <h3>Changes Applied!</h3>
+              <p>Your world has been transformed. If you want to undo, click the button below.</p>
+            </div>
+          </div>
+        </div>
+        <div class="wizard-footer">
+          <button id="wizardPrev" class="wizard-btn wizard-btn-secondary" style="display: none;">Previous</button>
+          <span id="wizardStatus" class="wizard-status"></span>
+          <button id="wizardNext" class="wizard-btn wizard-btn-primary">Start Analysis</button>
+          <button id="wizardUndo" class="wizard-btn wizard-btn-danger" style="display: none;">Undo Changes</button>
+        </div>
+      </dialog>
+
+      <!-- AI Dungeon Adventure Importer Dialog -->
+      <dialog id="aiDungeonImporterDialog" class="ai-world-builder-dialog">
+        <div class="wizard-header">
+          <h2>AI Dungeon Importer</h2>
+          <button id="aiDungeonImporterClose" class="wizard-close-btn" data-tip="Close wizard">&times;</button>
+        </div>
+        <div class="wizard-progress">
+          <div class="wizard-step active" data-step="1"><span>1</span> Upload</div>
+          <div class="wizard-step" data-step="2"><span>2</span> Preprocess</div>
+          <div class="wizard-step" data-step="3"><span>3</span> Analyze</div>
+          <div class="wizard-step" data-step="4"><span>4</span> Review</div>
+          <div class="wizard-step" data-step="5"><span>5</span> Apply</div>
+        </div>
+        <div class="wizard-content">
+          <!-- Step 1: File Upload -->
+          <div id="dungeonWizardStep1" class="wizard-step-content active">
+            <div class="wizard-section">
+              <label>Upload AI Dungeon Adventure:</label>
+              <div class="dungeon-upload-area" id="dungeonUploadArea">
+                <div class="upload-icon">📜</div>
+                <p>Drag & drop your .adventure.json file here</p>
+                <p class="upload-hint">or click to browse</p>
+                <button id="dungeonBrowseBtn" class="wizard-btn wizard-btn-secondary">Browse Files</button>
+              </div>
+            </div>
+            <div id="dungeonFilePreview" class="dungeon-file-preview" style="display: none;">
+              <h4>Adventure Preview</h4>
+              <div class="preview-grid">
+                <div class="preview-item">
+                  <span class="preview-label">Title:</span>
+                  <span id="dungeonPreviewTitle">-</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">Actions:</span>
+                  <span id="dungeonPreviewActions">-</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">Story Cards:</span>
+                  <span id="dungeonPreviewCards">-</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">File Size:</span>
+                  <span id="dungeonPreviewSize">-</span>
+                </div>
+              </div>
+              <div class="preview-description" id="dungeonPreviewDescription"></div>
+            </div>
+          </div>
+
+          <!-- Step 2: Preprocessing -->
+          <div id="dungeonWizardStep2" class="wizard-step-content">
+            <div id="preprocessLoading" class="analysis-loading">
+              <div class="spinner"></div>
+              <p>Preprocessing adventure...</p>
+              <p class="analysis-hint">Filtering deleted actions and organizing story cards.</p>
+            </div>
+            <div id="preprocessResult" class="analysis-result" style="display: none;">
+              <h3>Preprocessing Complete</h3>
+              <div class="preprocess-stats">
+                <div class="stat-row">
+                  <span class="stat-label">Valid Actions:</span>
+                  <span id="preprocessValidActions">0</span>
+                  <span class="stat-note">of <span id="preprocessTotalActions">0</span> total</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Story Cards:</span>
+                  <span id="preprocessStoryCards">0</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Estimated Tokens:</span>
+                  <span id="preprocessTokens">0</span>
+                </div>
+              </div>
+              <div class="preprocess-breakdown">
+                <h4>World Data</h4>
+                <div class="breakdown-grid">
+                  <div class="breakdown-item">
+                    <span id="preprocessCharacters">0</span>
+                    <label>Characters</label>
+                  </div>
+                  <div class="breakdown-item">
+                    <span id="preprocessLocations">0</span>
+                    <label>Locations</label>
+                  </div>
+                  <div class="breakdown-item">
+                    <span id="preprocessFactions">0</span>
+                    <label>Factions</label>
+                  </div>
+                  <div class="breakdown-item">
+                    <span id="preprocessItems">0</span>
+                    <label>Items</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: AI Analysis Options -->
+          <div id="dungeonWizardStep3" class="wizard-step-content">
+            <div class="wizard-section">
+              <label for="dungeonImporterModel">AI Model:</label>
+              <select id="dungeonImporterModel" data-tip="Select AI model to use"></select>
+            </div>
+            <div class="wizard-section">
+              <label for="dungeonExpansionLevel">World Expansion Level:</label>
+              <select id="dungeonExpansionLevel" data-tip="How much should the AI fill in beyond explicit content">
+                <option value="strict">Strict - Only explicitly mentioned entities</option>
+                <option value="moderate" selected>Moderate - Fill reasonable gaps</option>
+                <option value="expansive">Expansive - Build out the full world</option>
+              </select>
+            </div>
+            <div class="wizard-section">
+              <label>Entity Types to Generate:</label>
+              <div class="entity-toggles">
+                <label class="toggle-item">
+                  <input type="checkbox" id="dungeonIncludeStates" checked />
+                  <span>States</span>
+                </label>
+                <label class="toggle-item">
+                  <input type="checkbox" id="dungeonIncludeCultures" checked />
+                  <span>Cultures</span>
+                </label>
+                <label class="toggle-item">
+                  <input type="checkbox" id="dungeonIncludeReligions" checked />
+                  <span>Religions</span>
+                </label>
+                <label class="toggle-item">
+                  <input type="checkbox" id="dungeonIncludeMarkers" checked />
+                  <span>Markers</span>
+                </label>
+                <label class="toggle-item">
+                  <input type="checkbox" id="dungeonIncludeNotes" checked />
+                  <span>Notes</span>
+                </label>
+                <label class="toggle-item">
+                  <input type="checkbox" id="dungeonIncludeMilitary" checked />
+                  <span>Military</span>
+                </label>
+                <label class="toggle-item">
+                  <input type="checkbox" id="dungeonIncludeDiplomacy" checked />
+                  <span>Diplomacy</span>
+                </label>
+              </div>
+            </div>
+            <div id="dungeonAnalysisLoading" class="analysis-loading" style="display: none;">
+              <div class="spinner"></div>
+              <p>AI is analyzing your adventure...</p>
+              <p class="analysis-hint">Extracting world-building elements from narrative and story cards.</p>
+            </div>
+          </div>
+
+          <!-- Step 4: Review Changes (Tabbed) -->
+          <div id="dungeonWizardStep4" class="wizard-step-content">
+            <div id="dungeonWorldAnalysis" class="world-analysis">
+              <h4>World Analysis</h4>
+              <p id="dungeonAnalysisSummary"></p>
+              <div class="analysis-meta">
+                <span><strong>Setting:</strong> <span id="dungeonAnalysisSetting">-</span></span>
+                <span><strong>Timeframe:</strong> <span id="dungeonAnalysisTimeframe">-</span></span>
+              </div>
+              <div id="dungeonAnalysisThemes" class="analysis-themes"></div>
+            </div>
+            <div class="review-tabs">
+              <button class="review-tab active" data-tab="states">States</button>
+              <button class="review-tab" data-tab="cultures">Cultures</button>
+              <button class="review-tab" data-tab="religions">Religions</button>
+              <button class="review-tab" data-tab="markers">Markers</button>
+              <button class="review-tab" data-tab="notes">Notes</button>
+              <button class="review-tab" data-tab="military">Military</button>
+              <button class="review-tab" data-tab="diplomacy">Diplomacy</button>
+            </div>
+            <div class="review-tab-actions">
+              <button id="dungeonReviewSelectAll" class="ai-panel-btn-sm">Select All</button>
+              <button id="dungeonReviewSelectNone" class="ai-panel-btn-sm">Select None</button>
+            </div>
+            <div id="dungeonReviewTabContent" class="review-tab-content">
+              <!-- Tab content rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Step 5: Apply -->
+          <div id="dungeonWizardStep5" class="wizard-step-content">
+            <div id="dungeonApplyPreview" class="apply-preview">
+              <h3>Ready to Apply</h3>
+              <div class="apply-summary">
+                <p>The following changes will be applied to your map:</p>
+                <ul id="dungeonApplySummaryList"></ul>
+              </div>
+            </div>
+            <div id="dungeonApplyComplete" class="apply-complete" style="display: none;">
+              <div class="success-icon">&#10003;</div>
+              <h3>Adventure Imported!</h3>
+              <p>Your AI Dungeon adventure has been imported to the map. If you want to undo, click the button below.</p>
+            </div>
+          </div>
+        </div>
+        <div class="wizard-footer">
+          <button id="dungeonWizardPrev" class="wizard-btn wizard-btn-secondary" style="display: none;">Previous</button>
+          <span id="dungeonWizardStatus" class="wizard-status"></span>
+          <button id="dungeonWizardNext" class="wizard-btn wizard-btn-primary">Start Preprocessing</button>
+          <button id="dungeonWizardUndo" class="wizard-btn wizard-btn-danger" style="display: none;">Undo Changes</button>
+        </div>
+      </dialog>
+
+      <!-- AI World Spec Generator Dialog -->
+      <dialog id="aiWorldSpecDialog" class="ai-world-builder-dialog">
+        <div class="wizard-header">
+          <h2>AI World Spec Generator</h2>
+          <button id="aiWorldSpecClose" class="wizard-close-btn" data-tip="Close wizard">&times;</button>
+        </div>
+        <div class="wizard-progress">
+          <div class="wizard-step active" data-step="1"><span>1</span> Upload</div>
+          <div class="wizard-step" data-step="2"><span>2</span> Preprocess</div>
+          <div class="wizard-step" data-step="3"><span>3</span> Generate</div>
+          <div class="wizard-step" data-step="4"><span>4</span> Review</div>
+          <div class="wizard-step" data-step="5"><span>5</span> Export</div>
+        </div>
+        <div class="wizard-content">
+          <!-- Step 1: File Upload -->
+          <div id="worldSpecWizardStep1" class="wizard-step-content active">
+            <div class="wizard-section">
+              <label>Upload AI Dungeon Adventure:</label>
+              <div class="dungeon-upload-area" id="worldSpecUploadArea">
+                <div class="upload-icon">🌍</div>
+                <p>Drag & drop your .adventure.json file here</p>
+                <p class="upload-hint">or click to browse</p>
+                <button id="worldSpecBrowseBtn" class="wizard-btn wizard-btn-secondary">Browse Files</button>
+              </div>
+            </div>
+            <div id="worldSpecFilePreview" class="dungeon-file-preview" style="display: none;">
+              <h4>Adventure Preview</h4>
+              <div class="preview-grid">
+                <div class="preview-item">
+                  <span class="preview-label">Title:</span>
+                  <span id="worldSpecPreviewTitle">-</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">Actions:</span>
+                  <span id="worldSpecPreviewActions">-</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">Story Cards:</span>
+                  <span id="worldSpecPreviewCards">-</span>
+                </div>
+                <div class="preview-item">
+                  <span class="preview-label">File Size:</span>
+                  <span id="worldSpecPreviewSize">-</span>
+                </div>
+              </div>
+              <div class="preview-description" id="worldSpecPreviewDescription"></div>
+            </div>
+            <input type="file" id="worldSpecAdventureToLoad" accept=".json" style="display: none;" />
+          </div>
+
+          <!-- Step 2: Preprocessing -->
+          <div id="worldSpecWizardStep2" class="wizard-step-content">
+            <div id="worldSpecPreprocessLoading" class="analysis-loading">
+              <div class="spinner"></div>
+              <p>Preprocessing adventure...</p>
+              <p class="analysis-hint">Filtering deleted actions and organizing story cards.</p>
+            </div>
+            <div id="worldSpecPreprocessResult" class="analysis-result" style="display: none;">
+              <h3>Preprocessing Complete</h3>
+              <div class="preprocess-stats">
+                <div class="stat-row">
+                  <span class="stat-label">Valid Actions:</span>
+                  <span id="worldSpecValidActions">0</span>
+                  <span class="stat-note">of <span id="worldSpecTotalActions">0</span> total</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Story Cards:</span>
+                  <span id="worldSpecStoryCards">0</span>
+                </div>
+                <div class="stat-row">
+                  <span class="stat-label">Estimated Tokens:</span>
+                  <span id="worldSpecTokens">0</span>
+                </div>
+              </div>
+              <div class="preprocess-breakdown">
+                <h4>World Data</h4>
+                <div class="breakdown-grid">
+                  <div class="breakdown-item">
+                    <span id="worldSpecCharacters">0</span>
+                    <label>Characters</label>
+                  </div>
+                  <div class="breakdown-item">
+                    <span id="worldSpecLocations">0</span>
+                    <label>Locations</label>
+                  </div>
+                  <div class="breakdown-item">
+                    <span id="worldSpecFactions">0</span>
+                    <label>Factions</label>
+                  </div>
+                  <div class="breakdown-item">
+                    <span id="worldSpecItems">0</span>
+                    <label>Items</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Generation Options -->
+          <div id="worldSpecWizardStep3" class="wizard-step-content">
+            <div class="wizard-section">
+              <label for="worldSpecModel">AI Model:</label>
+              <select id="worldSpecModel" data-tip="Select AI model for world generation"></select>
+            </div>
+            <div class="wizard-section">
+              <label for="worldSpecExpansionLevel">World Expansion Level:</label>
+              <select id="worldSpecExpansionLevel" data-tip="How much should the AI expand beyond explicit content">
+                <option value="strict" selected>Strict - Only explicitly mentioned content</option>
+                <option value="moderate">Moderate - Fill reasonable gaps</option>
+                <option value="expansive">Expansive - Build complete living world</option>
+              </select>
+            </div>
+            <div class="wizard-section expansion-hints">
+              <p><strong>Strict:</strong> Extract only what is explicitly stated. Best for faithful adaptation.</p>
+              <p><strong>Moderate:</strong> Add logical locations and fill gaps. Good balance.</p>
+              <p><strong>Expansive:</strong> Create surrounding infrastructure, trade routes, neighboring regions.</p>
+            </div>
+            <div id="worldSpecGenerateLoading" class="analysis-loading" style="display: none;">
+              <div class="spinner"></div>
+              <p>Generating world specification...</p>
+              <p class="analysis-hint">AI is designing terrain, locations, states, and cultures.</p>
+            </div>
+          </div>
+
+          <!-- Step 4: Review Spec -->
+          <div id="worldSpecWizardStep4" class="wizard-step-content">
+            <div id="worldSpecWorldAnalysis" class="world-analysis">
+              <h4>World Analysis</h4>
+              <p id="worldSpecAnalysisSummary"></p>
+              <div class="analysis-meta">
+                <span><strong>Setting:</strong> <span id="worldSpecAnalysisSetting">-</span></span>
+                <span><strong>Climate:</strong> <span id="worldSpecAnalysisClimate">-</span></span>
+              </div>
+              <div id="worldSpecAnalysisThemes" class="analysis-themes"></div>
+            </div>
+            <div id="worldSpecValidation" class="world-spec-validation"></div>
+            <div class="world-spec-stats">
+              <div class="stat-box"><span id="worldSpecStatsLocations">0</span> Locations</div>
+              <div class="stat-box"><span id="worldSpecStatsStates">0</span> States</div>
+              <div class="stat-box"><span id="worldSpecStatsCultures">0</span> Cultures</div>
+              <div class="stat-box"><span id="worldSpecStatsZones">0</span> Zones</div>
+            </div>
+            <div class="review-tabs">
+              <button class="review-tab active" data-tab="terrain">Terrain</button>
+              <button class="review-tab" data-tab="locations">Locations</button>
+              <button class="review-tab" data-tab="states">States</button>
+              <button class="review-tab" data-tab="cultures">Cultures</button>
+              <button class="review-tab" data-tab="zones">Zones</button>
+            </div>
+            <div id="worldSpecReviewTabContent" class="review-tab-content">
+              <!-- Tab content rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Step 5: Export -->
+          <div id="worldSpecWizardStep5" class="wizard-step-content">
+            <div id="worldSpecApplyPreview" class="apply-preview">
+              <h3>Ready to Generate Map</h3>
+              <p>The world specification is ready. Click "Generate New Map" to proceed.</p>
+            </div>
+            <div id="worldSpecApplyComplete" class="apply-complete" style="display: none;">
+              <div class="success-icon">&#10003;</div>
+              <h3>World Specification Generated!</h3>
+              <div id="worldSpecNextSteps"></div>
+            </div>
+          </div>
+        </div>
+        <div class="wizard-footer">
+          <button id="worldSpecWizardPrev" class="wizard-btn wizard-btn-secondary" style="display: none;">Previous</button>
+          <span id="worldSpecWizardStatus" class="wizard-status"></span>
+          <button id="worldSpecWizardNext" class="wizard-btn wizard-btn-primary">Start Preprocessing</button>
+        </div>
+      </dialog>
+
       <div id="emblemEditor" class="dialog stable" style="display: none">
         <svg viewBox="0 0 200 200"><use id="emblemImage"></use></svg>
         <div id="emblemBody">
@@ -6212,6 +6868,7 @@
       <input type="file" accept=".txt" id="namesbaseToLoad" />
       <input type="file" accept=".json" id="styleToLoad" />
       <input type="file" accept=".csv" id="culturesCSVToLoad" />
+      <input type="file" accept=".json" id="dungeonAdventureToLoad" />
     </div>
 
     <!-- svg elements not required for map display -->
@@ -8131,6 +8788,11 @@
     <script type="module" src="modules/ui/units-editor.js?v=1.108.12"></script>
     <script type="module" src="modules/ui/notes-editor.js?v=1.107.3"></script>
     <script type="module" src="modules/ui/ai-generator.js?v=1.108.8"></script>
+    <script type="module" src="modules/ui/ai-map-editor.js?v=1.0.0"></script>
+    <script type="module" src="modules/ui/story-translator.js?v=1.0.0"></script>
+    <script type="module" src="modules/ui/ai-world-builder.js?v=1.0.0"></script>
+    <script type="module" src="modules/ui/ai-dungeon-importer.js?v=1.0.0"></script>
+    <script type="module" src="modules/ui/ai-world-spec-generator.js?v=1.0.0"></script>
     <script type="module" src="modules/ui/diplomacy-editor.js?v=1.99.00"></script>
     <script type="module" src="modules/ui/zones-editor.js?v=1.105.20"></script>
     <script type="module" src="modules/ui/burgs-overview.js?v=1.105.15"></script>

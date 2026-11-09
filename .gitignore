@@ -3,3 +3,22 @@
 /node_modules
 /dist
 /coverage
+
+# Environment variables (contains API keys)
+.env
+.env.local
+
+# test artifacts
+test-results/
+playwright-report/
+audit-reports/
+world-spec-outputs/sweep-*/
+
+# local data: AI Dungeon exports, saved maps, AI output caches, build scratch
+json/
+*.adventure.json
+/world-spec-*.json
+/*.map
+/test-run-output.txt
+tmp/
+dev/

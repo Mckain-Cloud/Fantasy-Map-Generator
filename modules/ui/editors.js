@@ -30,18 +30,18 @@ function clicked(event) {
   const ancestor = great?.parentElement;
   if (!ancestor) return;
 
-  if (grand.id === "emblems") editEmblem();
+  if (grand.id === "emblems") editEmblem(null, null, null, event);
   else if (parent.id === "rivers") editRiver(el.id);
   else if (grand.id === "routes") editRoute(el.id);
-  else if (ancestor.id === "labels" && el.tagName === "tspan") editLabel();
-  else if (grand.id === "burgLabels") editBurg();
-  else if (grand.id === "burgIcons") editBurg();
+  else if (ancestor.id === "labels" && el.tagName === "tspan") editLabel(event);
+  else if (grand.id === "burgLabels") editBurg(el.dataset.id);
+  else if (grand.id === "burgIcons") editBurg(el.dataset.id);
   else if (parent.id === "ice") editIce();
   else if (parent.id === "terrain") editReliefIcon();
-  else if (grand.id === "markers" || great.id === "markers") editMarker();
-  else if (grand.id === "coastline") editCoastline();
-  else if (grand.id === "lakes") editLake();
-  else if (great.id === "armies") editRegiment();
+  else if (grand.id === "markers" || great.id === "markers") editMarker(null, event);
+  else if (grand.id === "coastline") editCoastline(event);
+  else if (grand.id === "lakes") editLake(event);
+  else if (great.id === "armies") editRegiment(null, event);
 }
 
 // clear elSelected variable

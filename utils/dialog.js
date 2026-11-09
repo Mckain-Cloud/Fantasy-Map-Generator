@@ -562,12 +562,15 @@ export function makeSortable(container, options = {}) {
     handle = null,
     cancel = null,
     axis = null,
-    update = null
+    update = null,
+    dragThreshold = 5 // pixels of movement before drag starts
   } = options;
 
   let draggedItem = null;
   let placeholder = null;
   let startIndex = -1;
+  let pendingDrag = null; // stores mousedown info before drag threshold is met
+  let isDragging = false; // track if drag has actually started
 
   const getItems = () => Array.from(container.querySelectorAll(items));
 
@@ -596,15 +599,29 @@ export function makeSortable(container, options = {}) {
     return ph;
   };
 
+  // Called on mousedown - just records potential drag, doesn't start it yet
   const startDrag = (e) => {
     const target = e.target;
     const item = target.closest(items);
     if (!item || !container.contains(item)) return;
     if (!isValidTarget(target, item)) return;
 
-    e.preventDefault();
+    // Don't call e.preventDefault() here - allow click events to fire
+    // Just record the potential drag info
+    const coords = getCoords(e);
+    pendingDrag = {
+      item,
+      startX: coords.x,
+      startY: coords.y,
+      startIndex: getItems().indexOf(item)
+    };
+  };
+
+  // Actually initiates the drag (creates placeholder, styles item)
+  const actuallyStartDrag = (item, idx) => {
+    isDragging = true;
     draggedItem = item;
-    startIndex = getItems().indexOf(item);
+    startIndex = idx;
 
     // Create placeholder
     placeholder = createPlaceholder(item);
@@ -623,7 +640,21 @@ export function makeSortable(container, options = {}) {
   };
 
   const onDrag = (e) => {
-    if (!draggedItem) return;
+    // Check if we should start dragging (threshold exceeded)
+    if (pendingDrag && !isDragging) {
+      const coords = getCoords(e);
+      const dx = Math.abs(coords.x - pendingDrag.startX);
+      const dy = Math.abs(coords.y - pendingDrag.startY);
+
+      if (dx > dragThreshold || dy > dragThreshold) {
+        e.preventDefault();
+        actuallyStartDrag(pendingDrag.item, pendingDrag.startIndex);
+      } else {
+        return; // Not enough movement yet, let click events work
+      }
+    }
+
+    if (!isDragging) return;
     e.preventDefault();
 
     const coords = getCoords(e);
@@ -655,7 +686,9 @@ export function makeSortable(container, options = {}) {
   };
 
   const endDrag = () => {
-    if (!draggedItem) return;
+    pendingDrag = null; // Clear pending drag info
+
+    if (!isDragging) return; // Never actually started dragging
 
     // Reset styles
     draggedItem.style.position = "";
@@ -677,6 +710,7 @@ export function makeSortable(container, options = {}) {
       update(draggedItem, startIndex, newIndex);
     }
 
+    isDragging = false;
     draggedItem = null;
     placeholder = null;
     startIndex = -1;

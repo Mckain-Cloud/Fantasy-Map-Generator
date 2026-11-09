@@ -6,14 +6,15 @@ import {byId} from "../../utils/shorthands.js";
 import {last} from "../../utils/arrayUtils.js";
 import {alertDialog, openEditorDialog, closeEditorDialog} from "../../utils/dialog.js";
 
-function editRegiment(selector) {
+function editRegiment(selector, event) {
   if (customization) return;
   closeDialogs(".stable");
   if (!layerIsOn("toggleMilitary")) toggleMilitary();
 
   armies.selectAll(":scope > g").classed("draggable", true);
   armies.selectAll(":scope > g > g").call(d3.drag().on("drag", dragRegiment));
-  elSelected = selector ? document.querySelector(selector) : event.target.parentElement; // select g element
+  elSelected = selector ? document.querySelector(selector) : event?.target?.parentElement; // select g element
+  if (!elSelected) return;
   if (!pack.states[elSelected.dataset.state]) return;
   if (!getRegiment()) return;
   updateRegimentData(getRegiment());

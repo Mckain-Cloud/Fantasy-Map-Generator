@@ -387,12 +387,12 @@ export function validateSchema(entity, entityType, operation = "create") {
       }
     }
 
-    // NaN check for numbers
-    if (typeof value === "number" && isNaN(value)) {
+    // NaN and Infinity check for numbers
+    if (typeof value === "number" && (isNaN(value) || !isFinite(value))) {
       errors.push({
         field,
         code: "INVALID_VALUE",
-        message: `Field ${field} cannot be NaN`,
+        message: `Field ${field} cannot be NaN or Infinity`,
         layer: "schema"
       });
     }
@@ -900,6 +900,29 @@ export function validateChangeSet(changeSet, pack) {
         schemaErrors.forEach(e => {
           e.field = `update.${entityType}[${idx}].${e.field}`;
           errors.push(e);
+        });
+
+        // Validate references for updated fields
+        const refErrors = validateReferences(update, singularType, pack);
+        refErrors.forEach(e => {
+          e.field = `update.${entityType}[${idx}].${e.field}`;
+          errors.push(e);
+        });
+
+        // Validate semantics for updates
+        const {errors: semErrors, warnings: semWarnings} = validateSemantics(
+          update,
+          singularType,
+          pack,
+          changeSet
+        );
+        semErrors.forEach(e => {
+          e.field = `update.${entityType}[${idx}].${e.field}`;
+          errors.push(e);
+        });
+        semWarnings.forEach(w => {
+          w.field = `update.${entityType}[${idx}].${w.field}`;
+          warnings.push(w);
         });
       });
     }
